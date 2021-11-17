@@ -66,13 +66,21 @@ def schedule_list(args):
             out(subvol)
             max_period_count_length = max([len(str(scheduler.config[p])) for p in periods])
             for period in sorted(scheduler.config.keys(), key=lambda p: p.seconds):
+                # Last run
                 last_run = scheduler.last_run(period)
                 if last_run is None:
                     last_run = 'Never'
-                out(" {0}  keep={1}  last run={2}".format(
+                # Next run
+                next_run = scheduler.next_run(period)
+                if next_run is None:
+                    next_run = 'Immediately'
+                else:
+                    next_run = next_run.strftime('%a %d %b %Y %H:%M:%S')
+                out(" {0}  keep={1}  last run={2}  next_run={3}".format(
                     format(period.name, "<{0}".format(periods_max_name_length)),
                     format(scheduler.config[period], "<{0}".format(max_period_count_length)),
-                    last_run
+                    last_run,
+                    next_run,
                 ))
             out()
 

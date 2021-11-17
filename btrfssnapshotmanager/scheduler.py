@@ -28,3 +28,10 @@ class SubvolumeScheduleManager():
             return None
         else:
             return snapshots[0].date
+
+    def next_run(self, period):
+        last_run = self.last_run(period)
+        if last_run is None:
+            return None
+        else:
+            return period.next_period(last_run)
