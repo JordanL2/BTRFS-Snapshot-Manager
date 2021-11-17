@@ -54,6 +54,14 @@ class Subvolume():
         self._sort_snapshots()
         return snapshot
 
+    def find_snapshot(self, name):
+        if not self.has_snapshots():
+            raise Exception("snapshot dir doesn't exist")
+        for s in self.snapshots:
+            if s.name == name:
+                return s
+        return None
+
     def _check_path(self):
         #TODO ensure this is a btrfs subvolume
         return True
@@ -99,7 +107,7 @@ class Snapshot():
 
     def delete(self):
         #TODO delete
-        pass
+        self.subvolume.snapshots.remove(self)
 
 
 class SnapshotTags():
@@ -111,8 +119,11 @@ class SnapshotTags():
                 if t in string:
                     self.tags[t] = p
 
+    def periods(self):
+        return [p for p in sorted(self.tags.values(), key=lambda x: x.seconds)]
+
     def string(self):
-        return ''.join(t for t, p in self.tags.items())
+        return ''.join([p.tag for p in self.periods()])
 
     def is_empty(self):
         return len(self.tags) == 0

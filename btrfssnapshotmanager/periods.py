@@ -11,6 +11,7 @@ class PeriodHour(Period):
 
     name = 'hourly'
     tag = 'H'
+    seconds = 3600
 
     def period_passed(t1, t2):
         #TODO
@@ -21,6 +22,7 @@ class PeriodDay(Period):
 
     name = 'daily'
     tag = 'D'
+    seconds = 86400
 
     def period_passed(t1, t2):
         #TODO
@@ -31,6 +33,7 @@ class PeriodWeek(Period):
 
     name = 'weekly'
     tag = 'W'
+    seconds = 86400 * 7
 
     def period_passed(t1, t2):
         #TODO
@@ -41,6 +44,7 @@ class PeriodMonth(Period):
 
     name = 'monthly'
     tag = 'M'
+    seconds = 86400 * 30
 
     def period_passed(t1, t2):
         #TODO

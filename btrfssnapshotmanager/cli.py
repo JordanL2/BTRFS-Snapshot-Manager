@@ -28,6 +28,7 @@ def main():
     # snapshots list
     snapshots_list_parser = snapshots_subparsers.add_parser('list', help='list snapshots')
     snapshots_list_parser.add_argument('path', help='path to subvolume')
+    snapshots_list_parser.add_argument('--details', required=False, default=False, action='store_true', help='output detailed list')
     snapshots_list_parser.set_defaults(func=snapshots_list)
 
     args = parser.parse_args()
@@ -43,13 +44,27 @@ def snapshots_create(args):
 def snapshots_delete(args):
     path = args.path
     name = args.name
-    print("deleting snapshot", name, "in", path)
+    subvol = Subvolume(path)
+    snapshot = subvol.find_snapshot(name)
+    if snapshot is None:
+        fail("Could not find snapshot", name, "in subvolume", path)
+    snapshot.delete()
+    out("Deleted snapshot", name, "from subvolume", path)
 
 def snapshots_list(args):
     path = args.path
+    details = args.details
     subvol = Subvolume(path)
-    for snapshot in subvol.snapshots:
-        out(snapshot.name)
+    if details:
+        for snapshot in subvol.snapshots:
+            out("{0} | {1} | {2}".format(
+                snapshot.name,
+                snapshot.date.strftime('%a %d %b %Y %H:%M:%S'),
+                ', '.join([p.name for p in snapshot.tags.periods()])
+            ))
+    else:
+        for snapshot in subvol.snapshots:
+            out(snapshot.name)
 
 
 def out(*messages):
