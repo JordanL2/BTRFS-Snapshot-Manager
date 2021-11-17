@@ -1,9 +1,14 @@
 #!/bin/sh
 
+# Install python script
 cd "$(dirname "$0/")"
 sudo pip3 install .
 
+# Make config dir and empty config file
+sudo mkdir -p /etc/btrfs-snapshot-manager
+sudo touch /etc/btrfs-snapshot-manager/config.yml
+
+# Set up service and timer
 sudo cp btrfs-snapshot.service /etc/systemd/system/
 sudo cp btrfs-snapshot.timer /etc/systemd/system/
-
 sudo systemctl enable --now btrfs-snapshot.timer
