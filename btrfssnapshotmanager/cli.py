@@ -56,9 +56,10 @@ def snapshots_list(args):
     details = args.details
     subvol = Subvolume(path)
     if details:
+        maxlen = max([len(s.name) for s in subvol.snapshots])
         for snapshot in subvol.snapshots:
             out("{0} | {1} | {2}".format(
-                snapshot.name,
+                format(snapshot.name, "<{0}".format(maxlen)),
                 snapshot.date.strftime('%a %d %b %Y %H:%M:%S'),
                 ', '.join([p.name for p in snapshot.tags.periods()])
             ))

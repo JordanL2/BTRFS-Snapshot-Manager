@@ -40,9 +40,10 @@ class Subvolume():
             raise Exception("snapshot dir doesn't exist")
         self.snapshots = []
         for child in self.snapshots_dir.iterdir():
-            snapshot = self._snapshot_name_parse(child.name)
-            if snapshot is not None:
-                self.snapshots.append(snapshot)
+            if child.is_dir():
+                snapshot = self._snapshot_name_parse(child.name)
+                if snapshot is not None:
+                    self.snapshots.append(snapshot)
         self._sort_snapshots()
 
     def create_snapshot(self, date=None, tags=None):
