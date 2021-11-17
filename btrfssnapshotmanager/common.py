@@ -11,6 +11,13 @@ class CommandException(Exception):
         super().__init__(self, "Command returned code {} - {}".format(code, error))
 
 
+class SnapshotException(Exception):
+
+    def __init__(self, error):
+        self.error = error
+        super().__init__(self, error)
+
+
 def cmd(command):
     result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout = result.stdout.decode('utf-8').rstrip("\n")

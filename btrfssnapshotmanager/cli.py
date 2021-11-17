@@ -37,7 +37,10 @@ def main():
     snapshots_list_parser.set_defaults(func=snapshots_list)
 
     args = parser.parse_args()
-    args.func(args)
+    try:
+        args.func(args)
+    except SnapshotException as e:
+        fail(e.error)
 
 
 def snapshots_create(args):

@@ -20,7 +20,7 @@ class Subvolume():
     def __init__(self, path):
         self.path = PosixPath(path)
         if not self._check_path():
-            raise Exception("not a valid btrfs subvolume")
+            raise SnapshotException("Not a valid btrfs subvolume")
         self.snapshots_dir = PosixPath(path, snapshots_dir_name)
         if self.has_snapshots():
             self.load_snapshots()
@@ -30,13 +30,13 @@ class Subvolume():
 
     def init_snapshots(self):
         if self.has_snapshots():
-            raise Exception("snapshot dir already exists")
+            raise SnapshotException("Subvolume is already initialised for snapshots")
         self.snapshots_dir.mkdir(mode=0o755)
         self.load_snapshots()
 
     def load_snapshots(self):
         if not self.has_snapshots():
-            raise Exception("snapshot dir doesn't exist")
+            raise SnapshotException("Subvolume not initialised for snapshots")
         self.snapshots = []
         for child in self.snapshots_dir.iterdir():
             if child.is_dir():
@@ -46,6 +46,8 @@ class Subvolume():
         self._sort_snapshots()
 
     def create_snapshot(self, date=None, tags=None):
+        if not self.has_snapshots():
+            raise SnapshotException("Subvolume not initialised for snapshots")
         if date is None:
             date = datetime.now()
         if tags is None:
@@ -58,7 +60,7 @@ class Subvolume():
 
     def find_snapshot(self, name):
         if not self.has_snapshots():
-            raise Exception("snapshot dir doesn't exist")
+            raise SnapshotException("Subvolume not initialised for snapshots")
         for s in self.snapshots:
             if s.name == name:
                 return s
