@@ -13,7 +13,6 @@ snapshots_dir_regex = re.compile(r'(\d\d\d\d)-(\d\d)-(\d\d)_(\d\d)-(\d\d)-(\d\d)
 snapshots_dir_date_format = '%Y-%m-%d_%H-%M-%S'
 
 
-
 class Subvolume():
 
     snapshots = None
@@ -66,7 +65,10 @@ class Subvolume():
         return None
 
     def _check_path(self):
-        #TODO ensure this is a btrfs subvolume
+        try:
+            cmd("sudo btrfs subvolume show {0}".format(self.path))
+        except CommandException:
+            return False
         return True
 
     def _sort_snapshots(self):
