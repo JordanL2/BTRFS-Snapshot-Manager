@@ -46,13 +46,14 @@ class Subvolume():
                     self.snapshots.append(snapshot)
         self._sort_snapshots()
 
-    def create_snapshot(self, date=None, tags=None):
+    def create_snapshot(self, date=None, periods=None):
         if not self.has_snapshots():
             raise SnapshotException("Subvolume not initialised for snapshots")
         if date is None:
             date = datetime.now()
-        if tags is None:
-            tags = SnapshotTags()
+        tags = SnapshotTags()
+        if periods is not None:
+            tags = SnapshotTags(periods=periods)
         name = self._snapshot_name_format(date, tags)
         snapshot = Snapshot(self, name, date, tags, create=True)
         self.snapshots.append(snapshot)
@@ -129,12 +130,15 @@ class Snapshot():
 
 class SnapshotTags():
 
-    def __init__(self, string=None):
+    def __init__(self, string=None, periods=None):
         self.tags = {}
         if string is not None:
             for t, p in period_map.items():
                 if t in string:
                     self.tags[t] = p
+        elif periods is not None:
+            for p in periods:
+                self.tags[p.tag] = p
 
     def periods(self):
         return [p for p in sorted(self.tags.values(), key=lambda x: x.seconds)]

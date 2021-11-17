@@ -25,3 +25,6 @@ def cmd(command):
     if result.returncode != 0:
         raise CommandException(result.returncode, stderr)
     return stdout
+
+def info(*messages):
+    print(' '.join([str(m) for m in messages]), flush=True)

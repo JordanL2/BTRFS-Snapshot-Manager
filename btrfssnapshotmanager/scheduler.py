@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+from btrfssnapshotmanager.common import *
 from btrfssnapshotmanager.config import *
 from btrfssnapshotmanager.snapshots import *
 
@@ -11,6 +12,20 @@ class ScheduleManager():
         self.schedulers = {}
         for subvol in self.config.schedules:
             self.schedulers[subvol] = SubvolumeScheduleManager(self, subvol)
+
+    def execute(self):
+        for subvol, scheduler in self.schedulers.items():
+            info("Subvolume:", subvol)
+            periods = []
+            for period, count in scheduler.config.items():
+                if scheduler.should_run(period):
+                    info("Period reached:", period.name)
+                    periods.append(period)
+            if len(periods) > 0:
+                scheduler.run(periods)
+            else:
+                info("No periods reached")
+            info()
 
 
 class SubvolumeScheduleManager():
@@ -35,3 +50,14 @@ class SubvolumeScheduleManager():
             return None
         else:
             return period.next_period(last_run)
+
+    def should_run(self, period):
+        now = datetime.now()
+        next_run = self.next_run(period)
+        if next_run is None or next_run <= now:
+            return True
+        return False
+
+    def run(self, periods):
+        info("Creating snapshot for:", ', '.join([p.name for p in periods]))
+        self.subvol.create_snapshot(periods=periods)

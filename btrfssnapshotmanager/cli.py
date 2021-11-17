@@ -15,6 +15,10 @@ def main():
     schedule_parser = subparsers.add_parser('schedule', help='schedule-related commands')
     schedule_subparsers = schedule_parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
 
+    # schedule execute
+    schedule_execute_parser = schedule_subparsers.add_parser('execute', help='execute snapshot schedules')
+    schedule_execute_parser.set_defaults(func=schedule_execute)
+
     # schedule list
     schedule_list_parser = schedule_subparsers.add_parser('list', help='list snapshot schedules')
     schedule_list_parser.add_argument('--path', help='path to subvolume')
@@ -55,6 +59,10 @@ def main():
 
 
 # Schedule
+
+def schedule_execute(args):
+    schedule_manager = ScheduleManager()
+    schedule_manager.execute()
 
 def schedule_list(args):
     path = args.path
