@@ -72,7 +72,7 @@ class Subvolume():
         found_snapshots = []
         for snapshot in self.snapshots:
             if periods is not None:
-                if len([p for p in periods for t in snapshot.tags.periods() if p == t]) == 0:
+                if len([p for p in periods for t in snapshot.tags.periods if p == t]) == 0:
                     continue
             found_snapshots.append(snapshot)
         return found_snapshots
@@ -131,20 +131,20 @@ class Snapshot():
 class SnapshotTags():
 
     def __init__(self, string=None, periods=None):
-        self.tags = {}
+        self.periods = []
         if string is not None:
             for t, p in PERIOD_TAG_MAP.items():
                 if t in string:
-                    self.tags[t] = p
+                    self.periods.append(p)
         elif periods is not None:
             for p in periods:
-                self.tags[p.tag] = p
+                self.periods.append(p)
 
-    def periods(self):
-        return [p for p in sorted(self.tags.values(), key=lambda x: x.seconds)]
+    def get_periods(self):
+        return [p for p in sorted(self.periods, key=lambda x: x.seconds)]
 
     def string(self):
-        return ''.join([p.tag for p in self.periods()])
+        return ''.join([p.tag for p in self.get_periods()])
 
     def is_empty(self):
-        return len(self.tags) == 0
+        return len(self.periods) == 0
