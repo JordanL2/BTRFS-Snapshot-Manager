@@ -12,7 +12,7 @@ def main():
 
     # snapshots
     snapshots_parser = subparsers.add_parser('snapshots', help='snapshot-related commands')
-    snapshots_subparsers = snapshots_parser.add_subparsers(required=True)
+    snapshots_subparsers = snapshots_parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
 
     # snapshots create
     snapshots_create_parser = snapshots_subparsers.add_parser('create', help='create snapshot')
