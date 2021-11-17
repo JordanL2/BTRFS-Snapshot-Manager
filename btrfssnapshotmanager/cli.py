@@ -72,7 +72,7 @@ def schedule_list(args):
     for subvol, scheduler in schedule_manager.schedulers.items():
         if path is None or subvol == path:
             out(subvol)
-            max_period_count_length = max([len(str(scheduler.config[p])) for p in periods])
+            max_period_count_length = max([len(str(scheduler.config[p])) for p in PERIODS])
             for period in sorted(scheduler.config.keys(), key=lambda p: p.seconds):
                 # Last run
                 last_run = scheduler.last_run(period)
@@ -85,7 +85,7 @@ def schedule_list(args):
                 else:
                     next_run = next_run.strftime('%a %d %b %Y %H:%M:%S')
                 out(" {0}  keep={1}  last run={2}  next_run={3}".format(
-                    format(period.name, "<{0}".format(periods_max_name_length)),
+                    format(period.name, "<{0}".format(PERIODS_MAX_NAME_LENGTH)),
                     format(scheduler.config[period], "<{0}".format(max_period_count_length)),
                     last_run,
                     next_run,
@@ -123,9 +123,9 @@ def snapshot_list(args):
     periods = args.periods
     if periods is not None:
         for p in periods:
-            if p not in period_name_map:
+            if p not in PERIOD_NAME_MAP:
                 fail("No such period:", p)
-        periods = [period_name_map[p] for p in periods]
+        periods = [PERIOD_NAME_MAP[p] for p in periods]
     subvol = Subvolume(path)
     if subvol.snapshots is None:
         fail("Subvolume", path, "is not initialised for snapshots")

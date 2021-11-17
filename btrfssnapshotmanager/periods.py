@@ -55,7 +55,7 @@ class PeriodMonth(Period):
         return last_period.replace(month=month, year=year)
 
 
-periods = [PeriodHour, PeriodDay, PeriodWeek, PeriodMonth]
-period_map = dict([(p.tag, p) for p in periods])
-period_name_map = dict([(p.name, p) for p in periods])
-periods_max_name_length = max([len(p.name) for p in periods])
+PERIODS = [PeriodHour, PeriodDay, PeriodWeek, PeriodMonth]
+PERIOD_TAG_MAP = dict([(p.tag, p) for p in PERIODS])
+PERIOD_NAME_MAP = dict([(p.name, p) for p in PERIODS])
+PERIODS_MAX_NAME_LENGTH = max([len(p.name) for p in PERIODS])

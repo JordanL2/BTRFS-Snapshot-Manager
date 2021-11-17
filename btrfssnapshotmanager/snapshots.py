@@ -133,7 +133,7 @@ class SnapshotTags():
     def __init__(self, string=None, periods=None):
         self.tags = {}
         if string is not None:
-            for t, p in period_map.items():
+            for t, p in PERIOD_TAG_MAP.items():
                 if t in string:
                     self.tags[t] = p
         elif periods is not None:
