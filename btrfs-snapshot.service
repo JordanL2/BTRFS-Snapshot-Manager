@@ -1,0 +1,6 @@
+[Unit]
+Description=BTRFS snapshot schedule execute
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/btrfs-snapshot-manager schedule execute

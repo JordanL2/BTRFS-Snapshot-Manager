@@ -1,0 +1,9 @@
+#!/bin/sh
+
+cd "$(dirname "$0/")"
+sudo pip3 install .
+
+sudo cp btrfs-snapshot.service /etc/systemd/system/
+sudo cp btrfs-snapshot.timer /etc/systemd/system/
+
+sudo systemctl enable --now btrfs-snapshot.timer
