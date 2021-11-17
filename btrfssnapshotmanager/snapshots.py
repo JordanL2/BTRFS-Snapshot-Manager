@@ -9,6 +9,7 @@ import re
 
 snapshots_dir_name = '.snapshots'
 snapshots_dir_regex = re.compile(r'(\d\d\d\d)-(\d\d)-(\d\d)_(\d\d)-(\d\d)-(\d\d)_?([HDWM]*)')
+snapshots_dir_date_format = '%Y-%m-%d_%H:%M:%S'
 
 
 class Subvolume():
@@ -23,33 +24,63 @@ class Subvolume():
         if self.has_snapshots():
             self.load_snapshots()
 
-    def _check_path(self):
-        #TODO ensure this is a btrfs subvolume
-        return True
-
     def has_snapshots(self):
         return self.snapshots_dir.is_dir()
 
     def init_snapshots(self):
-        #TODO make .snapshots dir
+        if self.has_snapshots():
+            raise Exception("snapshot dir already exists")
+        self.snapshots_dir.mkdir(mode=0o755)
         self.load_snapshots()
 
     def load_snapshots(self):
         if not self.has_snapshots():
             raise Exception("snapshot dir doesn't exist")
         self.snapshots = []
-        for child in sorted(self.snapshots_dir.iterdir()):
-            snapshots_dir_match = snapshots_dir_regex.fullmatch(child.name)
-            if snapshots_dir_match:
-                date = datetime(
-                    int(snapshots_dir_match.group(1)),
-                    int(snapshots_dir_match.group(2)),
-                    int(snapshots_dir_match.group(3)),
-                    int(snapshots_dir_match.group(4)),
-                    int(snapshots_dir_match.group(5)),
-                    int(snapshots_dir_match.group(6)))
-                tags = SnapshotTags(snapshots_dir_match.group(7))
-                self.snapshots.append(Snapshot(self, child.name, date, tags))
+        for child in self.snapshots_dir.iterdir():
+            snapshot = self._snapshot_name_parse(child.name)
+            if snapshot is not None:
+                self.snapshots.append(snapshot)
+        self._sort_snapshots()
+
+    def create_snapshot(self, date=None, tags=None):
+        if date is None:
+            date = datetime.now()
+        if tags is None:
+            tags = SnapshotTags()
+        name = self._snapshot_name_format(date, tags)
+        snapshot = Snapshot(self, name, date, tags, create=True)
+        self.snapshots.append(snapshot)
+        self._sort_snapshots()
+        return snapshot
+
+    def _check_path(self):
+        #TODO ensure this is a btrfs subvolume
+        return True
+
+    def _sort_snapshots(self):
+        self.snapshots = sorted(self.snapshots, key=lambda s: s.date)
+
+    def _snapshot_name_parse(self, name):
+        snapshots_dir_match = snapshots_dir_regex.fullmatch(name)
+        if snapshots_dir_match:
+            date = datetime(
+                int(snapshots_dir_match.group(1)),
+                int(snapshots_dir_match.group(2)),
+                int(snapshots_dir_match.group(3)),
+                int(snapshots_dir_match.group(4)),
+                int(snapshots_dir_match.group(5)),
+                int(snapshots_dir_match.group(6)))
+            tags = SnapshotTags(snapshots_dir_match.group(7))
+            return Snapshot(self, name, date, tags)
+        else:
+            return None
+
+    def _snapshot_name_format(self, date, tags):
+        name = date.strftime(snapshots_dir_date_format)
+        if not tags.is_empty():
+            name += '_' + tags.string()
+        return name
 
 
 class Snapshot():
@@ -60,9 +91,9 @@ class Snapshot():
         self.date = date
         self.tags = tags
         if create:
-            self.create(tags)
+            self.create()
 
-    def create(self, tags):
+    def create(self):
         #TODO make snapshot
         pass
 
@@ -73,8 +104,15 @@ class Snapshot():
 
 class SnapshotTags():
 
-    def __init__(self, string):
+    def __init__(self, string=None):
         self.tags = {}
-        for t, p in period_map.items():
-            if t in string:
-                self.tags[t] = p
+        if string is not None:
+            for t, p in period_map.items():
+                if t in string:
+                    self.tags[t] = p
+
+    def string(self):
+        return ''.join(t for t, p in self.tags.items())
+
+    def is_empty(self):
+        return len(self.tags) == 0

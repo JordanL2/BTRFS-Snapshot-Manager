@@ -36,7 +36,9 @@ def main():
 
 def snapshots_create(args):
     path = args.path
-    print("creating snapshot in", path)
+    subvol = Subvolume(path)
+    snapshot = subvol.create_snapshot()
+    out("Created snapshot", snapshot.name, "in subvolume", path)
 
 def snapshots_delete(args):
     path = args.path
