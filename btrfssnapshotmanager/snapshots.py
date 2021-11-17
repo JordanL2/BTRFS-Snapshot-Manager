@@ -67,6 +67,15 @@ class Subvolume():
                 return s
         return None
 
+    def search_snapshots(self, periods=None):
+        found_snapshots = []
+        for snapshot in self.snapshots:
+            if periods is not None:
+                if len([p for p in periods for t in snapshot.tags.periods() if p == t]) == 0:
+                    continue
+            found_snapshots.append(snapshot)
+        return found_snapshots
+
     def _check_path(self):
         try:
             cmd("sudo btrfs subvolume show {0}".format(self.path))

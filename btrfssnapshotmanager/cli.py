@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from btrfssnapshotmanager.config import *
+from btrfssnapshotmanager.scheduler import *
 from btrfssnapshotmanager.snapshots import *
 
 import argparse
@@ -57,17 +57,22 @@ def main():
 
 def schedule_list(args):
     path = args.path
-    config = Config()
-    schedules = config.schedules
-    if path is not None and path not in schedules:
+    schedule_manager = ScheduleManager()
+    if path is not None and path not in schedule_manager.schedules:
         fail("Schedule not found for subvolume", path)
-    for subvol, schedule in schedules.items():
+    for subvol, scheduler in schedule_manager.schedulers.items():
         if path is None or subvol == path:
             out(subvol)
-            for period in sorted(schedule.keys(), key=lambda p: p.seconds):
-                out("  {0} {1}".format(
+            max_period_count_length = max([len(str(scheduler.config[p])) for p in periods])
+            for period in sorted(scheduler.config.keys(), key=lambda p: p.seconds):
+                last_run = scheduler.last_run(period)
+                if last_run is None:
+                    last_run = 'Never'
+                out(" {0}  keep={1}  last run={2}".format(
                     format(period.name, "<{0}".format(periods_max_name_length)),
-                    schedule[period]))
+                    format(scheduler.config[period], "<{0}".format(max_period_count_length)),
+                    last_run
+                ))
             out()
 
 
