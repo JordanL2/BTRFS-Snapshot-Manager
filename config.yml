@@ -1,0 +1,12 @@
+/:
+  schedule:
+    hourly: 48
+    daily: 7
+    weekly: 3
+    monthly: 1
+/home:
+  schedule:
+    hourly: 48
+    daily: 7
+    weekly: 3
+    monthly: 3

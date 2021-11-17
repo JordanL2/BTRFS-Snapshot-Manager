@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+from btrfssnapshotmanager.config import *
 from btrfssnapshotmanager.snapshots import *
 
 import argparse
@@ -10,31 +11,40 @@ def main():
     parser = argparse.ArgumentParser(prog='btrfs-snapshot-manager')
     subparsers = parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
 
-    # snapshots
-    snapshots_parser = subparsers.add_parser('snapshots', help='snapshot-related commands')
-    snapshots_subparsers = snapshots_parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
+    # schedule
+    schedule_parser = subparsers.add_parser('schedule', help='schedule-related commands')
+    schedule_subparsers = schedule_parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
 
-    # snapshots create
-    snapshots_create_parser = snapshots_subparsers.add_parser('create', help='create snapshot')
-    snapshots_create_parser.add_argument('path', help='path to subvolume')
-    snapshots_create_parser.set_defaults(func=snapshots_create)
+    # schedule list
+    schedule_list_parser = schedule_subparsers.add_parser('list', help='list snapshot schedules')
+    schedule_list_parser.add_argument('--path', help='path to subvolume')
+    schedule_list_parser.set_defaults(func=schedule_list)
 
-    # snapshots delete
-    snapshots_delete_parser = snapshots_subparsers.add_parser('delete', help='delete snapshot')
-    snapshots_delete_parser.add_argument('path', help='path to subvolume')
-    snapshots_delete_parser.add_argument('name', help='snapshot name to delete')
-    snapshots_delete_parser.set_defaults(func=snapshots_delete)
+    # snapshot
+    snapshot_parser = subparsers.add_parser('snapshot', help='snapshot-related commands')
+    snapshot_subparsers = snapshot_parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
 
-    # snapshots init
-    snapshots_init_parser = snapshots_subparsers.add_parser('init', help='initialise this subvolume for snapshots')
-    snapshots_init_parser.add_argument('path', help='path to subvolume')
-    snapshots_init_parser.set_defaults(func=snapshots_init)
+    # snapshot create
+    snapshot_create_parser = snapshot_subparsers.add_parser('create', help='create snapshot')
+    snapshot_create_parser.add_argument('path', help='path to subvolume')
+    snapshot_create_parser.set_defaults(func=snapshot_create)
 
-    # snapshots list
-    snapshots_list_parser = snapshots_subparsers.add_parser('list', help='list snapshots')
-    snapshots_list_parser.add_argument('path', help='path to subvolume')
-    snapshots_list_parser.add_argument('--details', required=False, default=False, action='store_true', help='output detailed list')
-    snapshots_list_parser.set_defaults(func=snapshots_list)
+    # snapshot delete
+    snapshot_delete_parser = snapshot_subparsers.add_parser('delete', help='delete snapshot')
+    snapshot_delete_parser.add_argument('path', help='path to subvolume')
+    snapshot_delete_parser.add_argument('name', help='snapshot name to delete')
+    snapshot_delete_parser.set_defaults(func=snapshot_delete)
+
+    # snapshot init
+    snapshot_init_parser = snapshot_subparsers.add_parser('init', help='initialise this subvolume for snapshots')
+    snapshot_init_parser.add_argument('path', help='path to subvolume')
+    snapshot_init_parser.set_defaults(func=snapshot_init)
+
+    # snapshot list
+    snapshot_list_parser = snapshot_subparsers.add_parser('list', help='list snapshots')
+    snapshot_list_parser.add_argument('path', help='path to subvolume')
+    snapshot_list_parser.add_argument('--details', required=False, default=False, action='store_true', help='output detailed list')
+    snapshot_list_parser.set_defaults(func=snapshot_list)
 
     args = parser.parse_args()
     try:
@@ -43,13 +53,33 @@ def main():
         fail(e.error)
 
 
-def snapshots_create(args):
+# Schedule
+
+def schedule_list(args):
+    path = args.path
+    config = Config()
+    schedules = config.schedules
+    if path is not None and path not in schedules:
+        fail("Schedule not found for subvolume", path)
+    for subvol, schedule in schedules.items():
+        if path is None or subvol == path:
+            out(subvol)
+            for period in sorted(schedule.keys(), key=lambda p: p.seconds):
+                out("  {0} {1}".format(
+                    format(period.name, "<{0}".format(periods_max_name_length)),
+                    schedule[period]))
+            out()
+
+
+# Snapshots
+
+def snapshot_create(args):
     path = args.path
     subvol = Subvolume(path)
     snapshot = subvol.create_snapshot()
     out("Created snapshot", snapshot.name, "in subvolume", path)
 
-def snapshots_delete(args):
+def snapshot_delete(args):
     path = args.path
     name = args.name
     subvol = Subvolume(path)
@@ -59,13 +89,13 @@ def snapshots_delete(args):
     snapshot.delete()
     out("Deleted snapshot", name, "from subvolume", path)
 
-def snapshots_init(args):
+def snapshot_init(args):
     path = args.path
     subvol = Subvolume(path)
     subvol.init_snapshots()
     out("Initialised subvolume", path, "for snapshots")
 
-def snapshots_list(args):
+def snapshot_list(args):
     path = args.path
     details = args.details
     subvol = Subvolume(path)
@@ -83,6 +113,8 @@ def snapshots_list(args):
         for snapshot in subvol.snapshots:
             out(snapshot.name)
 
+
+# General
 
 def out(*messages):
     print(' '.join([str(m) for m in messages]), flush=True)
