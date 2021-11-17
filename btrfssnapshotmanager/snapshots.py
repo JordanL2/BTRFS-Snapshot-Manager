@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+from btrfssnapshotmanager.common import *
 from btrfssnapshotmanager.periods import *
 
 from datetime import *
@@ -9,7 +10,8 @@ import re
 
 snapshots_dir_name = '.snapshots'
 snapshots_dir_regex = re.compile(r'(\d\d\d\d)-(\d\d)-(\d\d)_(\d\d)-(\d\d)-(\d\d)_?([HDWM]*)')
-snapshots_dir_date_format = '%Y-%m-%d_%H:%M:%S'
+snapshots_dir_date_format = '%Y-%m-%d_%H-%M-%S'
+
 
 
 class Subvolume():
@@ -96,17 +98,17 @@ class Snapshot():
     def __init__(self, subvolume, name, date, tags, create=False):
         self.subvolume = subvolume
         self.name = name
+        self.path = PosixPath(subvolume.snapshots_dir, name)
         self.date = date
         self.tags = tags
         if create:
             self.create()
 
     def create(self):
-        #TODO make snapshot
-        pass
+        cmd("sudo btrfs subvolume snapshot -r {0} {1}".format(self.subvolume.path, self.path))
 
     def delete(self):
-        #TODO delete
+        cmd("sudo btrfs subvolume delete --commit-each {0}".format(self.path))
         self.subvolume.snapshots.remove(self)
 
 
