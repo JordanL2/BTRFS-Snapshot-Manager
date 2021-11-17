@@ -25,6 +25,11 @@ def main():
     snapshots_delete_parser.add_argument('name', help='snapshot name to delete')
     snapshots_delete_parser.set_defaults(func=snapshots_delete)
 
+    # snapshots init
+    snapshots_init_parser = snapshots_subparsers.add_parser('init', help='initialise this subvolume for snapshots')
+    snapshots_init_parser.add_argument('path', help='path to subvolume')
+    snapshots_init_parser.set_defaults(func=snapshots_init)
+
     # snapshots list
     snapshots_list_parser = snapshots_subparsers.add_parser('list', help='list snapshots')
     snapshots_list_parser.add_argument('path', help='path to subvolume')
@@ -51,10 +56,18 @@ def snapshots_delete(args):
     snapshot.delete()
     out("Deleted snapshot", name, "from subvolume", path)
 
+def snapshots_init(args):
+    path = args.path
+    subvol = Subvolume(path)
+    subvol.init_snapshots()
+    out("Initialised subvolume", path, "for snapshots")
+
 def snapshots_list(args):
     path = args.path
     details = args.details
     subvol = Subvolume(path)
+    if subvol.snapshots is None:
+        fail("Subvolume", path, "is not initialised for snapshots")
     if details:
         maxlen = max([len(s.name) for s in subvol.snapshots])
         for snapshot in subvol.snapshots:
