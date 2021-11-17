@@ -44,6 +44,7 @@ def main():
     snapshot_list_parser = snapshot_subparsers.add_parser('list', help='list snapshots')
     snapshot_list_parser.add_argument('path', help='path to subvolume')
     snapshot_list_parser.add_argument('--details', required=False, default=False, action='store_true', help='output detailed list')
+    snapshot_list_parser.add_argument('--periods', nargs='*', help='only list snapshots for this period')
     snapshot_list_parser.set_defaults(func=snapshot_list)
 
     args = parser.parse_args()
@@ -103,19 +104,26 @@ def snapshot_init(args):
 def snapshot_list(args):
     path = args.path
     details = args.details
+    periods = args.periods
+    if periods is not None:
+        for p in periods:
+            if p not in period_name_map:
+                fail("No such period:", p)
+        periods = [period_name_map[p] for p in periods]
     subvol = Subvolume(path)
     if subvol.snapshots is None:
         fail("Subvolume", path, "is not initialised for snapshots")
+    snapshots = subvol.search_snapshots(periods=periods)
     if details:
         maxlen = max([len(s.name) for s in subvol.snapshots])
-        for snapshot in subvol.snapshots:
+        for snapshot in snapshots:
             out("{0} | {1} | {2}".format(
                 format(snapshot.name, "<{0}".format(maxlen)),
                 snapshot.date.strftime('%a %d %b %Y %H:%M:%S'),
                 ', '.join([p.name for p in snapshot.tags.periods()])
             ))
     else:
-        for snapshot in subvol.snapshots:
+        for snapshot in snapshots:
             out(snapshot.name)
 
 
