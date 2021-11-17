@@ -11,6 +11,7 @@ import re
 snapshots_dir_name = '.snapshots'
 snapshots_dir_regex = re.compile(r'(\d\d\d\d)-(\d\d)-(\d\d)_(\d\d)-(\d\d)-(\d\d)_?([HDWM]*)')
 snapshots_dir_date_format = '%Y-%m-%d_%H-%M-%S'
+snapshots_dir_mode = 0o755
 
 
 class Subvolume():
@@ -31,7 +32,7 @@ class Subvolume():
     def init_snapshots(self):
         if self.has_snapshots():
             raise SnapshotException("Subvolume is already initialised for snapshots")
-        self.snapshots_dir.mkdir(mode=0o755)
+        self.snapshots_dir.mkdir(mode=snapshots_dir_mode)
         self.load_snapshots()
 
     def load_snapshots(self):
