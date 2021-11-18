@@ -8,11 +8,10 @@ from pathlib import PosixPath, PurePosixPath
 
 class Backup():
 
-    last_sync_file = None
-
     def __init__(self, subvol, retention):
         self.subvol = Subvolume(subvol)
         self.retention = retention
+        self.last_sync_file = None
 
     def backup(self):
         # Get list of source snapshots that should be on the target
