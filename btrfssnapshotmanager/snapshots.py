@@ -51,11 +51,10 @@ class Subvolume():
             raise SnapshotException("Subvolume not initialised for snapshots")
         if date is None:
             date = datetime.now()
-        tags = SnapshotTags()
-        if periods is not None:
-            tags = SnapshotTags(periods=periods)
-        name = self._snapshot_name_format(date, tags)
-        snapshot = Snapshot(self, name, date, tags, create=True)
+        if periods is None:
+            periods = []
+        name = self._snapshot_name_format(date, periods)
+        snapshot = Snapshot(self, name, date, periods, create=True)
         self.snapshots.append(snapshot)
         self._sort_snapshots()
         return snapshot
@@ -72,7 +71,7 @@ class Subvolume():
         found_snapshots = []
         for snapshot in self.snapshots:
             if periods is not None:
-                if len([p for p in periods for t in snapshot.tags.periods if p == t]) == 0:
+                if len([p for p in periods for t in snapshot.periods if p == t]) == 0:
                     continue
             found_snapshots.append(snapshot)
         return found_snapshots
@@ -97,26 +96,32 @@ class Subvolume():
                 int(snapshots_dir_match.group(4)),
                 int(snapshots_dir_match.group(5)),
                 int(snapshots_dir_match.group(6)))
-            tags = SnapshotTags(snapshots_dir_match.group(7))
-            return Snapshot(self, name, date, tags)
+
+            tags = snapshots_dir_match.group(7)
+            periods = []
+            for t, p in PERIOD_TAG_MAP.items():
+                if t in tags:
+                    periods.append(p)
+
+            return Snapshot(self, name, date, periods)
         else:
             return None
 
-    def _snapshot_name_format(self, date, tags):
+    def _snapshot_name_format(self, date, periods):
         name = date.strftime(snapshots_dir_date_format)
-        if not tags.is_empty():
-            name += '_' + tags.string()
+        if periods is None and len(periods) > 0:
+            name += '_' + ''.join([p.tag for p in sorted(periods, key=lambda x: x.seconds)])
         return name
 
 
 class Snapshot():
 
-    def __init__(self, subvolume, name, date, tags, create=False):
+    def __init__(self, subvolume, name, date, periods, create=False):
         self.subvolume = subvolume
         self.name = name
         self.path = PosixPath(subvolume.snapshots_dir, name)
         self.date = date
-        self.tags = tags
+        self.periods = periods
         if create:
             self.create()
 
@@ -127,24 +132,5 @@ class Snapshot():
         cmd("sudo btrfs subvolume delete --commit-each {0}".format(self.path))
         self.subvolume.snapshots.remove(self)
 
-
-class SnapshotTags():
-
-    def __init__(self, string=None, periods=None):
-        self.periods = []
-        if string is not None:
-            for t, p in PERIOD_TAG_MAP.items():
-                if t in string:
-                    self.periods.append(p)
-        elif periods is not None:
-            for p in periods:
-                self.periods.append(p)
-
     def get_periods(self):
         return [p for p in sorted(self.periods, key=lambda x: x.seconds)]
-
-    def string(self):
-        return ''.join([p.tag for p in self.get_periods()])
-
-    def is_empty(self):
-        return len(self.periods) == 0

@@ -140,7 +140,7 @@ def snapshot_list(args):
             out("{0} | {1} | {2}".format(
                 format(snapshot.name, "<{0}".format(maxlen)),
                 snapshot.date.strftime('%a %d %b %Y %H:%M:%S'),
-                ', '.join([p.name for p in snapshot.tags.periods])
+                ', '.join([p.name for p in snapshot.get_periods()])
             ))
     else:
         for snapshot in snapshots:
