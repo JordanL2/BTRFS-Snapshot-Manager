@@ -7,6 +7,9 @@ import argparse
 import sys
 
 
+dateformat_human =  '%a %d %b %Y %H:%M:%S'
+
+
 def main():
     parser = argparse.ArgumentParser(prog='btrfs-snapshot-manager')
     subparsers = parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
@@ -79,12 +82,14 @@ def schedule_list(args):
                     last_run = scheduler.last_run(period)
                     if last_run is None:
                         last_run = 'Never'
+                    else:
+                        last_run = last_run.strftime(dateformat_human)
 
                     next_run = scheduler.next_run(period)
                     if next_run is None:
                         next_run = 'Immediately'
                     else:
-                        next_run = next_run.strftime('%a %d %b %Y %H:%M:%S')
+                        next_run = next_run.strftime(dateformat_human)
 
                     out(" {0}  Keep {1}  Last run {2}  Next run {3}".format(
                         format(period.name, "<{0}".format(PERIODS_MAX_NAME_LENGTH)),
@@ -139,7 +144,7 @@ def snapshot_list(args):
         for snapshot in snapshots:
             out("{0} | {1} | {2}".format(
                 format(snapshot.name, "<{0}".format(maxlen)),
-                snapshot.date.strftime('%a %d %b %Y %H:%M:%S'),
+                snapshot.date.strftime(dateformat_human),
                 ', '.join([p.name for p in snapshot.get_periods()])
             ))
     else:
