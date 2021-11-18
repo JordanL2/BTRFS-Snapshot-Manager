@@ -48,7 +48,7 @@ def main():
     snapshot_list_parser = snapshot_subparsers.add_parser('list', help='list snapshots')
     snapshot_list_parser.add_argument('path', help='path to subvolume')
     snapshot_list_parser.add_argument('--details', required=False, default=False, action='store_true', help='output detailed list')
-    snapshot_list_parser.add_argument('--periods', nargs='*', help='only list snapshots for this period')
+    snapshot_list_parser.add_argument('--period', nargs='*', help='only list snapshots for this period')
     snapshot_list_parser.set_defaults(func=snapshot_list)
 
     args = parser.parse_args()
@@ -122,7 +122,7 @@ def snapshot_init(args):
 def snapshot_list(args):
     path = args.path
     details = args.details
-    periods = args.periods
+    periods = args.period
     if periods is not None:
         for p in periods:
             if p not in PERIOD_NAME_MAP:
