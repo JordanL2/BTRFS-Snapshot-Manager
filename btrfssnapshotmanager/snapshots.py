@@ -109,7 +109,7 @@ class Subvolume():
 
     def _snapshot_name_format(self, date, periods):
         name = date.strftime(snapshots_dir_date_format)
-        if periods is None and len(periods) > 0:
+        if periods is not None and len(periods) > 0:
             name += '_' + ''.join([p.tag for p in sorted(periods, key=lambda x: x.seconds)])
         return name
 
