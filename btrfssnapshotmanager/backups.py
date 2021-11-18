@@ -146,15 +146,15 @@ class LocalRsyncBackup(LocalBackup):
 
     def transfer_source(self, source):
         info("Transferring via rsync snapshot {0} to target {1}".format(source.name, self.location()))
-        #TODO
+        cmd("rsync -a --delete {0} {1}/".format(source.path, self.path))
 
     def transfer_source_delta(self, previous_source, source):
         info("Transferring via rsync snapshot {0} (as delta from {1}) to target {2}".format(source.name, previous_source.name, self.location()))
-        #TODO
+        cmd("rsync -a --delete --link-dest={1}/{2}/ {0}/ {1}/{3}".format(source.path, self.path, previous_source.name, source.name))
 
     def delete_target(self, target_name):
         info("Deleting snapshot {0} on target {1}".format(target_name, self.location()))
-        #TODO
+        cmd("sudo rm -rf {0}".format(PosixPath(self.path, target_name)))
 
 
 class RemoteRsyncBackup(RemoteBackup):
