@@ -33,6 +33,8 @@ class SubvolumeScheduleManager():
     def __init__(self, schedule_manager, subvol):
         self.schedule_manager = schedule_manager
         self.subvol = Subvolume(subvol)
+        if not self.subvol.has_snapshots():
+            self.subvol.init_snapshots()
         self.config = self.schedule_manager.config.schedules[subvol]
 
     def last_run(self, period):
