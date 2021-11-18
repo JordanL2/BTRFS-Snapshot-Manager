@@ -78,7 +78,7 @@ def schedule_list(args):
         if path is None or subvol == path:
             if len(scheduler.config) > 0:
                 if len(table) > 0:
-                    table.append([None])
+                    table.append(None)
                 table.append([subvol, 'LAST RUN', 'NEXT RUN'])
                 for period in sorted(scheduler.config.keys(), key=lambda p: p.seconds):
                     row = []
@@ -143,13 +143,10 @@ def snapshot_list(args):
 
     snapshots = subvol.search_snapshots(periods=periods)
     if details:
-        maxlen = max([len(s.name) for s in subvol.snapshots])
+        table = [['NAME', 'DATE', 'PERIODS']]
         for snapshot in snapshots:
-            out("{0} | {1} | {2}".format(
-                format(snapshot.name, "<{0}".format(maxlen)),
-                snapshot.date.strftime(dateformat_human),
-                ', '.join([p.name for p in snapshot.get_periods()])
-            ))
+            table.append([snapshot.name, snapshot.date.strftime(dateformat_human), ', '.join([p.name for p in snapshot.get_periods()])])
+        output_table(table)
     else:
         for snapshot in snapshots:
             out(snapshot.name)
@@ -170,9 +167,9 @@ def fail(*messages):
 def output_table(table):
     max_width = []
     for i in range(0, len(table[0])):
-        max_width.append(max([(len(str(r[i])) if r[0] is not None else 0) for r in table]))
+        max_width.append(max([(len(str(r[i])) if r is not None else 0) for r in table]))
     for r in table:
-        if r[0] is None:
+        if r is None:
             out()
         else:
             out(' | '.join([
