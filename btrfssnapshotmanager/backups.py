@@ -143,15 +143,15 @@ class RemoteBtrfsBackup(RemoteBackup):
 
     def transfer_source(self, source):
         info("Transferring via btrfs snapshot {0} to target {1}".format(source.name, self.location()))
-        #TODO
+        cmd("sudo btrfs send {0} | {1} \"sudo btrfs receive {2}\"".format(source.path, self._ssh_command(), self.path))
 
     def transfer_source_delta(self, previous_source, source):
         info("Transferring via btrfs snapshot {0} (as delta from {1}) to target {2}".format(source.name, previous_source.name, self.location()))
-        #TODO
+        cmd("sudo btrfs send -p {0} {1} | {2} \"sudo btrfs receive {3}\"".format(previous_source.path, source.path, self._ssh_command(), self.path))
 
     def delete_target(self, target_name):
         info("Deleting via btrfs snapshot {0} on target {1}".format(target_name, self.location()))
-        #TODO
+        cmd("{0} \"sudo btrfs subvolume delete {1}/{2}\"".format(self._ssh_command(), self.path, target_name))
 
 
 class LocalRsyncBackup(LocalBackup):
