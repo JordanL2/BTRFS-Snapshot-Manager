@@ -42,7 +42,7 @@ class Backup():
                     self.transfer_source(source_snapshot)
 
         # Declare successful sync
-        cmd("sudo touch {0}/.lastsync".format(self.subvol.path))
+        cmd("sudo touch {0}/.lastsync".format(self.subvol.snapshots_dir))
 
     def location(self):
         raise Exception("Method must be overridden")
