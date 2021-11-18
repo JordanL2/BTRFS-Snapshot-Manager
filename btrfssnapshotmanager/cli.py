@@ -71,27 +71,28 @@ def schedule_list(args):
         fail("Schedule not found for subvolume", path)
     for subvol, scheduler in schedule_manager.schedulers.items():
         if path is None or subvol == path:
-            out(subvol)
-            max_period_count_length = max([len(str(scheduler.config[p])) for p in scheduler.config.keys()])
-            for period in sorted(scheduler.config.keys(), key=lambda p: p.seconds):
+            if len(scheduler.config) > 0:
+                out(subvol)
+                max_period_count_length = max([len(str(scheduler.config[p])) for p in scheduler.config.keys()])
+                for period in sorted(scheduler.config.keys(), key=lambda p: p.seconds):
 
-                last_run = scheduler.last_run(period)
-                if last_run is None:
-                    last_run = 'Never'
+                    last_run = scheduler.last_run(period)
+                    if last_run is None:
+                        last_run = 'Never'
 
-                next_run = scheduler.next_run(period)
-                if next_run is None:
-                    next_run = 'Immediately'
-                else:
-                    next_run = next_run.strftime('%a %d %b %Y %H:%M:%S')
+                    next_run = scheduler.next_run(period)
+                    if next_run is None:
+                        next_run = 'Immediately'
+                    else:
+                        next_run = next_run.strftime('%a %d %b %Y %H:%M:%S')
 
-                out(" {0}  keep={1}  last run={2}  next_run={3}".format(
-                    format(period.name, "<{0}".format(PERIODS_MAX_NAME_LENGTH)),
-                    format(scheduler.config[period], "<{0}".format(max_period_count_length)),
-                    last_run,
-                    next_run,
-                ))
-            out()
+                    out(" {0}  keep={1}  last run={2}  next_run={3}".format(
+                        format(period.name, "<{0}".format(PERIODS_MAX_NAME_LENGTH)),
+                        format(scheduler.config[period], "<{0}".format(max_period_count_length)),
+                        last_run,
+                        next_run,
+                    ))
+                out()
 
 
 # Snapshots

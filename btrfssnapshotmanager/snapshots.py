@@ -32,7 +32,7 @@ class Subvolume():
     def init_snapshots(self):
         if self.has_snapshots():
             raise SnapshotException("Subvolume is already initialised for snapshots")
-        self.snapshots_dir.mkdir(mode=snapshots_dir_mode)
+        cmd("sudo btrfs subvolume create {0}".format(self.snapshots_dir))
         self.load_snapshots()
 
     def load_snapshots(self):

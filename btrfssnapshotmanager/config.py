@@ -23,9 +23,10 @@ class Config():
         # Schedules
         self.schedules = {}
         for subvol in config:
-            schedule = {}
-            if 'retention' in config[subvol]:
-                for period in PERIODS:
-                    if period.name in config[subvol]['retention']:
-                        schedule[period] = int(config[subvol]['retention'][period.name])
-            self.schedules[subvol] = schedule
+            if config[subvol] is not None:
+                schedule = {}
+                if 'retention' in config[subvol] and config[subvol]['retention'] is not None:
+                    for period in PERIODS:
+                        if period.name in config[subvol]['retention']:
+                            schedule[period] = int(config[subvol]['retention'][period.name])
+                self.schedules[subvol] = schedule
