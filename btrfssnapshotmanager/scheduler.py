@@ -70,12 +70,12 @@ class SubvolumeScheduleManager():
 
         if cleanup:
             info()
-            info("CLEANUP")
+            info("Cleanup...")
             self.cleanup()
 
         if backup:
             info()
-            info("BACKUP")
+            info("Backup...")
             self.backup()
 
     def cleanup(self):
