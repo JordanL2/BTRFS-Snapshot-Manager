@@ -5,10 +5,11 @@ import subprocess
 
 class CommandException(Exception):
 
-    def __init__(self, code, error):
+    def __init__(self, command, code, error):
+        self.command = command
         self.code = code
         self.error = error
-        super().__init__(self, "Command returned code {} - {}".format(code, error))
+        super().__init__(self, "Command `{}` returned code {} - {}".format(command, code, error))
 
 
 class SnapshotException(Exception):
@@ -23,7 +24,7 @@ def cmd(command):
     stdout = result.stdout.decode('utf-8').rstrip("\n")
     stderr = result.stderr.decode('utf-8').rstrip("\n")
     if result.returncode != 0:
-        raise CommandException(result.returncode, stderr)
+        raise CommandException(command, result.returncode, stderr)
     return stdout
 
 def info(*messages):
