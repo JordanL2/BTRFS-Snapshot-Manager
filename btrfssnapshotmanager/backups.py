@@ -75,7 +75,7 @@ class LocalBackup(Backup):
         names = []
         for child in self.path.iterdir():
             if child.is_dir():
-                snapshot = self._snapshot_name_parse(child.name)
+                snapshot = self.subvol._snapshot_name_parse(child.name)
                 if snapshot is not None:
                     names.append(snapshot.name)
 
@@ -115,12 +115,12 @@ class LocalBtrfsBackup(LocalBackup):
     mechanism = 'btrfs'
 
     def transfer_source(self, source):
-        info("Transferring via btrfs snapshot {0} to target {1}".format(source.name, self.location()))
-        #TODO
+        info("Transferring via btrfs snapshot {0} to target {1}".format(source.path, self.location()))
+        cmd("sudo btrfs send {0} | sudo btrfs receive {1}".format(source.path, self.path, source.name))
 
     def transfer_source_delta(self, previous_source, source):
-        info("Transferring via btrfs snapshot {0} (as delta from {1}) to target {2}".format(source.name, previous_source.name, self.location()))
-        #TODO
+        info("Transferring via btrfs snapshot {0} (as delta from {1}) to target {2}".format(source.path, previous_source.path, self.location()))
+        cmd("sudo btrfs send -p {0} {1} | sudo btrfs receive {2}".format(previous_source.path, source.path, self.path))
 
     def delete_target(self, target_name):
         info("Deleting snapshot {0} on target {1}".format(target_name, self.location()))
