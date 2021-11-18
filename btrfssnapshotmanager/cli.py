@@ -72,7 +72,7 @@ def schedule_list(args):
     for subvol, scheduler in schedule_manager.schedulers.items():
         if path is None or subvol == path:
             out(subvol)
-            max_period_count_length = max([len(str(scheduler.config[p])) for p in PERIODS])
+            max_period_count_length = max([len(str(scheduler.config[p])) for p in scheduler.config.keys()])
             for period in sorted(scheduler.config.keys(), key=lambda p: p.seconds):
 
                 last_run = scheduler.last_run(period)
