@@ -61,12 +61,15 @@ class SubvolumeScheduleManager():
             return True
         return False
 
-    def run(self, periods, auto_cleanup=True):
+    def run(self, periods, cleanup=True, backup=True):
         info("Creating snapshot for:", ', '.join([p.name for p in periods]))
         self.subvol.create_snapshot(periods=periods)
 
-        if auto_cleanup:
+        if cleanup:
             self.cleanup()
+
+        if backup:
+            self.backup()
 
     def cleanup(self):
         dont_delete = set()
@@ -81,3 +84,8 @@ class SubvolumeScheduleManager():
         for snapshot in snapshots:
             if snapshot not in dont_delete:
                 info("Deleting snapshot:", snapshot.name)
+
+    def backup(self):
+        for backup in self.backups:
+            info("Running backup for {0} to {1}".format(self.subvol.path, backup.location()))
+            backup.backup()

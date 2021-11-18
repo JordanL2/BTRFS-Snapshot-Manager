@@ -23,6 +23,11 @@ def main():
     backup_list_parser.add_argument('path', nargs='?', help='path to subvolume')
     backup_list_parser.set_defaults(func=backup_list)
 
+    # backup run
+    backup_run_parser = backup_subparsers.add_parser('run', help='run backups')
+    backup_run_parser.add_argument('path', nargs='?', help='path to subvolume')
+    backup_run_parser.set_defaults(func=backup_run)
+
     # schedule
     schedule_parser = subparsers.add_parser('schedule', help='schedule-related commands')
     schedule_subparsers = schedule_parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
@@ -77,7 +82,7 @@ def backup_list(args):
     schedule_manager = ScheduleManager()
 
     if path is not None and path not in schedule_manager.schedulers:
-        fail("Schedule not found for subvolume", path)
+        fail("Config not found for subvolume", path)
 
     table = []
     for subvol, scheduler in schedule_manager.schedulers.items():
@@ -88,12 +93,7 @@ def backup_list(args):
                 table.append([subvol, 'LOCATION', 'MECHANISM', *[p.name.upper() for p in PERIODS]])
                 for backup in scheduler.backups:
                     row = ['']
-
-                    if backup.transport == 'local':
-                        row.append(backup.path)
-                    elif backup.transport == 'remote':
-                        row.append("{0}:{1}".format(backup.host, backup.path))
-
+                    row.append(backup.location())
                     row.append(backup.mechanism)
 
                     for p in PERIODS:
@@ -106,6 +106,18 @@ def backup_list(args):
 
     output_table(table)
 
+def backup_run(args):
+    path = args.path
+    schedule_manager = ScheduleManager()
+
+    if path is not None and path not in schedule_manager.schedulers:
+        fail("Config not found for subvolume", path)
+
+    for subvol, scheduler in schedule_manager.schedulers.items():
+        if path is None or subvol == path:
+            if len(scheduler.backups) > 0:
+                scheduler.backup()
+
 
 # Schedule
 
@@ -117,7 +129,7 @@ def schedule_list(args):
     path = args.path
     schedule_manager = ScheduleManager()
     if path is not None and path not in schedule_manager.schedulers:
-        fail("Schedule not found for subvolume", path)
+        fail("Config not found for subvolume", path)
 
     table = []
     for subvol, scheduler in schedule_manager.schedulers.items():

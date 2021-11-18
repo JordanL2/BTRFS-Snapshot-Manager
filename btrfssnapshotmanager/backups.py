@@ -9,6 +9,9 @@ class Backup():
         self.subvol = Subvolume(subvol)
         self.retention = retention
 
+    def backup(self):
+        pass
+
 
 class LocalBackup(Backup):
 
@@ -17,6 +20,9 @@ class LocalBackup(Backup):
     def __init__(self, subvol, retention, path):
         self.path = path
         super().__init__(subvol, retention)
+
+    def location(self):
+        return self.path
 
 
 class RemoteBackup(Backup):
@@ -30,34 +36,25 @@ class RemoteBackup(Backup):
         self.path = path
         super().__init__(subvol, retention)
 
+    def location(self):
+        return "{0}:{1}".format(self.host, self.path)
+
 
 class LocalBtrfsBackup(LocalBackup):
 
     mechanism = 'btrfs'
-
-    def backup(self):
-        pass
 
 
 class RemoteBtrfsBackup(RemoteBackup):
 
     mechanism = 'btrfs'
 
-    def backup(self):
-        pass
-
 
 class LocalRsyncBackup(LocalBackup):
 
     mechanism = 'rsync'
 
-    def backup(self):
-        pass
-
 
 class RemoteRsyncBackup(RemoteBackup):
 
     mechanism = 'rsync'
-
-    def backup(self):
-        pass
