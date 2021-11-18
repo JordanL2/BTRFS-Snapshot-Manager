@@ -42,6 +42,8 @@ class Config():
                 if 'backup' in config[subvol] and config[subvol]['backup'] is not None:
                     for backup_config in config[subvol]['backup']:
 
+                        backup = None
+
                         if 'type' not in backup_config:
                             raise SnapshotException("Backup type not found for subvolume " + subvol.path)
                         backup_type = backup_config['type']
@@ -61,9 +63,9 @@ class Config():
                             path = backup_config['local']['path']
 
                             if backup_type == 'btrfs':
-                                self.backups[subvol].append(LocalBtrfsBackup(subvol, retention, path))
+                                backup = LocalBtrfsBackup(subvol, retention, path)
                             elif backup_type == 'rsync':
-                                self.backups[subvol].append(LocalRsyncBackup(subvol, retention, path))
+                                backup = LocalRsyncBackup(subvol, retention, path)
 
                         elif 'remote' in backup_config:
                             if backup_config['remote'] is None or 'host' not in backup_config['remote']:
@@ -83,6 +85,11 @@ class Config():
                                 ssh_options = backup_config['remote']['ssh-options']
 
                             if backup_type == 'btrfs':
-                                self.backups[subvol].append(RemoteBtrfsBackup(subvol, retention, host, user, ssh_options, path))
+                                backup = RemoteBtrfsBackup(subvol, retention, host, user, ssh_options, path)
                             elif backup_type == 'rsync':
-                                self.backups[subvol].append(RemoteRsyncBackup(subvol, retention, host, user, ssh_options, path))
+                                backup = RemoteRsyncBackup(subvol, retention, host, user, ssh_options, path)
+
+                        if backup is not None:
+                            if 'last_sync_file' in backup_config:
+                                backup.last_sync_file = backup_config['last_sync_file']
+                            self.backups[subvol].append(backup)

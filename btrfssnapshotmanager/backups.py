@@ -8,6 +8,8 @@ from pathlib import PosixPath, PurePosixPath
 
 class Backup():
 
+    last_sync_file = None
+
     def __init__(self, subvol, retention):
         self.subvol = Subvolume(subvol)
         self.retention = retention
@@ -42,7 +44,8 @@ class Backup():
                     self.transfer_source(source_snapshot)
 
         # Declare successful sync
-        cmd("sudo touch {0}/.lastsync".format(self.subvol.snapshots_dir))
+        if self.last_sync_file is not None:
+            cmd("sudo touch {0}/{1}".format(self.subvol.snapshots_dir, self.last_sync_file))
 
     def location(self):
         raise Exception("Method must be overridden")

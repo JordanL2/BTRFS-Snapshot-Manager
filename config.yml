@@ -18,6 +18,7 @@
         daily: 7
         weekly: 3
         monthly: 1
+      last_sync_file: .lastsync
     - type: rsync
       remote:
         host: mybackupserver
