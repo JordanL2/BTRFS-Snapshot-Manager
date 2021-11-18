@@ -41,6 +41,9 @@ class Backup():
                 else:
                     self.transfer_source(source_snapshot)
 
+        # Declare successful sync
+        cmd("sudo touch {0}/.lastsync".format(self.subvol.path))
+
     def get_target_snapshot_names(self):
         raise Exception("Method must be overridden")
 

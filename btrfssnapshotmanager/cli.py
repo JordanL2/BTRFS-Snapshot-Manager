@@ -117,10 +117,14 @@ def backup_run(args):
     if path is not None and path not in schedule_manager.schedulers:
         fail("Config not found for subvolume", path)
 
+    empty_line = False
     for subvol, scheduler in schedule_manager.schedulers.items():
         if path is None or subvol == path:
             if len(scheduler.backups) > 0:
+                if empty_line:
+                    info()
                 scheduler.backup(ids=ids)
+                empty_line = True
 
 
 # Schedule

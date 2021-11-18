@@ -14,7 +14,11 @@ class ScheduleManager():
             self.schedulers[subvol] = SubvolumeScheduleManager(self, subvol)
 
     def execute(self):
+        empty_line = False
         for subvol, scheduler in self.schedulers.items():
+            if empty_line:
+                info()
+            empty_line = True
             info("Subvolume:", subvol)
             periods = []
             for period, count in scheduler.config.items():
@@ -25,7 +29,6 @@ class ScheduleManager():
                 scheduler.run(periods)
             else:
                 info("No periods reached")
-            info()
 
 
 class SubvolumeScheduleManager():
@@ -66,9 +69,13 @@ class SubvolumeScheduleManager():
         self.subvol.create_snapshot(periods=periods)
 
         if cleanup:
+            info()
+            info("CLEANUP")
             self.cleanup()
 
         if backup:
+            info()
+            info("BACKUP")
             self.backup()
 
     def cleanup(self):
@@ -86,9 +93,11 @@ class SubvolumeScheduleManager():
                 info("Deleting snapshot:", snapshot.name)
 
     def backup(self, ids=None):
+        empty_line = False
         for i, backup in enumerate(self.backups):
-            if i > 0 and ids is None:
+            if empty_line:
                 info()
+            empty_line = True
             if ids is not None and i not in ids:
                 continue
             info("Running backup for {0} to {1}".format(self.subvol.path, backup.location()))
