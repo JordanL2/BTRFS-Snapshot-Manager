@@ -11,7 +11,6 @@ import re
 snapshots_dir_name = '.snapshots'
 snapshots_dir_regex = re.compile(r'(\d\d\d\d)-(\d\d)-(\d\d)_(\d\d)-(\d\d)-(\d\d)_?([HDWM]*)')
 snapshots_dir_date_format = '%Y-%m-%d_%H-%M-%S'
-snapshots_dir_mode = 0o755
 
 
 class Subvolume():

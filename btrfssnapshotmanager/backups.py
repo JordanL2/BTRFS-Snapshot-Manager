@@ -3,6 +3,8 @@
 from btrfssnapshotmanager.config import *
 from btrfssnapshotmanager.snapshots import *
 
+from pathlib import PosixPath, PurePosixPath
+
 
 class Backup():
 
@@ -23,6 +25,7 @@ class Backup():
         source_snapshot_names = [s.name for s in source_snapshots]
 
         # Get list of snapshots that exist on the target
+        self.ensure_target_exists()
         target_snapshot_names = self.get_target_snapshot_names()
 
         # Delete target snapshots not needed any more
@@ -56,20 +59,28 @@ class LocalBackup(Backup):
     transport = 'local'
 
     def __init__(self, subvol, retention, path):
-        self.path = path
+        self.path = PosixPath(path)
         super().__init__(subvol, retention)
 
     def location(self):
-        return self.path
+        return str(self.path)
+
+    def ensure_target_exists(self):
+        if not self.path.is_dir():
+            info("Target location doesn't exist, creating {0}".format(self.location()))
+            self.path.mkdir(mode=0o700, parents=True)
 
     def get_target_snapshot_names(self):
-        info("Fetching list of snapshots on target " + self.location())
-        #TODO
-        return []
+        info("Fetching list of snapshots on target {0}".format(self.location()))
+        names = []
+        for child in self.path.iterdir():
+            if child.is_dir():
+                snapshot = self._snapshot_name_parse(child.name)
+                if snapshot is not None:
+                    names.append(snapshot.name)
 
-    def delete_target(self, target_name):
-        info("Deleting snapshot {0} on target {1}".format(target_name, self.location()))
-        #TODO
+        return names
+
 
 class RemoteBackup(Backup):
 
@@ -79,11 +90,15 @@ class RemoteBackup(Backup):
         self.host = host
         self.user = user
         self.ssh_options = ssh_options
-        self.path = path
+        self.path = PurePosixPath(path)
         super().__init__(subvol, retention)
 
     def location(self):
         return "{0}:{1}".format(self.host, self.path)
+
+    def ensure_target_exists(self):
+        #TODO
+        pass
 
     def get_target_snapshot_names(self):
         info("Fetching list of snapshots on target " + self.location())
@@ -106,6 +121,10 @@ class LocalBtrfsBackup(LocalBackup):
     def transfer_source_delta(self, previous_source, source):
         info("Transferring via btrfs snapshot {0} (as delta from {1}) to target {2}".format(source.name, previous_source.name, self.location()))
         #TODO
+
+    def delete_target(self, target_name):
+        info("Deleting snapshot {0} on target {1}".format(target_name, self.location()))
+        cmd("sudo btrfs subvolume delete --commit-each {0}".format(PosixPath(self.path, target_name)))
 
 
 class RemoteBtrfsBackup(RemoteBackup):
@@ -131,6 +150,10 @@ class LocalRsyncBackup(LocalBackup):
 
     def transfer_source_delta(self, previous_source, source):
         info("Transferring via rsync snapshot {0} (as delta from {1}) to target {2}".format(source.name, previous_source.name, self.location()))
+        #TODO
+
+    def delete_target(self, target_name):
+        info("Deleting snapshot {0} on target {1}".format(target_name, self.location()))
         #TODO
 
 
