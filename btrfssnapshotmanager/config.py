@@ -48,15 +48,22 @@ class Config():
                         if backup_type not in ('btrfs', 'rsync'):
                             raise SnapshotException("Backup type '{0}' invalid for subvolume {1}".format(backup_type, subvol.path))
 
+                        if 'retention' not in backup_config or backup_config['retention'] is None:
+                            raise SnapshotException("Backup retention config not found fore subvolume {0}".format(subvol.path))
+                        retention = {}
+                        for period in PERIODS:
+                            if period.name in backup_config['retention']:
+                                retention[period] = int(backup_config['retention'][period.name])
+
                         if 'local' in backup_config:
                             if backup_config['local'] is None or 'path' not in backup_config['local']:
                                 raise SnapshotException("Local backup config missing path for subvolume " + subvol.path)
                             path = backup_config['local']['path']
 
                             if backup_type == 'btrfs':
-                                self.backups[subvol].append(LocalBtrfsBackup(subvol, path))
+                                self.backups[subvol].append(LocalBtrfsBackup(subvol, retention, path))
                             elif backup_type == 'rsync':
-                                self.backups[subvol].append(LocalRsyncBackup(subvol, path))
+                                self.backups[subvol].append(LocalRsyncBackup(subvol, retention, path))
 
                         elif 'remote' in backup_config:
                             if backup_config['remote'] is None or 'host' not in backup_config['remote']:
@@ -76,6 +83,6 @@ class Config():
                                 ssh_options = backup_config['remote']['ssh-options']
 
                             if backup_type == 'btrfs':
-                                self.backups[subvol].append(RemoteBtrfsBackup(subvol, host, user, ssh_options, path))
+                                self.backups[subvol].append(RemoteBtrfsBackup(subvol, retention, host, user, ssh_options, path))
                             elif backup_type == 'rsync':
-                                self.backups[subvol].append(RemoteRsyncBackup(subvol, host, user, ssh_options, path))
+                                self.backups[subvol].append(RemoteRsyncBackup(subvol, retention, host, user, ssh_options, path))

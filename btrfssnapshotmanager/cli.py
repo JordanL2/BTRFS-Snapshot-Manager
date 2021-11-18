@@ -85,9 +85,24 @@ def backup_list(args):
             if len(scheduler.backups) > 0:
                 if len(table) > 0:
                     table.append(None)
-                table.append([subvol, 'LOCATION', 'MECHANISM'])
+                table.append([subvol, 'LOCATION', 'MECHANISM', *[p.name.upper() for p in PERIODS]])
                 for backup in scheduler.backups:
-                    table.append(['', backup.transport, backup.mechanism])
+                    row = ['']
+
+                    if backup.transport == 'local':
+                        row.append(backup.path)
+                    elif backup.transport == 'remote':
+                        row.append("{0}:{1}".format(backup.host, backup.path))
+
+                    row.append(backup.mechanism)
+
+                    for p in PERIODS:
+                        if p in backup.retention:
+                            row.append(backup.retention[p])
+                        else:
+                            row.append('')
+
+                    table.append(row)
 
     output_table(table)
 
