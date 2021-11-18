@@ -196,6 +196,8 @@ def fail(*messages):
     sys.exit(1)
 
 def output_table(table):
+    if len(table) == 0:
+        return
     max_width = []
     for i in range(0, len(table[0])):
         max_width.append(max([(len(str(r[i])) if r is not None else 0) for r in table]))
