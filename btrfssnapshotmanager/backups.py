@@ -25,6 +25,11 @@ class Backup():
         # Get list of snapshots that exist on the target
         target_snapshot_names = self.get_target_snapshot_names()
 
+        # Delete target snapshots not needed any more
+        for target_snapshot_name in target_snapshot_names:
+            if target_snapshot_name not in source_snapshot_names:
+                self.delete_target(target_snapshot_name)
+
         # Upload source snapshots not found on target
         for i, source_snapshot in enumerate(source_snapshots):
             if source_snapshot.name not in target_snapshot_names:
@@ -32,11 +37,6 @@ class Backup():
                     self.transfer_source_delta(source_snapshots[i - 1], source_snapshot)
                 else:
                     self.transfer_source(source_snapshot)
-
-        # Delete target snapshots not needed any more
-        for target_snapshot_name in target_snapshot_names:
-            if target_snapshot_name not in source_snapshot_names:
-                self.delete_target(target_snapshot_name)
 
     def get_target_snapshot_names(self):
         raise Exception("Method must be overridden")
