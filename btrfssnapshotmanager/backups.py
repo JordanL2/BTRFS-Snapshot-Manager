@@ -44,7 +44,7 @@ class Backup():
 
         # Declare successful sync
         if self.last_sync_file is not None:
-            cmd("sudo touch {0}/{1}".format(self.subvol.snapshots_dir, self.last_sync_file))
+            cmd("sudo touch {0}".format(PosixPath(self.subvol.snapshots_dir, self.last_sync_file)))
 
     def location(self):
         raise Exception("Method must be overridden")
