@@ -177,12 +177,12 @@ class RemoteRsyncBackup(RemoteBackup):
 
     def transfer_source(self, source):
         info("Transferring via rsync snapshot {0} to target {1}".format(source.name, self.location()))
-        #TODO
+        cmd("rsync -a --delete --rsync-path=\"sudo rsync\" -e \"ssh {0} -l {1}\" {3} {2}:{4}/".format(self.ssh_options, self.user, self.host, source.path, self.path))
 
     def transfer_source_delta(self, previous_source, source):
         info("Transferring via rsync snapshot {0} (as delta from {1}) to target {2}".format(source.name, previous_source.name, self.location()))
-        #TODO
+        cmd("rsync -a --delete --link-dest={5}/{6}/ --rsync-path=\"sudo rsync\" -e \"ssh {0} -l {1}\" {3}/ {2}:{5}/{4}/".format(self.ssh_options, self.user, self.host, source.path, source.name, self.path, previous_source.name))
 
     def delete_target(self, target_name):
         info("Deleting via rsync snapshot {0} on target {1}".format(target_name, self.location()))
-        #TODO
+        cmd("{0} \"sudo rm -rf {1}/{2}\"".format(self._ssh_command(), self.path, target_name))
