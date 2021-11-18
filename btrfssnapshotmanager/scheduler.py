@@ -49,18 +49,19 @@ class SubvolumeScheduleManager():
         else:
             return snapshots[-1].date
 
-    def next_run(self, period):
+    def next_run(self, period, roundup=True):
         last_run = self.last_run(period)
         if last_run is None:
             return None
         else:
             next_run = period.next_period(last_run) - schedule_timing_margin
-            next_run = next_run.replace(hour = next_run.hour + 1, minute=0, second=0, microsecond=0)
+            if roundup:
+                next_run = next_run.replace(hour = next_run.hour + 1, minute=0, second=0, microsecond=0)
             return next_run
 
     def should_run(self, period):
         now = datetime.now()
-        next_run = self.next_run(period)
+        next_run = self.next_run(period, roundup=False)
         if next_run is None or next_run <= now:
             return True
         return False
