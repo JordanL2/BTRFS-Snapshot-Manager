@@ -24,8 +24,8 @@ class Config():
         self.schedules = {}
         for subvol in config:
             schedule = {}
-            if 'schedule' in config[subvol]:
+            if 'retention' in config[subvol]:
                 for period in PERIODS:
-                    if period.name in config[subvol]['schedule']:
-                        schedule[period] = int(config[subvol]['schedule'][period.name])
+                    if period.name in config[subvol]['retention']:
+                        schedule[period] = int(config[subvol]['retention'][period.name])
             self.schedules[subvol] = schedule

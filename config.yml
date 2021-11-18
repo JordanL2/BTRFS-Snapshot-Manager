@@ -1,11 +1,11 @@
 /:
-  schedule:
+  retention:
     hourly: 48
     daily: 7
     weekly: 3
     monthly: 1
 /home:
-  schedule:
+  retention:
     hourly: 48
     daily: 7
     weekly: 3
