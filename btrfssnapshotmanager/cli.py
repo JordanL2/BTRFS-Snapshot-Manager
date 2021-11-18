@@ -125,9 +125,9 @@ def snapshot_list(args):
     periods = args.period
     if periods is not None:
         for p in periods:
-            if p not in PERIOD_NAME_MAP:
+            if p != 'none' and p not in PERIOD_NAME_MAP:
                 fail("No such period:", p)
-        periods = [PERIOD_NAME_MAP[p] for p in periods]
+        periods = [(PERIOD_NAME_MAP[p] if p != 'none' else None) for p in periods]
 
     subvol = Subvolume(path)
     if subvol.snapshots is None:

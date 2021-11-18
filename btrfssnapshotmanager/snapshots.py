@@ -71,7 +71,10 @@ class Subvolume():
         found_snapshots = []
         for snapshot in self.snapshots:
             if periods is not None:
-                if len([p for p in periods for t in snapshot.periods if p == t]) == 0:
+                if None in periods and (snapshot.periods is None or len(snapshot.periods) == 0):
+                    # This has no period, and we're allowing snapshots with no period
+                    pass
+                elif len([p for p in periods for t in snapshot.periods if p == t]) == 0:
                     continue
             found_snapshots.append(snapshot)
         return found_snapshots
