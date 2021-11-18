@@ -21,7 +21,7 @@ def main():
 
     # schedule list
     schedule_list_parser = schedule_subparsers.add_parser('list', help='list snapshot schedules')
-    schedule_list_parser.add_argument('--path', help='path to subvolume')
+    schedule_list_parser.add_argument('path', nargs='?', help='path to subvolume')
     schedule_list_parser.set_defaults(func=schedule_list)
 
     # snapshot
