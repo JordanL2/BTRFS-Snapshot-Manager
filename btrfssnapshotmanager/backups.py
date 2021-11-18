@@ -44,6 +44,9 @@ class Backup():
         # Declare successful sync
         cmd("sudo touch {0}/.lastsync".format(self.subvol.path))
 
+    def location(self):
+        raise Exception("Method must be overridden")
+
     def ensure_target_exists(self):
         raise Exception("Method must be overridden")
 
