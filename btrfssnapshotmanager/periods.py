@@ -60,4 +60,3 @@ class PeriodMonth(Period):
 PERIODS = [PeriodHour, PeriodDay, PeriodWeek, PeriodMonth]
 PERIOD_TAG_MAP = dict([(p.tag, p) for p in PERIODS])
 PERIOD_NAME_MAP = dict([(p.name, p) for p in PERIODS])
-PERIODS_MAX_NAME_LENGTH = max([len(p.name) for p in PERIODS])

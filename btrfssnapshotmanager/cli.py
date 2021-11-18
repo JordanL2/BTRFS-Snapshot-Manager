@@ -72,32 +72,35 @@ def schedule_list(args):
     schedule_manager = ScheduleManager()
     if path is not None and path not in schedule_manager.schedulers:
         fail("Schedule not found for subvolume", path)
+
+    table = []
     for subvol, scheduler in schedule_manager.schedulers.items():
         if path is None or subvol == path:
             if len(scheduler.config) > 0:
-                out(subvol)
-                max_period_count_length = max([len(str(scheduler.config[p])) for p in scheduler.config.keys()])
+                if len(table) > 0:
+                    table.append([None])
+                table.append([subvol, 'LAST RUN', 'NEXT RUN'])
                 for period in sorted(scheduler.config.keys(), key=lambda p: p.seconds):
+                    row = []
+                    row.append(period.name)
 
                     last_run = scheduler.last_run(period)
                     if last_run is None:
                         last_run = 'Never'
                     else:
                         last_run = last_run.strftime(dateformat_human)
+                    row.append(last_run)
 
                     next_run = scheduler.next_run(period)
                     if next_run is None:
                         next_run = 'Immediately'
                     else:
                         next_run = next_run.strftime(dateformat_human)
+                    row.append(next_run)
 
-                    out(" {0}  Keep {1}  Last run {2}  Next run {3}".format(
-                        format(period.name, "<{0}".format(PERIODS_MAX_NAME_LENGTH)),
-                        format(scheduler.config[period], "<{0}".format(max_period_count_length)),
-                        last_run,
-                        next_run,
-                    ))
-                out()
+                    table.append(row)
+
+    output_table(table)
 
 
 # Snapshots
@@ -163,6 +166,18 @@ def err(*messages):
 def fail(*messages):
     err(*messages)
     sys.exit(1)
+
+def output_table(table):
+    max_width = []
+    for i in range(0, len(table[0])):
+        max_width.append(max([(len(str(r[i])) if r[0] is not None else 0) for r in table]))
+    for r in table:
+        if r[0] is None:
+            out()
+        else:
+            out(' | '.join([
+                format(str(c), "<{0}".format(max_width[i])) for i, c in enumerate(r)
+            ]))
 
 
 if __name__ == '__main__':
