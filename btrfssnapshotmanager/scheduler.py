@@ -5,6 +5,9 @@ from btrfssnapshotmanager.config import *
 from btrfssnapshotmanager.snapshots import *
 
 
+schedule_timing_margin = timedelta(minutes=5)
+
+
 class ScheduleManager():
 
     def __init__(self):
@@ -56,7 +59,7 @@ class SubvolumeScheduleManager():
     def should_run(self, period):
         now = datetime.now()
         next_run = self.next_run(period)
-        if next_run is None or next_run <= now:
+        if next_run is None or next_run <= (now - schedule_timing_margin):
             return True
         return False
 
