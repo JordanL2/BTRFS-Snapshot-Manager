@@ -16,7 +16,7 @@
       remote:
         host: henry
         user: local-backup
-        ssh_options: -i /root/.ssh/henry-local-backup
+        ssh-options: -i /root/.ssh/henry-local-backup
         path: /data/Backup/rsync/cuthbert/root
       retention:
         daily: 7
@@ -33,7 +33,7 @@
       remote:
         host: henry
         user: local-backup
-        ssh_options: -i /root/.ssh/henry-local-backup
+        ssh-options: -i /root/.ssh/henry-local-backup
         path: /data/Backup/btrfs/cuthbert/root
       retention:
         daily: 7
