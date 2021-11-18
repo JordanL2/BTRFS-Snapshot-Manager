@@ -14,6 +14,15 @@ def main():
     parser = argparse.ArgumentParser(prog='btrfs-snapshot-manager')
     subparsers = parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
 
+    # backup
+    backup_parser = subparsers.add_parser('backup', help='backup-related commands')
+    backup_subparsers = backup_parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
+
+    # backup list
+    backup_list_parser = backup_subparsers.add_parser('list', help='show all configured backups')
+    backup_list_parser.add_argument('path', nargs='?', help='path to subvolume')
+    backup_list_parser.set_defaults(func=backup_list)
+
     # schedule
     schedule_parser = subparsers.add_parser('schedule', help='schedule-related commands')
     schedule_subparsers = schedule_parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
@@ -59,6 +68,28 @@ def main():
         args.func(args)
     except SnapshotException as e:
         fail(e.error)
+
+
+# Backups
+
+def backup_list(args):
+    path = args.path
+    schedule_manager = ScheduleManager()
+
+    if path is not None and path not in schedule_manager.schedulers:
+        fail("Schedule not found for subvolume", path)
+
+    table = []
+    for subvol, scheduler in schedule_manager.schedulers.items():
+        if path is None or subvol == path:
+            if len(scheduler.backups) > 0:
+                if len(table) > 0:
+                    table.append(None)
+                table.append([subvol, 'LOCATION', 'MECHANISM'])
+                for backup in scheduler.backups:
+                    table.append(['', backup.transport, backup.mechanism])
+
+    output_table(table)
 
 
 # Schedule

@@ -4,6 +4,41 @@
     daily: 7
     weekly: 3
     monthly: 1
+  backup:
+    - type: rsync
+      local:
+        path: /backups/rsync/root
+      retention:
+        daily: 7
+        weekly: 3
+        monthly: 1
+    - type: rsync
+      remote:
+        host: henry
+        user: local-backup
+        ssh_options: -i /root/.ssh/henry-local-backup
+        path: /data/Backup/rsync/cuthbert/root
+      retention:
+        daily: 7
+        weekly: 3
+        monthly: 1
+    - type: btrfs
+      local:
+        path: /backups/btrfs/root
+      retention:
+        daily: 7
+        weekly: 3
+        monthly: 1
+    - type: btrfs
+      remote:
+        host: henry
+        user: local-backup
+        ssh_options: -i /root/.ssh/henry-local-backup
+        path: /data/Backup/btrfs/cuthbert/root
+      retention:
+        daily: 7
+        weekly: 3
+        monthly: 1
 /home:
   retention:
     hourly: 48

@@ -36,6 +36,7 @@ class SubvolumeScheduleManager():
         if not self.subvol.has_snapshots():
             self.subvol.init_snapshots()
         self.config = self.schedule_manager.config.schedules[subvol]
+        self.backups = self.schedule_manager.config.backups[subvol]
 
     def last_run(self, period):
         if period not in self.config:
