@@ -86,7 +86,7 @@ def schedule_list(args):
                     else:
                         next_run = next_run.strftime('%a %d %b %Y %H:%M:%S')
 
-                    out(" {0}  keep={1}  last run={2}  next_run={3}".format(
+                    out(" {0}  Keep {1}  Last run {2}  Next run {3}".format(
                         format(period.name, "<{0}".format(PERIODS_MAX_NAME_LENGTH)),
                         format(scheduler.config[period], "<{0}".format(max_period_count_length)),
                         last_run,
