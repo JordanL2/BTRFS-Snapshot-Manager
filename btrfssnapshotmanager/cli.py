@@ -67,7 +67,7 @@ def schedule_execute(args):
 def schedule_list(args):
     path = args.path
     schedule_manager = ScheduleManager()
-    if path is not None and path not in schedule_manager.schedules:
+    if path is not None and path not in schedule_manager.schedulers:
         fail("Schedule not found for subvolume", path)
     for subvol, scheduler in schedule_manager.schedulers.items():
         if path is None or subvol == path:
