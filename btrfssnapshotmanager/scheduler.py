@@ -86,6 +86,8 @@ class SubvolumeScheduleManager():
                 info("Deleting snapshot:", snapshot.name)
 
     def backup(self):
-        for backup in self.backups:
+        for i, backup in enumerate(self.backups):
+            if i > 0:
+                info()
             info("Running backup for {0} to {1}".format(self.subvol.path, backup.location()))
             backup.backup()
