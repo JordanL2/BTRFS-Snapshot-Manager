@@ -33,9 +33,9 @@ def main():
     schedule_parser = subparsers.add_parser('schedule', help='schedule-related commands')
     schedule_subparsers = schedule_parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
 
-    # schedule execute
-    schedule_execute_parser = schedule_subparsers.add_parser('execute', help='execute snapshot schedules')
-    schedule_execute_parser.set_defaults(func=schedule_execute)
+    # schedule run
+    schedule_run_parser = schedule_subparsers.add_parser('run', help='execute scheduled snapshots')
+    schedule_run_parser.set_defaults(func=schedule_run)
 
     # schedule list
     schedule_list_parser = schedule_subparsers.add_parser('list', help='list snapshot schedules')
@@ -129,7 +129,7 @@ def backup_run(args):
 
 # Schedule
 
-def schedule_execute(args):
+def schedule_run(args):
     schedule_manager = ScheduleManager()
     schedule_manager.execute()
 
