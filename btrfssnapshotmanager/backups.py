@@ -97,17 +97,27 @@ class RemoteBackup(Backup):
         return "{0}:{1}".format(self.host, self.path)
 
     def ensure_target_exists(self):
-        #TODO
-        pass
+        cmd("{0} \"sudo mkdir -p {1}\"".format(self._ssh_command(), self.path))
 
     def get_target_snapshot_names(self):
         info("Fetching list of snapshots on target " + self.location())
-        #TODO
-        return []
+        out = cmd("{0} \"ls -1 {1}\"".format(self._ssh_command(), self.path))
+        names = []
+        remote_files = [n.strip() for n in out.split("\n") if n.strip() != '']
+        for remote_file in remote_files:
+            snapshot = self.subvol._snapshot_name_parse(remote_file)
+            if snapshot is not None:
+                names.append(remote_file)
+        return names
 
-    def delete_target(self, target_name):
-        info("Deleting snapshot {0} on target {1}".format(target_name, self.location()))
-        #TODO
+    def _ssh_command(self):
+        ssh_command = "ssh "
+        if self.ssh_options is not None:
+            ssh_command += self.ssh_options + " "
+        if self.user is not None:
+            ssh_command += self.user + "@"
+        ssh_command += self.host
+        return ssh_command
 
 
 class LocalBtrfsBackup(LocalBackup):
@@ -139,6 +149,10 @@ class RemoteBtrfsBackup(RemoteBackup):
         info("Transferring via btrfs snapshot {0} (as delta from {1}) to target {2}".format(source.name, previous_source.name, self.location()))
         #TODO
 
+    def delete_target(self, target_name):
+        info("Deleting via btrfs snapshot {0} on target {1}".format(target_name, self.location()))
+        #TODO
+
 
 class LocalRsyncBackup(LocalBackup):
 
@@ -167,4 +181,8 @@ class RemoteRsyncBackup(RemoteBackup):
 
     def transfer_source_delta(self, previous_source, source):
         info("Transferring via rsync snapshot {0} (as delta from {1}) to target {2}".format(source.name, previous_source.name, self.location()))
+        #TODO
+
+    def delete_target(self, target_name):
+        info("Deleting via rsync snapshot {0} on target {1}".format(target_name, self.location()))
         #TODO

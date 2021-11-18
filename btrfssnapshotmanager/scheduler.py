@@ -85,9 +85,11 @@ class SubvolumeScheduleManager():
             if snapshot not in dont_delete:
                 info("Deleting snapshot:", snapshot.name)
 
-    def backup(self):
+    def backup(self, ids=None):
         for i, backup in enumerate(self.backups):
-            if i > 0:
+            if i > 0 and ids is None:
                 info()
+            if ids is not None and i not in ids:
+                continue
             info("Running backup for {0} to {1}".format(self.subvol.path, backup.location()))
             backup.backup()

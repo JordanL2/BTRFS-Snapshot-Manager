@@ -26,6 +26,7 @@ def main():
     # backup run
     backup_run_parser = backup_subparsers.add_parser('run', help='run backups')
     backup_run_parser.add_argument('path', nargs='?', help='path to subvolume')
+    backup_run_parser.add_argument('--id', nargs='*', help='only run backups with these ids')
     backup_run_parser.set_defaults(func=backup_run)
 
     # schedule
@@ -91,8 +92,8 @@ def backup_list(args):
                 if len(table) > 0:
                     table.append(None)
                 table.append([subvol, 'LOCATION', 'MECHANISM', *[p.name.upper() for p in PERIODS]])
-                for backup in scheduler.backups:
-                    row = ['']
+                for i, backup in enumerate(scheduler.backups):
+                    row = [i]
                     row.append(backup.location())
                     row.append(backup.mechanism)
 
@@ -108,6 +109,9 @@ def backup_list(args):
 
 def backup_run(args):
     path = args.path
+    ids = args.id
+    if ids is not None:
+        ids = [int(i) for i in ids]
     schedule_manager = ScheduleManager()
 
     if path is not None and path not in schedule_manager.schedulers:
@@ -116,7 +120,7 @@ def backup_run(args):
     for subvol, scheduler in schedule_manager.schedulers.items():
         if path is None or subvol == path:
             if len(scheduler.backups) > 0:
-                scheduler.backup()
+                scheduler.backup(ids=ids)
 
 
 # Schedule
