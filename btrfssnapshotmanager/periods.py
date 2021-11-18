@@ -16,7 +16,8 @@ class PeriodHour(Period):
     seconds = 3600
 
     def next_period(last_period):
-        return last_period + timedelta(hours=1)
+        last_period += timedelta(hours=1)
+        return last_period.replace(minute=0, second=0, microsecond=0)
 
 
 class PeriodDay(Period):
@@ -26,7 +27,8 @@ class PeriodDay(Period):
     seconds = 86400
 
     def next_period(last_period):
-        return last_period + timedelta(days=1)
+        last_period += timedelta(days=1)
+        return last_period.replace(hour=0, minute=0, second=0, microsecond=0)
 
 
 class PeriodWeek(Period):
@@ -36,7 +38,8 @@ class PeriodWeek(Period):
     seconds = 86400 * 7
 
     def next_period(last_period):
-        return last_period + timedelta(days=7)
+        last_period += timedelta(days=7)
+        return last_period.replace(hour=0, minute=0, second=0, microsecond=0)
 
 
 class PeriodMonth(Period):
@@ -46,13 +49,12 @@ class PeriodMonth(Period):
     seconds = 86400 * 30 # Acceptable estimate, as this is just used for sorting periods by size
 
     def next_period(last_period):
-        month = last_period.month
         year = last_period.year
-        month += 1
+        month = last_period.month + 1
         if month > 12:
             month = 1
             year += 1
-        return last_period.replace(month=month, year=year)
+        return last_period.replace(year=year, month=month, day=1, hour=0, minute=0, second=0, microsecond=0)
 
 
 PERIODS = [PeriodHour, PeriodDay, PeriodWeek, PeriodMonth]
