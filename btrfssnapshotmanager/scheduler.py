@@ -54,12 +54,14 @@ class SubvolumeScheduleManager():
         if last_run is None:
             return None
         else:
-            return period.next_period(last_run)
+            next_run = period.next_period(last_run) - schedule_timing_margin
+            next_run = next_run.replace(hour = next_run.hour + 1, minute=0, second=0, microsecond=0)
+            return next_run
 
     def should_run(self, period):
         now = datetime.now()
         next_run = self.next_run(period)
-        if next_run is None or next_run <= (now - schedule_timing_margin):
+        if next_run is None or next_run <= now:
             return True
         return False
 
