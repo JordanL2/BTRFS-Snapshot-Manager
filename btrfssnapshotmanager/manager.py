@@ -18,7 +18,7 @@ class SnapshotManager():
             if subvol in self.config.systemdboot:
                 self.managers[subvol].systemdboot = self.config.systemdboot[subvol]
 
-    def execute(self, subvols=None, cleanup=True, backup=True, systemdboot_sync=True):
+    def execute(self, subvols=None, cleanup=True, backup=True, systemdboot_run=True):
         managers_to_run = self.managers
         if subvols is not None and len(subvols) > 0:
             managers_to_run = dict([(s, m) for s, m in managers_to_run.items() if s in subvols])
@@ -52,10 +52,10 @@ class SnapshotManager():
                     manager.backup()
 
                 # If requires, sync systemd-boot entries
-                if systemdboot_sync and manager.systemdboot is not None:
+                if systemdboot_run and manager.systemdboot is not None:
                     info()
-                    info("Systemd-boot entry sync...")
-                    manager.systemdboot.sync()
+                    info("Systemd-boot...")
+                    manager.systemdboot.run()
 
             else:
                 info("No periods reached")

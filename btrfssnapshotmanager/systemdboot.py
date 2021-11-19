@@ -109,7 +109,7 @@ class SystemdBoot():
         entry_file.unlink()
         del self.entries[entry_name]
 
-    def sync(self):
+    def run(self):
         snapshots_needed = set()
         for period, count in self.retention.items():
             snapshots = self.subvol.search_snapshots(periods=[period])
