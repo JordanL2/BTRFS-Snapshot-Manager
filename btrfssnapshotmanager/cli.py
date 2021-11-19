@@ -35,6 +35,7 @@ def main():
 
     # schedule run
     schedule_run_parser = schedule_subparsers.add_parser('run', help='execute scheduled snapshots')
+    schedule_run_parser.add_argument('path', nargs='*', help='path to subvolume')
     schedule_run_parser.set_defaults(func=schedule_run)
 
     # schedule list
@@ -130,8 +131,14 @@ def backup_run(args):
 # Schedule
 
 def schedule_run(args):
+    paths = args.path
     snapshot_manager = SnapshotManager()
-    snapshot_manager.execute()
+    if paths is not None:
+        for path in paths:
+            if path not in snapshot_manager.managers:
+                fail("Config not found for subvolume", path)
+
+    snapshot_manager.execute(subvols=paths)
 
 def schedule_list(args):
     path = args.path
