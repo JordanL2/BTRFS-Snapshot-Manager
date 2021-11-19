@@ -20,12 +20,12 @@ class SnapshotManager():
             self.managers[subvol].backups = self.config.backups[subvol]
 
     def execute(self, subvols=None):
-        managers_to_run = self.managers.items()
+        managers_to_run = self.managers
         if subvols is not None and len(subvols) > 0:
-            managers_to_run = dict([(s, m) for s, m in managers_to_run if s in subvols]).items()
+            managers_to_run = dict([(s, m) for s, m in managers_to_run.items() if s in subvols])
 
         empty_line = False
-        for subvol, manager in managers_to_run:
+        for subvol, manager in managers_to_run.items():
             if empty_line:
                 info()
             empty_line = True
