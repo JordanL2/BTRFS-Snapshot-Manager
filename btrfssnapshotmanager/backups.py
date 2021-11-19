@@ -102,17 +102,19 @@ class RemoteBackup(Backup):
         self.user = user
         self.ssh_options = ssh_options
         self.path = PurePosixPath(path)
+        self.cmd_attempts = 3
+        self.cmd_fail_delay = 10
         super().__init__(subvol, retention)
 
     def location(self):
         return "{0}:{1}".format(self.host, self.path)
 
     def ensure_target_exists(self):
-        cmd("{0} \"sudo mkdir -p {1}\"".format(self._ssh_command(), self.path))
+        cmd("{0} \"sudo mkdir -p {1}\"".format(self._ssh_command(), self.path), attempts=self.cmd_attempts, fail_delay=self.cmd_fail_delay)
 
     def get_target_snapshot_names(self):
         info("Fetching list of snapshots on target " + self.location())
-        out = cmd("{0} \"ls -1 {1}\"".format(self._ssh_command(), self.path))
+        out = cmd("{0} \"ls -1 {1}\"".format(self._ssh_command(), self.path), attempts=self.cmd_attempts, fail_delay=self.cmd_fail_delay)
         names = []
         remote_files = [n.strip() for n in out.split("\n") if n.strip() != '']
         for remote_file in remote_files:
@@ -130,6 +132,8 @@ class RemoteBackup(Backup):
         ssh_command += self.host
         return ssh_command
 
+
+# Btrfs
 
 class LocalBtrfsBackup(LocalBackup):
 
@@ -154,16 +158,21 @@ class RemoteBtrfsBackup(RemoteBackup):
 
     def transfer_source(self, source):
         info("Transferring via btrfs snapshot {0} to target {1}".format(source.name, self.location()))
-        cmd("sudo btrfs send {0} | {1} \"sudo btrfs receive {2}\"".format(source.path, self._ssh_command(), self.path))
+        cmd("sudo btrfs send {0} | {1} \"sudo btrfs receive {2}\"".format(source.path, self._ssh_command(), self.path),
+            attempts=self.cmd_attempts, fail_delay=self.cmd_fail_delay)
 
     def transfer_source_delta(self, previous_source, source):
         info("Transferring via btrfs snapshot {0} (as delta from {1}) to target {2}".format(source.name, previous_source.name, self.location()))
-        cmd("sudo btrfs send -p {0} {1} | {2} \"sudo btrfs receive {3}\"".format(previous_source.path, source.path, self._ssh_command(), self.path))
+        cmd("sudo btrfs send -p {0} {1} | {2} \"sudo btrfs receive {3}\"".format(previous_source.path, source.path, self._ssh_command(), self.path),
+            attempts=self.cmd_attempts, fail_delay=self.cmd_fail_delay)
 
     def delete_target(self, target_name):
         info("Deleting via btrfs snapshot {0} on target {1}".format(target_name, self.location()))
-        cmd("{0} \"sudo btrfs subvolume delete {1}/{2}\"".format(self._ssh_command(), self.path, target_name))
+        cmd("{0} \"sudo btrfs subvolume delete {1}/{2}\"".format(self._ssh_command(), self.path, target_name),
+            attempts=self.cmd_attempts, fail_delay=self.cmd_fail_delay)
 
+
+# Rsync
 
 class LocalRsyncBackup(LocalBackup):
 
@@ -188,12 +197,17 @@ class RemoteRsyncBackup(RemoteBackup):
 
     def transfer_source(self, source):
         info("Transferring via rsync snapshot {0} to target {1}".format(source.name, self.location()))
-        cmd("rsync -a --delete --rsync-path=\"sudo rsync\" -e \"ssh {0} -l {1}\" {3} {2}:{4}/".format(self.ssh_options, self.user, self.host, source.path, self.path))
+        cmd("rsync -a --delete --rsync-path=\"sudo rsync\" -e \"ssh {0} -l {1}\" {3} {2}:{4}/".format(
+                self.ssh_options, self.user, self.host, source.path, self.path),
+            attempts=self.cmd_attempts, fail_delay=self.cmd_fail_delay)
 
     def transfer_source_delta(self, previous_source, source):
         info("Transferring via rsync snapshot {0} (as delta from {1}) to target {2}".format(source.name, previous_source.name, self.location()))
-        cmd("rsync -a --delete --link-dest={5}/{6}/ --rsync-path=\"sudo rsync\" -e \"ssh {0} -l {1}\" {3}/ {2}:{5}/{4}/".format(self.ssh_options, self.user, self.host, source.path, source.name, self.path, previous_source.name))
+        cmd("rsync -a --delete --link-dest={5}/{6}/ --rsync-path=\"sudo rsync\" -e \"ssh {0} -l {1}\" {3}/ {2}:{5}/{4}/".format(
+                self.ssh_options, self.user, self.host, source.path, source.name, self.path, previous_source.name),
+            attempts=self.cmd_attempts, fail_delay=self.cmd_fail_delay)
 
     def delete_target(self, target_name):
         info("Deleting via rsync snapshot {0} on target {1}".format(target_name, self.location()))
-        cmd("{0} \"sudo rm -rf {1}/{2}\"".format(self._ssh_command(), self.path, target_name))
+        cmd("{0} \"sudo rm -rf {1}/{2}\"".format(self._ssh_command(), self.path, target_name),
+            attempts=self.cmd_attempts, fail_delay=self.cmd_fail_delay)
