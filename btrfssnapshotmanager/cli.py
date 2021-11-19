@@ -73,6 +73,10 @@ def main():
     systemdboot_parser = subparsers.add_parser('systemdboot', help='systemdboot-related commands')
     systemdboot_subparsers = systemdboot_parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
 
+    # systemdboot config
+    systemdboot_config_parser = systemdboot_subparsers.add_parser('config', help='show configured systemd-boot integration')
+    systemdboot_config_parser.set_defaults(func=systemdboot_config)
+
     # systemdboot create
     systemdboot_create_parser = systemdboot_subparsers.add_parser('create', help='create a systemd-boot entry for a given snapshot')
     systemdboot_create_parser.add_argument('snapshot', help='name of snapshot to make boot entry for')
@@ -86,10 +90,6 @@ def main():
     # systemdboot list
     systemdboot_list_parser = systemdboot_subparsers.add_parser('list', help='list all systemd-boot snapshot boot entries')
     systemdboot_list_parser.set_defaults(func=systemdboot_list)
-
-    # systemdboot show
-    systemdboot_show_parser = systemdboot_subparsers.add_parser('show', help='show configured systemd-boot integration')
-    systemdboot_show_parser.set_defaults(func=systemdboot_show)
 
     args = parser.parse_args()
     try:
@@ -247,6 +247,19 @@ def snapshot_list(args):
 
 # Systemd-Boot
 
+def systemdboot_config(args):
+    snapshot_manager = SnapshotManager()
+    systemdboot = get_systemdboot(snapshot_manager)
+    if systemdboot is not None:
+        table = []
+        table.append(['SUBVOLUME', systemdboot.subvol.name])
+        table.append(['BOOT PATH', systemdboot.boot_path])
+        table.append(['ENTRY', systemdboot.entry])
+        for p in PERIODS:
+            if p in systemdboot.retention:
+                table.append([p.name.upper(), systemdboot.retention[p]])
+        output_table(table)
+
 def systemdboot_create(args):
     snapshot_name = args.snapshot
     snapshot_manager = SnapshotManager()
@@ -292,19 +305,6 @@ def systemdboot_list(args):
                     '',
                 ])
 
-        output_table(table)
-
-def systemdboot_show(args):
-    snapshot_manager = SnapshotManager()
-    systemdboot = get_systemdboot(snapshot_manager)
-    if systemdboot is not None:
-        table = []
-        table.append(['SUBVOLUME', systemdboot.subvol.name])
-        table.append(['BOOT PATH', systemdboot.boot_path])
-        table.append(['ENTRY', systemdboot.entry])
-        for p in PERIODS:
-            if p in systemdboot.retention:
-                table.append([p.name.upper(), systemdboot.retention[p]])
         output_table(table)
 
 
