@@ -12,6 +12,33 @@ snapshots_dir_name = '.snapshots'
 snapshots_dir_regex = re.compile(r'(\d\d\d\d)-(\d\d)-(\d\d)_(\d\d)-(\d\d)-(\d\d)_?([HDWM]*)')
 snapshots_dir_date_format = '%Y-%m-%d_%H-%M-%S'
 
+def snapshot_name_parse(name):
+    snapshots_dir_match = snapshots_dir_regex.fullmatch(name)
+    if snapshots_dir_match:
+        date = datetime(
+            int(snapshots_dir_match.group(1)),
+            int(snapshots_dir_match.group(2)),
+            int(snapshots_dir_match.group(3)),
+            int(snapshots_dir_match.group(4)),
+            int(snapshots_dir_match.group(5)),
+            int(snapshots_dir_match.group(6)))
+
+        tags = snapshots_dir_match.group(7)
+        periods = []
+        for t, p in PERIOD_TAG_MAP.items():
+            if t in tags:
+                periods.append(p)
+
+        return {'date': date, 'periods': periods}
+    else:
+        return None
+
+def snapshot_name_format(date, periods):
+    name = date.strftime(snapshots_dir_date_format)
+    if periods is not None and len(periods) > 0:
+        name += '_' + ''.join([p.tag for p in sorted(periods, key=lambda x: x.seconds)])
+    return name
+
 
 class Subvolume():
 
@@ -40,8 +67,9 @@ class Subvolume():
         self.snapshots = []
         for child in self.snapshots_dir.iterdir():
             if child.is_dir():
-                snapshot = self._snapshot_name_parse(child.name)
-                if snapshot is not None:
+                snapshot_details = snapshot_name_parse(child.name)
+                if snapshot_details is not None:
+                    snapshot = Snapshot(self, child.name, snapshot_details['date'], snapshot_details['periods'])
                     self.snapshots.append(snapshot)
         self._sort_snapshots()
 
@@ -52,7 +80,7 @@ class Subvolume():
             date = datetime.now()
         if periods is None:
             periods = []
-        name = self._snapshot_name_format(date, periods)
+        name = snapshot_name_format(date, periods)
         snapshot = Snapshot(self, name, date, periods, create=True)
         self.snapshots.append(snapshot)
         self._sort_snapshots()
@@ -87,33 +115,6 @@ class Subvolume():
 
     def _sort_snapshots(self):
         self.snapshots = sorted(self.snapshots, key=lambda s: s.date)
-
-    def _snapshot_name_parse(self, name):
-        snapshots_dir_match = snapshots_dir_regex.fullmatch(name)
-        if snapshots_dir_match:
-            date = datetime(
-                int(snapshots_dir_match.group(1)),
-                int(snapshots_dir_match.group(2)),
-                int(snapshots_dir_match.group(3)),
-                int(snapshots_dir_match.group(4)),
-                int(snapshots_dir_match.group(5)),
-                int(snapshots_dir_match.group(6)))
-
-            tags = snapshots_dir_match.group(7)
-            periods = []
-            for t, p in PERIOD_TAG_MAP.items():
-                if t in tags:
-                    periods.append(p)
-
-            return Snapshot(self, name, date, periods)
-        else:
-            return None
-
-    def _snapshot_name_format(self, date, periods):
-        name = date.strftime(snapshots_dir_date_format)
-        if periods is not None and len(periods) > 0:
-            name += '_' + ''.join([p.tag for p in sorted(periods, key=lambda x: x.seconds)])
-        return name
 
 
 class Snapshot():

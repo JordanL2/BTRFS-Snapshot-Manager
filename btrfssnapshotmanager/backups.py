@@ -124,8 +124,8 @@ class RemoteBackup(Backup):
         names = []
         remote_files = [n.strip() for n in out.split("\n") if n.strip() != '']
         for remote_file in remote_files:
-            snapshot = self.subvol._snapshot_name_parse(remote_file)
-            if snapshot is not None:
+            snapshot_details = snapshot_name_parse(remote_file)
+            if snapshot_details is not None:
                 names.append(remote_file)
         return names
 
