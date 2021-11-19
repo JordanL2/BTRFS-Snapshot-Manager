@@ -53,6 +53,10 @@ class Subvolume():
         if self.has_snapshots():
             self.load_snapshots()
 
+    def set_snapshot_dir(self, path):
+        self.snapshots_dir = PosixPath(self.path, path)
+        self.load_snapshots()
+
     def has_snapshots(self):
         return self.snapshots_dir.is_dir()
 

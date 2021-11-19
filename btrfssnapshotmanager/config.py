@@ -18,7 +18,8 @@ class Config():
 
     def load_config(self):
         if not self.config_file.is_file():
-            raise SnapshotException("No file found at: {0}".format(self.filepath))
+            self.raw_config = {}
+            return
         with open(self.config_file, 'r') as fh:
             config = yaml.load(fh, Loader=yaml.CLoader)
 
@@ -36,6 +37,8 @@ class Config():
 
                 # Initialise subvolume object
                 self.subvolumes[subvol] = Subvolume(subvol)
+                if 'snapshots_path' in config[subvol]:
+                    self.subvolumes[subvol].set_snapshot_dir(config[subvol]['snapshots_path'])
 
                 subvol_retention = {}
                 if 'retention' in config[subvol] and config[subvol]['retention'] is not None:

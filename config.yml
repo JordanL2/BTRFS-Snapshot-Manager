@@ -4,6 +4,7 @@
     daily: 7
     weekly: 3
     monthly: 1
+  snapshots_path: /snapshots
 /home:
   retention:
     hourly: 48

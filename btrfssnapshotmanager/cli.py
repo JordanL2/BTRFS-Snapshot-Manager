@@ -177,16 +177,22 @@ def schedule_list(args):
 
 # Snapshots
 
+def _get_subvol(path):
+    snapshot_manager = SnapshotManager()
+    if path in snapshot_manager.managers:
+        return snapshot_manager.managers[path].subvol
+    return Subvolume(path)
+
 def snapshot_create(args):
     path = args.path
-    subvol = Subvolume(path)
+    subvol = _get_subvol(path)
     snapshot = subvol.create_snapshot()
     out("Created snapshot", snapshot.name, "in subvolume", path)
 
 def snapshot_delete(args):
     path = args.path
     name = args.name
-    subvol = Subvolume(path)
+    subvol = _get_subvol(path)
     snapshot = subvol.find_snapshot(name)
     if snapshot is None:
         fail("Could not find snapshot", name, "in subvolume", path)
@@ -195,7 +201,7 @@ def snapshot_delete(args):
 
 def snapshot_init(args):
     path = args.path
-    subvol = Subvolume(path)
+    subvol = _get_subvol(path)
     subvol.init_snapshots()
     out("Initialised subvolume", path, "for snapshots")
 
@@ -209,8 +215,8 @@ def snapshot_list(args):
                 fail("No such period:", p)
         periods = [(PERIOD_NAME_MAP[p] if p != 'none' else None) for p in periods]
 
-    subvol = Subvolume(path)
-    if subvol.snapshots is None:
+    subvol = _get_subvol(path)
+    if not subvol.has_snapshots():
         fail("Subvolume", path, "is not initialised for snapshots")
 
     snapshots = subvol.search_snapshots(periods=periods)
