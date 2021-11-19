@@ -149,11 +149,11 @@ def schedule_list(args):
     table = []
     for subvol, manager in snapshot_manager.managers.items():
         if path is None or subvol == path:
-            if len(manager.config) > 0:
+            if len(manager.retention_config) > 0:
                 if len(table) > 0:
                     table.append(None)
                 table.append([subvol, 'LAST RUN', 'NEXT RUN'])
-                for period in sorted(manager.config.keys(), key=lambda p: p.seconds):
+                for period in sorted(manager.retention_config.keys(), key=lambda p: p.seconds):
                     row = []
                     row.append(period.name)
 

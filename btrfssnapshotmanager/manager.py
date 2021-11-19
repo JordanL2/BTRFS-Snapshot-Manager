@@ -29,7 +29,7 @@ class SnapshotManager():
             empty_line = True
             info("Subvolume:", subvol)
             periods = []
-            for period, count in manager.config.items():
+            for period, count in manager.retention_config.items():
                 if manager.should_run(period):
                     info("Period reached:", period.name)
                     periods.append(period)
@@ -46,11 +46,11 @@ class SubvolumeManager():
         self.subvol = subvol_instance
         if not self.subvol.has_snapshots():
             self.subvol.init_snapshots()
-        self.config = retention_config
+        self.retention_config = retention_config
         self.backups = backup_config
 
     def last_run(self, period):
-        if period not in self.config:
+        if period not in self.retention_config:
             raise SnapshotException("No {0} snapshot schedule set for subvolume {1}".format(period.name, self.subvol.path))
         snapshots = self.subvol.search_snapshots(periods=[period])
         if len(snapshots) == 0:
@@ -90,8 +90,8 @@ class SubvolumeManager():
         dont_delete = set()
         for period in PERIODS:
             max_snapshots = 0
-            if period in self.config:
-                max_snapshots = self.config[period]
+            if period in self.retention_config:
+                max_snapshots = self.retention_config[period]
             snapshots = self.subvol.search_snapshots(periods=[period])
             for snapshot in snapshots[max(0, len(snapshots) - max_snapshots) : ]:
                 dont_delete.add(snapshot)
