@@ -24,10 +24,16 @@ class Backup():
                 source_snapshots.add(s)
         source_snapshots = sorted(list(source_snapshots), key=lambda s: s.name)
         source_snapshot_names = [s.name for s in source_snapshots]
+        info("Identified the following local snapshots that should be on target:")
+        for s in source_snapshot_names:
+            info("- ", s)
 
         # Get list of snapshots that exist on the target
         self.ensure_target_exists()
         target_snapshot_names = self.get_target_snapshot_names()
+        info("Found the following snapshots that exist on target:")
+        for s in target_snapshot_names:
+            info("- ", s)
 
         # Delete target snapshots not needed any more
         for target_snapshot_name in target_snapshot_names:
