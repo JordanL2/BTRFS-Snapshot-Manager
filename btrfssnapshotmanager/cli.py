@@ -212,7 +212,7 @@ def snapshot_create(args):
     path = args.path
     subvol = get_subvol(path)
     snapshot = subvol.create_snapshot()
-    out("Created snapshot", snapshot.name, "in subvolume", path)
+    info("Created snapshot", snapshot.name, "in subvolume", path)
 
 def snapshot_delete(args):
     global_args(args)
@@ -223,14 +223,14 @@ def snapshot_delete(args):
     if snapshot is None:
         fail("Could not find snapshot", name, "in subvolume", path)
     snapshot.delete()
-    out("Deleted snapshot", name, "from subvolume", path)
+    info("Deleted snapshot", name, "from subvolume", path)
 
 def snapshot_init(args):
     global_args(args)
     path = args.path
     subvol = get_subvol(path)
     subvol.init_snapshots()
-    out("Initialised subvolume", path, "for snapshots")
+    info("Initialised subvolume", path, "for snapshots")
 
 def snapshot_list(args):
     global_args(args)
@@ -297,7 +297,7 @@ def systemdboot_delete(args):
         fail("No subvolumes configured for systemd-boot integration")
 
     systemdboot.delete_entry(entry_name)
-    out("Deleted systemd-boot entry {0}".format(entry_name))
+    info("Deleted systemd-boot entry {0}".format(entry_name))
 
 def systemdboot_list(args):
     global_args(args)
