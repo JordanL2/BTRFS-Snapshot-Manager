@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 from btrfssnapshotmanager.manager import *
-from btrfssnapshotmanager.snapshots import *
 
 import argparse
 import sys

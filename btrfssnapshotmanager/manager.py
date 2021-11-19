@@ -1,8 +1,6 @@
 #!/usr/bin/python3
 
-from btrfssnapshotmanager.common import *
 from btrfssnapshotmanager.config import *
-from btrfssnapshotmanager.snapshots import *
 
 
 class SnapshotManager():
