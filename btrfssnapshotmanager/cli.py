@@ -33,15 +33,15 @@ def main():
     schedule_parser = subparsers.add_parser('schedule', help='schedule-related commands')
     schedule_subparsers = schedule_parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
 
-    # schedule run
-    schedule_run_parser = schedule_subparsers.add_parser('run', help='execute scheduled snapshots')
-    schedule_run_parser.add_argument('path', nargs='*', help='path to subvolume')
-    schedule_run_parser.set_defaults(func=schedule_run)
-
     # schedule list
     schedule_list_parser = schedule_subparsers.add_parser('list', help='list snapshot schedules')
     schedule_list_parser.add_argument('path', nargs='?', help='path to subvolume')
     schedule_list_parser.set_defaults(func=schedule_list)
+
+    # schedule run
+    schedule_run_parser = schedule_subparsers.add_parser('run', help='execute scheduled snapshots')
+    schedule_run_parser.add_argument('path', nargs='*', help='path to subvolume')
+    schedule_run_parser.set_defaults(func=schedule_run)
 
     # snapshot
     snapshot_parser = subparsers.add_parser('snapshot', help='snapshot-related commands')
@@ -157,17 +157,6 @@ def backup_run(args):
 
 # Schedule
 
-def schedule_run(args):
-    global_args(args)
-    paths = args.path
-    snapshot_manager = SnapshotManager()
-    if paths is not None:
-        for path in paths:
-            if path not in snapshot_manager.managers:
-                fail("Config not found for subvolume", path)
-
-    snapshot_manager.execute(subvols=paths)
-
 def schedule_list(args):
     global_args(args)
     path = args.path
@@ -203,6 +192,17 @@ def schedule_list(args):
                     table.append(row)
 
     output_table(table)
+
+def schedule_run(args):
+    global_args(args)
+    paths = args.path
+    snapshot_manager = SnapshotManager()
+    if paths is not None:
+        for path in paths:
+            if path not in snapshot_manager.managers:
+                fail("Config not found for subvolume", path)
+
+    snapshot_manager.execute(subvols=paths)
 
 
 # Snapshots
