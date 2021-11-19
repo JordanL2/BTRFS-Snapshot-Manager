@@ -11,6 +11,7 @@ dateformat_human =  '%a %d %b %Y %H:%M:%S'
 
 def main():
     parser = argparse.ArgumentParser(prog='btrfs-snapshot-manager')
+    parser.add_argument('--log-level', type=int, default=1, dest='loglevel', help='log level: 0=debug, 1=info, 2=warn')
     subparsers = parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
 
     # backup
@@ -105,6 +106,7 @@ def main():
 # Backups
 
 def backup_list(args):
+    global_args(args)
     path = args.path
     snapshot_manager = SnapshotManager()
 
@@ -134,6 +136,7 @@ def backup_list(args):
     output_table(table)
 
 def backup_run(args):
+    global_args(args)
     path = args.path
     ids = args.id
     if ids is not None:
@@ -155,6 +158,7 @@ def backup_run(args):
 # Schedule
 
 def schedule_run(args):
+    global_args(args)
     paths = args.path
     snapshot_manager = SnapshotManager()
     if paths is not None:
@@ -165,6 +169,7 @@ def schedule_run(args):
     snapshot_manager.execute(subvols=paths)
 
 def schedule_list(args):
+    global_args(args)
     path = args.path
     snapshot_manager = SnapshotManager()
     if path is not None and path not in snapshot_manager.managers:
@@ -203,12 +208,14 @@ def schedule_list(args):
 # Snapshots
 
 def snapshot_create(args):
+    global_args(args)
     path = args.path
     subvol = get_subvol(path)
     snapshot = subvol.create_snapshot()
     out("Created snapshot", snapshot.name, "in subvolume", path)
 
 def snapshot_delete(args):
+    global_args(args)
     path = args.path
     name = args.name
     subvol = get_subvol(path)
@@ -219,12 +226,14 @@ def snapshot_delete(args):
     out("Deleted snapshot", name, "from subvolume", path)
 
 def snapshot_init(args):
+    global_args(args)
     path = args.path
     subvol = get_subvol(path)
     subvol.init_snapshots()
     out("Initialised subvolume", path, "for snapshots")
 
 def snapshot_list(args):
+    global_args(args)
     path = args.path
     details = args.details
     periods = args.period
@@ -252,6 +261,7 @@ def snapshot_list(args):
 # Systemd-Boot
 
 def systemdboot_config(args):
+    global_args(args)
     snapshot_manager = SnapshotManager()
     systemdboot = get_systemdboot(snapshot_manager)
     if systemdboot is not None:
@@ -265,6 +275,7 @@ def systemdboot_config(args):
         output_table(table)
 
 def systemdboot_create(args):
+    global_args(args)
     snapshot_name = args.snapshot
     snapshot_manager = SnapshotManager()
     systemdboot = get_systemdboot(snapshot_manager)
@@ -278,6 +289,7 @@ def systemdboot_create(args):
     systemdboot.create_entry(snapshot)
 
 def systemdboot_delete(args):
+    global_args(args)
     entry_name = args.entry
     snapshot_manager = SnapshotManager()
     systemdboot = get_systemdboot(snapshot_manager)
@@ -288,6 +300,7 @@ def systemdboot_delete(args):
     out("Deleted systemd-boot entry {0}".format(entry_name))
 
 def systemdboot_list(args):
+    global_args(args)
     snapshot_manager = SnapshotManager()
     systemdboot = get_systemdboot(snapshot_manager)
     if systemdboot is not None:
@@ -312,6 +325,7 @@ def systemdboot_list(args):
         output_table(table)
 
 def systemdboot_sync(args):
+    global_args(args)
     snapshot_manager = SnapshotManager()
     systemdboot = get_systemdboot(snapshot_manager)
     if systemdboot is None:
@@ -322,6 +336,9 @@ def systemdboot_sync(args):
 
 
 # General
+
+def global_args(args):
+    GLOBAL_CONFIG['log_level'] = args.loglevel
 
 def get_subvol(path):
     snapshot_manager = SnapshotManager()

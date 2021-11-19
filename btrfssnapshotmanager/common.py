@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import subprocess
+import sys
 import time
 
 
@@ -38,10 +39,19 @@ def cmd(command, attempts=None, fail_delay=None):
             return stdout
 
 def debug(*messages):
-    print(' '.join([str(m) for m in messages]), flush=True)
+    if GLOBAL_CONFIG['log_level'] <= 0:
+        print(' '.join([str(m) for m in messages]), file=GLOBAL_CONFIG['log_output'], flush=True)
 
 def info(*messages):
-    print(' '.join([str(m) for m in messages]), flush=True)
+    if GLOBAL_CONFIG['log_level'] <= 1:
+        print(' '.join([str(m) for m in messages]), file=GLOBAL_CONFIG['log_output'], flush=True)
 
 def warn(*messages):
-    print('[WARNING]', ' '.join([str(m) for m in messages]), flush=True)
+    if GLOBAL_CONFIG['log_level'] <= 2:
+        print('[WARNING]', ' '.join([str(m) for m in messages]), file=GLOBAL_CONFIG['log_output'], flush=True)
+
+
+GLOBAL_CONFIG = {
+    'log_level': 0,
+    'log_output': sys.stdout,
+}
