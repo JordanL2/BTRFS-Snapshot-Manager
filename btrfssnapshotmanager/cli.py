@@ -73,6 +73,11 @@ def main():
     systemdboot_parser = subparsers.add_parser('systemdboot', help='systemdboot-related commands')
     systemdboot_subparsers = systemdboot_parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
 
+    # systemdboot create
+    systemdboot_create_parser = systemdboot_subparsers.add_parser('create', help='create a boot entry for a given snapshot')
+    systemdboot_create_parser.add_argument('snapshot', help='name of snapshot to make boot entry for')
+    systemdboot_create_parser.set_defaults(func=systemdboot_create)
+
     # systemdboot list
     systemdboot_list_parser = systemdboot_subparsers.add_parser('list', help='list all systemd-boot snapshot boot entries')
     systemdboot_list_parser.set_defaults(func=systemdboot_list)
@@ -237,47 +242,55 @@ def snapshot_list(args):
 
 # Systemd-Boot
 
+def systemdboot_create(args):
+    snapshot_name = args.snapshot
+    snapshot_manager = SnapshotManager()
+    systemdboot = get_systemdboot(snapshot_manager)
+    if systemdboot is None:
+        fail("No subvolumes configured for systemd-boot integration")
+
+    snapshot = systemdboot.subvol.find_snapshot(snapshot_name)
+    if snapshot is None:
+        fail("Snapshot {0} not found in subvolume {1}".format(snapshot_name, systemdboot.subvol.name))
+
+    systemdboot.create_entry(snapshot)
+
 def systemdboot_list(args):
     snapshot_manager = SnapshotManager()
+    systemdboot = get_systemdboot(snapshot_manager)
+    if systemdboot is not None:
+        table = [['ENTRY', 'SNAPSHOT', 'DATE', 'PERIODS']]
 
-    for subvol, manager in snapshot_manager.managers.items():
-        if manager.systemdboot is not None:
-            table = [['ENTRY', 'SNAPSHOT', 'DATE', 'PERIODS']]
+        for entry, snapshot in systemdboot.entries.items():
+            if snapshot is not None:
+                table.append([
+                    entry,
+                    snapshot.name,
+                    snapshot.date.strftime(dateformat_human),
+                    ', '.join([p.name for p in snapshot.get_periods()]),
+                ])
+            else:
+                table.append([
+                    entry,
+                    'NOT FOUND',
+                    '',
+                    '',
+                ])
 
-            for entry, snapshot in manager.systemdboot.entries.items():
-                if snapshot is not None:
-                    table.append([
-                        entry,
-                        snapshot.name,
-                        snapshot.date.strftime(dateformat_human),
-                        ', '.join([p.name for p in snapshot.get_periods()]),
-                    ])
-                else:
-                    table.append([
-                        entry,
-                        'NOT FOUND',
-                        '',
-                        '',
-                    ])
-
-            output_table(table)
-            break
+        output_table(table)
 
 def systemdboot_show(args):
     snapshot_manager = SnapshotManager()
-
-    for subvol, manager in snapshot_manager.managers.items():
-        if manager.systemdboot is not None:
-            systemdboot = manager.systemdboot
-            table = []
-            table.append(['SUBVOLUME', subvol])
-            table.append(['BOOT PATH', systemdboot.boot_path])
-            table.append(['ENTRY', systemdboot.entry])
-            for p in PERIODS:
-                if p in systemdboot.retention:
-                    table.append([p.name.upper(), systemdboot.retention[p]])
-            output_table(table)
-            break
+    systemdboot = get_systemdboot(snapshot_manager)
+    if systemdboot is not None:
+        table = []
+        table.append(['SUBVOLUME', systemdboot.subvol.name])
+        table.append(['BOOT PATH', systemdboot.boot_path])
+        table.append(['ENTRY', systemdboot.entry])
+        for p in PERIODS:
+            if p in systemdboot.retention:
+                table.append([p.name.upper(), systemdboot.retention[p]])
+        output_table(table)
 
 
 # General
@@ -287,6 +300,12 @@ def get_subvol(path):
     if path in snapshot_manager.managers:
         return snapshot_manager.managers[path].subvol
     return Subvolume(path)
+
+def get_systemdboot(snapshot_manager):
+    for subvol, manager in snapshot_manager.managers.items():
+        if manager.systemdboot is not None:
+            return manager.systemdboot
+    return None
 
 def out(*messages):
     print(' '.join([str(m) for m in messages]), flush=True)
