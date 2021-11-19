@@ -15,7 +15,7 @@ class SnapshotManager():
                 self.config.retention[subvol],
                 self.config.backups[subvol])
 
-    def execute(self, subvols=None):
+    def execute(self, subvols=None, cleanup=True, backup=True):
         managers_to_run = self.managers
         if subvols is not None and len(subvols) > 0:
             managers_to_run = dict([(s, m) for s, m in managers_to_run.items() if s in subvols])
@@ -32,7 +32,22 @@ class SnapshotManager():
                     info("Period reached:", period.name)
                     periods.append(period)
             if len(periods) > 0:
+
+                # Create a new snapshot for the required periods
                 manager.create_snapshot(periods)
+
+                # If specified, delete unwanted snapshots
+                if cleanup:
+                    info()
+                    info("Cleanup...")
+                    manager.cleanup()
+
+                # If required, ensure backups are in sync
+                if backup:
+                    info()
+                    info("Backup...")
+                    manager.backup()
+
             else:
                 info("No periods reached")
 
@@ -70,19 +85,9 @@ class SubvolumeManager():
             return True
         return False
 
-    def create_snapshot(self, periods, cleanup=True, backup=True):
+    def create_snapshot(self, periods):
         info("Creating snapshot for:", ', '.join([p.name for p in periods]))
         self.subvol.create_snapshot(periods=periods)
-
-        if cleanup:
-            info()
-            info("Cleanup...")
-            self.cleanup()
-
-        if backup:
-            info()
-            info("Backup...")
-            self.backup()
 
     def cleanup(self):
         dont_delete = set()
@@ -94,9 +99,13 @@ class SubvolumeManager():
             for snapshot in snapshots[max(0, len(snapshots) - max_snapshots) : ]:
                 dont_delete.add(snapshot)
         snapshots = self.subvol.search_snapshots(periods=PERIODS)
+        count = 0
         for snapshot in snapshots:
             if snapshot not in dont_delete:
                 info("Deleting snapshot:", snapshot.name)
+                count += 1
+        if count == 0:
+            info("Nothing to do")
 
     def backup(self, ids=None):
         empty_line = False
