@@ -37,6 +37,9 @@ def cmd(command, attempts=None, fail_delay=None):
         else:
             return stdout
 
+def debug(*messages):
+    print(' '.join([str(m) for m in messages]), flush=True)
+
 def info(*messages):
     print(' '.join([str(m) for m in messages]), flush=True)
 

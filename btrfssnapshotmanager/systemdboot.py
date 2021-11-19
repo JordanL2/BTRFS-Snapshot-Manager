@@ -115,9 +115,9 @@ class SystemdBoot():
             for s in snapshots:
                 snapshots_needed.add(s)
         snapshots_needed = sorted(list(snapshots_needed), key=lambda s: s.name)
-        info("Snapshots found that should have systemd-boot entries:")
+        debug("Snapshots found that should have systemd-boot entries:")
         for s in snapshots_needed:
-            info("- ", s.name)
+            debug("-", s.name)
 
         # Create missing entries
         for s in snapshots_needed:
