@@ -131,5 +131,5 @@ class SystemdBoot():
         # Delete entries not required
         for entry_name, snapshot in self.entries.copy().items():
             if snapshot not in snapshots_needed:
-                info("Snapshot {0} no longer requires an entry".format(s.name))
+                info("Snapshot {0} no longer requires an entry".format(snapshot.name))
                 self.delete_entry(entry_name)
