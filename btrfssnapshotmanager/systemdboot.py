@@ -103,7 +103,7 @@ class SystemdBoot():
         if entry_name not in self.entries:
             raise SnapshotException("No such systemd-boot entry: {}".format(entry_name))
         entry_file = PosixPath(self.boot_path, 'loader/entries', entry_name)
-        cmd("sudo rm {0}".format(entry_file))
+        entry_file.unlink()
         del self.entries[entry_name]
 
     def sync(self):
