@@ -51,7 +51,7 @@ class SubvolumeManager():
 
     def last_run(self, period):
         if period not in self.retention_config:
-            raise SnapshotException("No {0} snapshot schedule set for subvolume {1}".format(period.name, self.subvol.path))
+            raise SnapshotException("No {0} snapshot schedule set for subvolume {1}".format(period.name, self.subvol.name))
         snapshots = self.subvol.search_snapshots(periods=[period])
         if len(snapshots) == 0:
             return None

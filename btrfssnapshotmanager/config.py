@@ -61,13 +61,13 @@ class Config():
                         backup = None
 
                         if 'type' not in backup_config:
-                            raise SnapshotException("Backup type not found for subvolume " + subvol.path)
+                            raise SnapshotException("Backup type not found for subvolume " + subvol.name)
                         backup_type = backup_config['type']
                         if backup_type not in ('btrfs', 'rsync'):
-                            raise SnapshotException("Backup type '{0}' invalid for subvolume {1}".format(backup_type, subvol.path))
+                            raise SnapshotException("Backup type '{0}' invalid for subvolume {1}".format(backup_type, subvol.name))
 
                         if 'retention' not in backup_config or backup_config['retention'] is None:
-                            raise SnapshotException("Backup retention config not found fore subvolume {0}".format(subvol.path))
+                            raise SnapshotException("Backup retention config not found fore subvolume {0}".format(subvol.name))
                         retention = {}
                         for period in PERIODS:
                             if period.name in backup_config['retention']:
@@ -75,7 +75,7 @@ class Config():
 
                         if 'local' in backup_config:
                             if backup_config['local'] is None or 'path' not in backup_config['local']:
-                                raise SnapshotException("Local backup config missing path for subvolume " + subvol.path)
+                                raise SnapshotException("Local backup config missing path for subvolume " + subvol.name)
                             path = backup_config['local']['path']
 
                             if backup_type == 'btrfs':
@@ -85,11 +85,11 @@ class Config():
 
                         elif 'remote' in backup_config:
                             if backup_config['remote'] is None or 'host' not in backup_config['remote']:
-                                raise SnapshotException("Remote backup config missing host for subvolume " + subvol.path)
+                                raise SnapshotException("Remote backup config missing host for subvolume " + subvol.name)
                             host = backup_config['remote']['host']
 
                             if 'path' not in backup_config['remote']:
-                                raise SnapshotException("Remote backup config missing path for subvolume " + subvol.path)
+                                raise SnapshotException("Remote backup config missing path for subvolume " + subvol.name)
                             path = backup_config['remote']['path']
 
                             user = None
