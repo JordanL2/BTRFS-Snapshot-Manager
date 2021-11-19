@@ -9,7 +9,7 @@ from pathlib import PosixPath, PurePosixPath
 class Backup():
 
     def __init__(self, subvol, retention):
-        self.subvol = Subvolume(subvol)
+        self.subvol = subvol
         self.retention = retention
         self.last_sync_file = None
 

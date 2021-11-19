@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from btrfssnapshotmanager.scheduler import *
+from btrfssnapshotmanager.manager import *
 from btrfssnapshotmanager.snapshots import *
 
 import argparse
@@ -80,13 +80,13 @@ def main():
 
 def backup_list(args):
     path = args.path
-    schedule_manager = ScheduleManager()
+    snapshot_manager = SnapshotManager()
 
-    if path is not None and path not in schedule_manager.schedulers:
+    if path is not None and path not in snapshot_manager.schedulers:
         fail("Config not found for subvolume", path)
 
     table = []
-    for subvol, scheduler in schedule_manager.schedulers.items():
+    for subvol, scheduler in snapshot_manager.schedulers.items():
         if path is None or subvol == path:
             if len(scheduler.backups) > 0:
                 if len(table) > 0:
@@ -112,13 +112,13 @@ def backup_run(args):
     ids = args.id
     if ids is not None:
         ids = [int(i) for i in ids]
-    schedule_manager = ScheduleManager()
+    snapshot_manager = SnapshotManager()
 
-    if path is not None and path not in schedule_manager.schedulers:
+    if path is not None and path not in snapshot_manager.schedulers:
         fail("Config not found for subvolume", path)
 
     empty_line = False
-    for subvol, scheduler in schedule_manager.schedulers.items():
+    for subvol, scheduler in snapshot_manager.schedulers.items():
         if path is None or subvol == path:
             if len(scheduler.backups) > 0:
                 if empty_line:
@@ -130,17 +130,17 @@ def backup_run(args):
 # Schedule
 
 def schedule_run(args):
-    schedule_manager = ScheduleManager()
-    schedule_manager.execute()
+    snapshot_manager = SnapshotManager()
+    snapshot_manager.execute()
 
 def schedule_list(args):
     path = args.path
-    schedule_manager = ScheduleManager()
-    if path is not None and path not in schedule_manager.schedulers:
+    snapshot_manager = SnapshotManager()
+    if path is not None and path not in snapshot_manager.schedulers:
         fail("Config not found for subvolume", path)
 
     table = []
-    for subvol, scheduler in schedule_manager.schedulers.items():
+    for subvol, scheduler in snapshot_manager.schedulers.items():
         if path is None or subvol == path:
             if len(scheduler.config) > 0:
                 if len(table) > 0:

@@ -12,8 +12,10 @@ class Config():
 
     config_file = PosixPath('/etc/btrfs-snapshot-manager/config.yml')
 
-    def __init__(self):
+    def __init__(self, snapshot_manager):
+        self.snapshot_manager = snapshot_manager
         self.load_config()
+        self.load_schedules()
 
     def load_config(self):
         if not self.config_file.is_file():
@@ -22,14 +24,16 @@ class Config():
             config = yaml.load(fh, Loader=yaml.CLoader)
 
         if config is None:
-            return
+            self.raw_config = {}
+        else:
+            self.raw_config = config
 
+    def load_schedules(self):
         self.schedules = {}
-        self.backups = {}
+        config = self.raw_config
         for subvol in config:
             if config[subvol] is not None:
 
-                # Schedules
                 schedule = {}
                 if 'retention' in config[subvol] and config[subvol]['retention'] is not None:
                     for period in PERIODS:
@@ -37,7 +41,13 @@ class Config():
                             schedule[period] = int(config[subvol]['retention'][period.name])
                 self.schedules[subvol] = schedule
 
-                # Backups
+    def load_backups(self):
+        self.backups = {}
+        config = self.raw_config
+        for subvol in config:
+            if config[subvol] is not None:
+                subvol_instance = self.snapshot_manager.schedulers[subvol].subvol
+
                 self.backups[subvol] = []
                 if 'backup' in config[subvol] and config[subvol]['backup'] is not None:
                     for backup_config in config[subvol]['backup']:
@@ -63,9 +73,9 @@ class Config():
                             path = backup_config['local']['path']
 
                             if backup_type == 'btrfs':
-                                backup = LocalBtrfsBackup(subvol, retention, path)
+                                backup = LocalBtrfsBackup(subvol_instance, retention, path)
                             elif backup_type == 'rsync':
-                                backup = LocalRsyncBackup(subvol, retention, path)
+                                backup = LocalRsyncBackup(subvol_instance, retention, path)
 
                         elif 'remote' in backup_config:
                             if backup_config['remote'] is None or 'host' not in backup_config['remote']:
@@ -85,9 +95,9 @@ class Config():
                                 ssh_options = backup_config['remote']['ssh-options']
 
                             if backup_type == 'btrfs':
-                                backup = RemoteBtrfsBackup(subvol, retention, host, user, ssh_options, path)
+                                backup = RemoteBtrfsBackup(subvol_instance, retention, host, user, ssh_options, path)
                             elif backup_type == 'rsync':
-                                backup = RemoteRsyncBackup(subvol, retention, host, user, ssh_options, path)
+                                backup = RemoteRsyncBackup(subvol_instance, retention, host, user, ssh_options, path)
 
                         if backup is not None:
                             if 'last_sync_file' in backup_config:

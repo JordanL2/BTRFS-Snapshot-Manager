@@ -5,13 +5,16 @@ from btrfssnapshotmanager.config import *
 from btrfssnapshotmanager.snapshots import *
 
 
-class ScheduleManager():
+class SnapshotManager():
 
     def __init__(self):
-        self.config = Config()
+        self.config = Config(self)
         self.schedulers = {}
         for subvol in self.config.schedules:
-            self.schedulers[subvol] = SubvolumeScheduleManager(self, subvol)
+            self.schedulers[subvol] = SubvolumeManager(self, subvol)
+        self.config.load_backups()
+        for subvol in self.schedulers:
+            self.schedulers[subvol].load_backups()
 
     def execute(self):
         empty_line = False
@@ -31,17 +34,18 @@ class ScheduleManager():
                 info("No periods reached")
 
 
-class SubvolumeScheduleManager():
+class SubvolumeManager():
 
     def __init__(self, schedule_manager, subvol):
         self.schedule_manager = schedule_manager
+        self.subvol_name = subvol
         self.subvol = Subvolume(subvol)
         if not self.subvol.has_snapshots():
             self.subvol.init_snapshots()
         self.config = self.schedule_manager.config.schedules[subvol]
-        self.backups = self.schedule_manager.config.backups[subvol]
-        for backup in self.backups:
-            backup.subvol = self.subvol
+
+    def load_backups(self):
+        self.backups = self.schedule_manager.config.backups[self.subvol_name]
 
     def last_run(self, period):
         if period not in self.config:
