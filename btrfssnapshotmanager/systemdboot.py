@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from btrfssnapshotmanager.snapshots import *
+from btrfssnapshotmanager.common import *
 
 from pathlib import PosixPath
 import re
