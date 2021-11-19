@@ -3,6 +3,7 @@
 from btrfssnapshotmanager.backups import *
 from btrfssnapshotmanager.common import *
 from btrfssnapshotmanager.periods import *
+from btrfssnapshotmanager.snapshots import *
 
 from pathlib import PosixPath
 import yaml
@@ -15,6 +16,8 @@ class Config():
     def __init__(self, snapshot_manager):
         self.snapshot_manager = snapshot_manager
         self.load_config()
+        self.load_retention()
+        self.load_backups()
 
     def load_config(self):
         if not self.config_file.is_file():
@@ -28,10 +31,14 @@ class Config():
             self.raw_config = config
 
     def load_retention(self):
+        self.subvolumes = {}
         self.retention = {}
         config = self.raw_config
         for subvol in config:
             if config[subvol] is not None:
+
+                # Initialise subvolume object
+                self.subvolumes[subvol] = Subvolume(subvol)
 
                 subvol_retention = {}
                 if 'retention' in config[subvol] and config[subvol]['retention'] is not None:
@@ -45,7 +52,7 @@ class Config():
         config = self.raw_config
         for subvol in config:
             if config[subvol] is not None:
-                subvol_instance = self.snapshot_manager.managers[subvol].subvol
+                subvol_instance = self.subvolumes[subvol]
 
                 self.backups[subvol] = []
                 if 'backup' in config[subvol] and config[subvol]['backup'] is not None:
