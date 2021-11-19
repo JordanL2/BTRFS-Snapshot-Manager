@@ -97,5 +97,8 @@ class SystemdBoot():
         info("---")
 
     def delete_entry(self, entry_name):
-        #TODO
-        pass
+        if entry_name not in self.entries:
+            raise SnapshotException("No such systemd-boot entry: {}".format(entry_name))
+        entry_file = PosixPath(self.boot_path, 'loader/entries', entry_name)
+        cmd("sudo rm {0}".format(entry_file))
+        del self.entries[entry_name]

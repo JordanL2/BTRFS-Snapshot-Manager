@@ -74,9 +74,14 @@ def main():
     systemdboot_subparsers = systemdboot_parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
 
     # systemdboot create
-    systemdboot_create_parser = systemdboot_subparsers.add_parser('create', help='create a boot entry for a given snapshot')
+    systemdboot_create_parser = systemdboot_subparsers.add_parser('create', help='create a systemd-boot entry for a given snapshot')
     systemdboot_create_parser.add_argument('snapshot', help='name of snapshot to make boot entry for')
     systemdboot_create_parser.set_defaults(func=systemdboot_create)
+
+    # systemdboot delete
+    systemdboot_delete_parser = systemdboot_subparsers.add_parser('delete', help='delete a systemd-boot entry')
+    systemdboot_delete_parser.add_argument('entry', help='name of boot entry file to delete')
+    systemdboot_delete_parser.set_defaults(func=systemdboot_delete)
 
     # systemdboot list
     systemdboot_list_parser = systemdboot_subparsers.add_parser('list', help='list all systemd-boot snapshot boot entries')
@@ -254,6 +259,16 @@ def systemdboot_create(args):
         fail("Snapshot {0} not found in subvolume {1}".format(snapshot_name, systemdboot.subvol.name))
 
     systemdboot.create_entry(snapshot)
+
+def systemdboot_delete(args):
+    entry_name = args.entry
+    snapshot_manager = SnapshotManager()
+    systemdboot = get_systemdboot(snapshot_manager)
+    if systemdboot is None:
+        fail("No subvolumes configured for systemd-boot integration")
+
+    systemdboot.delete_entry(entry_name)
+    out("Deleted systemd-boot entry {0}".format(entry_name))
 
 def systemdboot_list(args):
     snapshot_manager = SnapshotManager()
