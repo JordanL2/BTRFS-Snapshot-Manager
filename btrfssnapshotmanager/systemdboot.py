@@ -59,6 +59,7 @@ class SystemdBoot():
 
         # Read reference entry one line at a time, modify and write to new entry
         info("Creating new entry from {0} to new file {1}".format(ref_entry_path, new_entry_filename))
+        info("---")
         with open(ref_entry_path, 'r') as fhin:
             with open(new_entry_filename, 'w') as fhout:
                 while True:
@@ -89,10 +90,11 @@ class SystemdBoot():
 
                         line = key + space + value
                     else:
-                        info("Invalid line: `{0}`".format(line))
+                        warn("Invalid line: `{0}`".format(line))
 
                     info(line)
                     print(line, file=fhout)
+        info("---")
 
     def delete_entry(self, entry_name):
         #TODO

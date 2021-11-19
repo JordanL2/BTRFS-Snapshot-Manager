@@ -39,3 +39,6 @@ def cmd(command, attempts=None, fail_delay=None):
 
 def info(*messages):
     print(' '.join([str(m) for m in messages]), flush=True)
+
+def warn(*messages):
+    print('[WARNING]', ' '.join([str(m) for m in messages]), flush=True)
