@@ -4,7 +4,14 @@
     daily: 7
     weekly: 3
     monthly: 1
-  snapshots_path: /snapshots
+  snapshots-path: /snapshots
+  systemd-boot:
+    boot-path: /boot
+    entry: arch.conf
+    retention:
+      daily: 7
+      weekly: 3
+      monthly: 1
 /home:
   retention:
     hourly: 48
