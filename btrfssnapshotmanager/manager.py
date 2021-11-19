@@ -9,12 +9,15 @@ class SnapshotManager():
 
     def __init__(self):
         self.config = Config(self)
+        # Load retention config, initialise subvolume managers
         self.managers = {}
-        for subvol in self.config.schedules:
+        self.config.load_retention()
+        for subvol in self.config.retention:
             self.managers[subvol] = SubvolumeManager(self, subvol)
+        # Load backup config
         self.config.load_backups()
         for subvol in self.managers:
-            self.managers[subvol].load_backups()
+            self.managers[subvol].backups = self.config.backups[subvol]
 
     def execute(self):
         empty_line = False
@@ -38,14 +41,10 @@ class SubvolumeManager():
 
     def __init__(self, snapshot_manager, subvol):
         self.snapshot_manager = snapshot_manager
-        self.subvol_name = subvol
         self.subvol = Subvolume(subvol)
         if not self.subvol.has_snapshots():
             self.subvol.init_snapshots()
-        self.config = self.snapshot_manager.config.schedules[subvol]
-
-    def load_backups(self):
-        self.backups = self.snapshot_manager.config.backups[self.subvol_name]
+        self.config = self.snapshot_manager.config.retention[subvol]
 
     def last_run(self, period):
         if period not in self.config:

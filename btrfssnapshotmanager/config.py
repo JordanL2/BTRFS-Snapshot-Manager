@@ -15,7 +15,6 @@ class Config():
     def __init__(self, snapshot_manager):
         self.snapshot_manager = snapshot_manager
         self.load_config()
-        self.load_schedules()
 
     def load_config(self):
         if not self.config_file.is_file():
@@ -28,18 +27,18 @@ class Config():
         else:
             self.raw_config = config
 
-    def load_schedules(self):
-        self.schedules = {}
+    def load_retention(self):
+        self.retention = {}
         config = self.raw_config
         for subvol in config:
             if config[subvol] is not None:
 
-                schedule = {}
+                subvol_retention = {}
                 if 'retention' in config[subvol] and config[subvol]['retention'] is not None:
                     for period in PERIODS:
                         if period.name in config[subvol]['retention']:
-                            schedule[period] = int(config[subvol]['retention'][period.name])
-                self.schedules[subvol] = schedule
+                            subvol_retention[period] = int(config[subvol]['retention'][period.name])
+                self.retention[subvol] = subvol_retention
 
     def load_backups(self):
         self.backups = {}
