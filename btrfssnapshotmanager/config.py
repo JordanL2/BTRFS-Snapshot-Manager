@@ -46,7 +46,7 @@ class Config():
         config = self.raw_config
         for subvol in config:
             if config[subvol] is not None:
-                subvol_instance = self.snapshot_manager.schedulers[subvol].subvol
+                subvol_instance = self.snapshot_manager.managers[subvol].subvol
 
                 self.backups[subvol] = []
                 if 'backup' in config[subvol] and config[subvol]['backup'] is not None:

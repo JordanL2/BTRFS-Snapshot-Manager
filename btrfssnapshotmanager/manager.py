@@ -9,43 +9,43 @@ class SnapshotManager():
 
     def __init__(self):
         self.config = Config(self)
-        self.schedulers = {}
+        self.managers = {}
         for subvol in self.config.schedules:
-            self.schedulers[subvol] = SubvolumeManager(self, subvol)
+            self.managers[subvol] = SubvolumeManager(self, subvol)
         self.config.load_backups()
-        for subvol in self.schedulers:
-            self.schedulers[subvol].load_backups()
+        for subvol in self.managers:
+            self.managers[subvol].load_backups()
 
     def execute(self):
         empty_line = False
-        for subvol, scheduler in self.schedulers.items():
+        for subvol, manager in self.managers.items():
             if empty_line:
                 info()
             empty_line = True
             info("Subvolume:", subvol)
             periods = []
-            for period, count in scheduler.config.items():
-                if scheduler.should_run(period):
+            for period, count in manager.config.items():
+                if manager.should_run(period):
                     info("Period reached:", period.name)
                     periods.append(period)
             if len(periods) > 0:
-                scheduler.run(periods)
+                manager.run(periods)
             else:
                 info("No periods reached")
 
 
 class SubvolumeManager():
 
-    def __init__(self, schedule_manager, subvol):
-        self.schedule_manager = schedule_manager
+    def __init__(self, snapshot_manager, subvol):
+        self.snapshot_manager = snapshot_manager
         self.subvol_name = subvol
         self.subvol = Subvolume(subvol)
         if not self.subvol.has_snapshots():
             self.subvol.init_snapshots()
-        self.config = self.schedule_manager.config.schedules[subvol]
+        self.config = self.snapshot_manager.config.schedules[subvol]
 
     def load_backups(self):
-        self.backups = self.schedule_manager.config.backups[self.subvol_name]
+        self.backups = self.snapshot_manager.config.backups[self.subvol_name]
 
     def last_run(self, period):
         if period not in self.config:

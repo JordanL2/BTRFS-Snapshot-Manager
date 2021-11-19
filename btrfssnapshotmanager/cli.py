@@ -82,17 +82,17 @@ def backup_list(args):
     path = args.path
     snapshot_manager = SnapshotManager()
 
-    if path is not None and path not in snapshot_manager.schedulers:
+    if path is not None and path not in snapshot_manager.managers:
         fail("Config not found for subvolume", path)
 
     table = []
-    for subvol, scheduler in snapshot_manager.schedulers.items():
+    for subvol, manager in snapshot_manager.managers.items():
         if path is None or subvol == path:
-            if len(scheduler.backups) > 0:
+            if len(manager.backups) > 0:
                 if len(table) > 0:
                     table.append(None)
                 table.append([subvol, 'LOCATION', 'MECHANISM', *[p.name.upper() for p in PERIODS]])
-                for i, backup in enumerate(scheduler.backups):
+                for i, backup in enumerate(manager.backups):
                     row = [i]
                     row.append(backup.location())
                     row.append(backup.mechanism)
@@ -114,16 +114,16 @@ def backup_run(args):
         ids = [int(i) for i in ids]
     snapshot_manager = SnapshotManager()
 
-    if path is not None and path not in snapshot_manager.schedulers:
+    if path is not None and path not in snapshot_manager.managers:
         fail("Config not found for subvolume", path)
 
     empty_line = False
-    for subvol, scheduler in snapshot_manager.schedulers.items():
+    for subvol, manager in snapshot_manager.managers.items():
         if path is None or subvol == path:
-            if len(scheduler.backups) > 0:
+            if len(manager.backups) > 0:
                 if empty_line:
                     info()
-                scheduler.backup(ids=ids)
+                manager.backup(ids=ids)
                 empty_line = True
 
 
@@ -136,28 +136,28 @@ def schedule_run(args):
 def schedule_list(args):
     path = args.path
     snapshot_manager = SnapshotManager()
-    if path is not None and path not in snapshot_manager.schedulers:
+    if path is not None and path not in snapshot_manager.managers:
         fail("Config not found for subvolume", path)
 
     table = []
-    for subvol, scheduler in snapshot_manager.schedulers.items():
+    for subvol, manager in snapshot_manager.managers.items():
         if path is None or subvol == path:
-            if len(scheduler.config) > 0:
+            if len(manager.config) > 0:
                 if len(table) > 0:
                     table.append(None)
                 table.append([subvol, 'LAST RUN', 'NEXT RUN'])
-                for period in sorted(scheduler.config.keys(), key=lambda p: p.seconds):
+                for period in sorted(manager.config.keys(), key=lambda p: p.seconds):
                     row = []
                     row.append(period.name)
 
-                    last_run = scheduler.last_run(period)
+                    last_run = manager.last_run(period)
                     if last_run is None:
                         last_run = 'Never'
                     else:
                         last_run = last_run.strftime(dateformat_human)
                     row.append(last_run)
 
-                    next_run = scheduler.next_run(period)
+                    next_run = manager.next_run(period)
                     if next_run is None:
                         next_run = 'Immediately'
                     else:
