@@ -44,8 +44,9 @@ class SystemdBoot():
                         snapshot.systemdboot_entry = child.name
 
     def create_entry(self, snapshot):
+        entry_name = boot_entry_name_format(self.entry, snapshot.name)
         ref_entry_path = PosixPath(self.boot_path, 'loader/entries', self.entry)
-        new_entry_filename = PosixPath(self.boot_path, 'loader/entries', boot_entry_name_format(self.entry, snapshot.name))
+        new_entry_filename = PosixPath(self.boot_path, 'loader/entries', entry_name)
         if not ref_entry_path.is_file():
             raise SnapshotException("Reference systemd-boot entry file {0} not found".format(ref_entry_path))
 
@@ -58,7 +59,7 @@ class SystemdBoot():
         )
 
         # Read reference entry one line at a time, modify and write to new entry
-        info("Creating new entry from {0} to new file {1}".format(ref_entry_path, new_entry_filename))
+        info("Creating new entry {0}".format(entry_name))
         info("---")
         with open(ref_entry_path, 'r') as fhin:
             with open(new_entry_filename, 'w') as fhout:
@@ -96,9 +97,36 @@ class SystemdBoot():
                     print(line, file=fhout)
         info("---")
 
+        self.entries[entry_name] = snapshot
+
     def delete_entry(self, entry_name):
         if entry_name not in self.entries:
             raise SnapshotException("No such systemd-boot entry: {}".format(entry_name))
         entry_file = PosixPath(self.boot_path, 'loader/entries', entry_name)
         cmd("sudo rm {0}".format(entry_file))
         del self.entries[entry_name]
+
+    def sync(self):
+        snapshots_needed = set()
+        for period, count in self.retention.items():
+            snapshots = self.subvol.search_snapshots(periods=[period])
+            if len(snapshots) > count:
+                snapshots = snapshots[len(snapshots) - count :]
+            for s in snapshots:
+                snapshots_needed.add(s)
+        snapshots_needed = sorted(list(snapshots_needed), key=lambda s: s.name)
+        info("Snapshots found that should have systemd-boot entries:")
+        for s in snapshots_needed:
+            info("- ", s.name)
+
+        # Create missing entries
+        for s in snapshots_needed:
+            if s not in self.entries.values():
+                info("Snapshot {0} requires an entry".format(s.name))
+                self.create_entry(s)
+
+        # Delete entries not required
+        for entry_name, snapshot in self.entries.copy().items():
+            if snapshot not in snapshots_needed:
+                info("Snapshot {0} no longer requires an entry".format(s.name))
+                self.delete_entry(entry_name)

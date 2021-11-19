@@ -91,6 +91,10 @@ def main():
     systemdboot_list_parser = systemdboot_subparsers.add_parser('list', help='list all systemd-boot snapshot boot entries')
     systemdboot_list_parser.set_defaults(func=systemdboot_list)
 
+    # systemdboot sync
+    systemdboot_sync_parser = systemdboot_subparsers.add_parser('sync', help='create and delete systemd-boot entries as required by config')
+    systemdboot_sync_parser.set_defaults(func=systemdboot_sync)
+
     args = parser.parse_args()
     try:
         args.func(args)
@@ -289,7 +293,7 @@ def systemdboot_list(args):
     if systemdboot is not None:
         table = [['ENTRY', 'SNAPSHOT', 'DATE', 'PERIODS']]
 
-        for entry, snapshot in systemdboot.entries.items():
+        for entry, snapshot in sorted(systemdboot.entries.items(), key=lambda s: s[1].name):
             if snapshot is not None:
                 table.append([
                     entry,
@@ -306,6 +310,15 @@ def systemdboot_list(args):
                 ])
 
         output_table(table)
+
+def systemdboot_sync(args):
+    snapshot_manager = SnapshotManager()
+    systemdboot = get_systemdboot(snapshot_manager)
+    if systemdboot is None:
+        fail("No subvolumes configured for systemd-boot integration")
+
+    info("Creating missing systemd-boot entries, and deleting ones no longer required")
+    systemdboot.sync()
 
 
 # General
