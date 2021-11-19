@@ -32,7 +32,7 @@ class SnapshotManager():
                     info("Period reached:", period.name)
                     periods.append(period)
             if len(periods) > 0:
-                manager.run(periods)
+                manager.create_snapshot(periods)
             else:
                 info("No periods reached")
 
@@ -69,7 +69,7 @@ class SubvolumeManager():
             return True
         return False
 
-    def run(self, periods, cleanup=True, backup=True):
+    def create_snapshot(self, periods, cleanup=True, backup=True):
         info("Creating snapshot for:", ', '.join([p.name for p in periods]))
         self.subvol.create_snapshot(periods=periods)
 
