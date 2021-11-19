@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="btrfssnapshotmanager",
-    version="0.1.0",
+    version="0.99.0",
     author="Jordan Leppert",
     author_email="jordanleppert@gmail.com",
     description="A tool to manage, schedule, and backup snapshots of btrfs subvolumes.",
