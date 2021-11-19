@@ -33,6 +33,11 @@ def main():
     schedule_parser = subparsers.add_parser('schedule', help='schedule-related commands')
     schedule_subparsers = schedule_parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
 
+    # schedule cleanup
+    schedule_cleanup_parser = schedule_subparsers.add_parser('cleanup', help='delete unrequired snapshots')
+    schedule_cleanup_parser.add_argument('path', nargs='*', help='path to subvolume')
+    schedule_cleanup_parser.set_defaults(func=schedule_cleanup)
+
     # schedule list
     schedule_list_parser = schedule_subparsers.add_parser('list', help='list snapshot schedules')
     schedule_list_parser.add_argument('path', nargs='?', help='path to subvolume')
@@ -156,6 +161,17 @@ def backup_run(args):
                 empty_line = True
 
 # Schedule
+
+def schedule_cleanup(args):
+    global_args(args)
+    paths = args.path
+    snapshot_manager = SnapshotManager()
+    if paths is not None:
+        for path in paths:
+            if path not in snapshot_manager.managers:
+                fail("Config not found for subvolume", path)
+
+    snapshot_manager.cleanup(subvols=paths)
 
 def schedule_list(args):
     global_args(args)
