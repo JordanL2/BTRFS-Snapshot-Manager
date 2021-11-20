@@ -27,14 +27,16 @@ class SystemdBoot():
         self.subvol = subvol
         self.reference_entry = entry
         self.retention = retention
-        self.boot_path = default_boot_dir
-        self.entries_dir = PosixPath(self.boot_path, default_entries_dir)
+        self.set_boot_path(default_boot_dir)
+
+    def set_boot_path(self, boot_path):
+        self.entries_dir = PosixPath(boot_path, default_entries_dir)
         self.load_entries()
 
     def load_entries(self):
         self.entries = {}
         if not self.entries_dir.is_dir():
-            raise SnapshotException("Boot path {0} does not exist".format(path))
+            raise SnapshotException("Boot path {0} does not exist".format(self.entries_dir))
         for child in self.entries_dir.iterdir():
             if child.is_file():
                 snapshot_name = boot_entry_name_parse(self.reference_entry, child.name)

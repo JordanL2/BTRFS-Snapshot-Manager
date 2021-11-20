@@ -144,6 +144,6 @@ class Config():
                         systemdboot = SystemdBoot(subvol_instance, entry, retention)
 
                         if 'boot-path' in systemdboot_config:
-                            systemdboot.boot_path = systemdboot_config['boot-path']
+                            systemdboot.set_boot_path(systemdboot_config['boot-path'])
 
                         self.systemdboots[subvol].append(systemdboot)
