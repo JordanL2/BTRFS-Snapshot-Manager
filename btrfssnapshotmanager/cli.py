@@ -32,6 +32,12 @@ def main():
     backup_run_parser.add_argument('--id', nargs='*', help='only run backups with these ids')
     backup_run_parser.set_defaults(func=backup_run)
 
+    # backup target-list
+    backup_targetlist_parser = backup_subparsers.add_parser('target-list', help='list snapshots backed up on target')
+    backup_targetlist_parser.add_argument('path', nargs='?', help='path to subvolume')
+    backup_targetlist_parser.add_argument('--id', nargs='*', help='only run backups with these ids')
+    backup_targetlist_parser.set_defaults(func=backup_targetlist)
+
     # schedule
     schedule_parser = subparsers.add_parser('schedule', help='schedule-related commands')
     schedule_subparsers = schedule_parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
@@ -163,6 +169,39 @@ def backup_run(args):
                     info()
                 manager.backup(ids=ids)
                 empty_line = True
+
+def backup_targetlist(args):
+    global_args(args)
+    path = args.path
+    ids = args.id
+    if ids is not None:
+        ids = [int(i) for i in ids]
+    snapshot_manager = SnapshotManager()
+
+    if path is not None and path not in snapshot_manager.managers:
+        fail("Config not found for subvolume", path)
+
+    table = []
+    for subvol, manager in snapshot_manager.managers.items():
+        if path is None or subvol == path:
+            if len(manager.backups) > 0:
+                if len(table) > 0:
+                    table.append(None)
+                table.append([subvol, 'SNAPSHOT', 'DATE', 'PERIODS'])
+                for i, backup in enumerate(manager.backups):
+                    if ids is None or len(ids) == 0 or i in ids:
+                        target_snapshot_names = backup.get_target_snapshot_names()
+                        for target_snapshot_name in sorted(target_snapshot_names):
+                            snapshot_details = snapshot_name_parse(target_snapshot_name)
+                            table.append([
+                                backup.location(),
+                                target_snapshot_name,
+                                snapshot_details['date'].strftime(dateformat_human),
+                                ', '.join([p.name for p in snapshot_details['periods']]),
+                            ])
+
+    output_table(table)
+
 
 # Schedule
 

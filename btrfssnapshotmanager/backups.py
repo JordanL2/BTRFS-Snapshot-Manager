@@ -87,7 +87,7 @@ class LocalBackup(Backup):
             self.path.mkdir(mode=0o700, parents=True)
 
     def get_target_snapshot_names(self):
-        info("Fetching list of snapshots on target {0}".format(self.location()))
+        debug("Fetching list of snapshots on target {0}".format(self.location()))
         names = []
         for child in self.path.iterdir():
             if child.is_dir():
@@ -118,7 +118,7 @@ class RemoteBackup(Backup):
         cmd("{0} \"sudo mkdir -p {1}\"".format(self._ssh_command(), self.path), attempts=self.cmd_attempts, fail_delay=self.cmd_fail_delay)
 
     def get_target_snapshot_names(self):
-        info("Fetching list of snapshots on target " + self.location())
+        debug("Fetching list of snapshots on target " + self.location())
         out = cmd("{0} \"ls -1 {1}\"".format(self._ssh_command(), self.path), attempts=self.cmd_attempts, fail_delay=self.cmd_fail_delay)
         names = []
         remote_files = [n.strip() for n in out.split("\n") if n.strip() != '']
