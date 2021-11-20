@@ -1,60 +1,61 @@
-/:
-  retention:
-    hourly: 48
-    daily: 7
-    weekly: 3
-    monthly: 1
-  snapshots-path: /snapshots
-  systemd-boot:
-    boot-path: /boot
-    entries:
-    - entry: linux.conf
-      retention:
-        hourly: 5
-        daily: 7
-        weekly: 2
-    - entry: linux-lts.conf
-      retention:
-        daily: 7
-/home:
-  retention:
-    hourly: 48
-    daily: 7
-    weekly: 3
-    monthly: 3
-  backup:
-    - type: rsync
-      local:
-        path: /backups/rsync/home
-      retention:
-        daily: 7
-        weekly: 3
-        monthly: 1
-      last_sync_file: .lastsync
-    - type: rsync
-      remote:
-        host: mybackupserver
-        user: backupuser
-        ssh-options: -i /root/.ssh/backupuser
-        path: /data/Backup/rsync/home
-      retention:
-        daily: 7
-        weekly: 3
-        monthly: 1
-    - type: btrfs
-      local:
-        path: /backups/btrfs/home
-      retention:
-        daily: 7
-        weekly: 3
-        monthly: 1
-    - type: btrfs
-      remote:
-        host: mybackupserver
-        user: backupuser
-        ssh-options: -i /root/.ssh/backupuser
-        path: /data/Backup/btrfs/home
-      retention:
-        daily: 7
-        weekly: 3
-        monthly: 1
+subvolumes:
+  - path: /
+    retention:
+      hourly: 48
+      daily: 7
+      weekly: 3
+      monthly: 1
+    snapshots-path: /snapshots
+    systemd-boot:
+      boot-path: /boot
+      entries:
+      - entry: linux.conf
+        retention:
+          hourly: 5
+          daily: 7
+          weekly: 2
+      - entry: linux-lts.conf
+        retention:
+          daily: 7
+  - path: /home
+    retention:
+      hourly: 48
+      daily: 7
+      weekly: 3
+      monthly: 3
+    backup:
+      - type: rsync
+        local:
+          path: /backups/rsync/home
+        retention:
+          daily: 7
+          weekly: 3
+          monthly: 1
+        last_sync_file: .lastsync
+      - type: rsync
+        remote:
+          host: mybackupserver
+          user: backupuser
+          ssh-options: -i /root/.ssh/backupuser
+          path: /data/Backup/rsync/home
+        retention:
+          daily: 7
+          weekly: 3
+          monthly: 1
+      - type: btrfs
+        local:
+          path: /backups/btrfs/home
+        retention:
+          daily: 7
+          weekly: 3
+          monthly: 1
+      - type: btrfs
+        remote:
+          host: mybackupserver
+          user: backupuser
+          ssh-options: -i /root/.ssh/backupuser
+          path: /data/Backup/btrfs/home
+        retention:
+          daily: 7
+          weekly: 3
+          monthly: 1
