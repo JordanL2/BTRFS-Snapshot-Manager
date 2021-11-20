@@ -58,8 +58,8 @@ GLOBAL_CONFIG = {
         'level': 0,
         'output': sys.stdout,
         'levels': [
-            { 'name': 'debug', 'prefix': None },
-            { 'name': 'info', 'prefix': None },
+            { 'name': 'debug', 'prefix': '' },
+            { 'name': 'info', 'prefix': '' },
             { 'name': 'warn', 'prefix': '[!] ' },
         ],
     },
