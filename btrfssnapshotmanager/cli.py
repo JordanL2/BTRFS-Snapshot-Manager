@@ -283,14 +283,14 @@ def systemdboot_config(args):
     systemdboot = get_systemdboot(snapshot_manager)
     if systemdboot is not None:
         table = [['SUBVOLUME', 'BOOT PATH', 'ENTRY', *[p.name.upper() for p in PERIODS]]]
-        for entry in systemdboot:
+        for systemdboot_entry in systemdboot:
             row = []
-            row.append(entry.subvol.name)
-            row.append(entry.boot_path)
-            row.append(entry.reference_entry)
+            row.append(systemdboot_entry.subvol.name)
+            row.append(systemdboot_entry.boot_path)
+            row.append(systemdboot_entry.reference_entry)
             for p in PERIODS:
-                if p in entry.retention:
-                    row.append(entry.retention[p])
+                if p in systemdboot_entry.retention:
+                    row.append(systemdboot_entry.retention[p])
                 else:
                     row.append('')
             table.append(row)
@@ -305,12 +305,12 @@ def systemdboot_create(args):
     if systemdboot is None:
         fail("No subvolumes configured for systemd-boot integration")
 
-    for entry in systemdboot:
-        if entry.reference_entry == entry_name:
-            snapshot = entry.subvol.find_snapshot(snapshot_name)
+    for systemdboot_entry in systemdboot:
+        if systemdboot_entry.reference_entry == entry_name:
+            snapshot = systemdboot_entry.subvol.find_snapshot(snapshot_name)
             if snapshot is None:
-                fail("Snapshot {0} not found in subvolume {1}".format(snapshot_name, entry.subvol.name))
-            entry.create_entry(snapshot)
+                fail("Snapshot {0} not found in subvolume {1}".format(snapshot_name, systemdboot_entry.subvol.name))
+            systemdboot_entry.create_entry(snapshot)
             break
     else:
         fail("Did not find systemd-boot entry {0}".format(entry_name))
@@ -367,8 +367,8 @@ def systemdboot_run(args):
         fail("No subvolumes configured for systemd-boot integration")
 
     info("Creating missing systemd-boot entries, and deleting ones no longer required")
-    for entry in systemdboot:
-        entry.run()
+    for systemdboot_entry in systemdboot:
+        systemdboot_entry.run()
 
 
 # General
