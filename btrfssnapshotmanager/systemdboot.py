@@ -7,6 +7,7 @@ import re
 
 
 default_boot_dir = '/boot'
+default_entries_dir = 'loader/entries'
 entry_line_regex = re.compile(r'(\S+)(\s*)(.*?)')
 
 def boot_entry_name_parse(entry, name):
@@ -22,23 +23,21 @@ def boot_entry_name_format(entry, name):
 
 class SystemdBoot():
 
-    entries_dir = 'loader/entries'
-
     def __init__(self, subvol, entry, retention):
         self.subvol = subvol
-        self.entry = entry
+        self.reference_entry = entry
         self.retention = retention
         self.boot_path = default_boot_dir
+        self.entries_dir = PosixPath(self.boot_path, default_entries_dir)
         self.load_entries()
 
     def load_entries(self):
         self.entries = {}
-        path = PosixPath(self.boot_path, self.entries_dir)
-        if not path.is_dir():
+        if not self.entries_dir.is_dir():
             raise SnapshotException("Boot path {0} does not exist".format(path))
-        for child in path.iterdir():
+        for child in self.entries_dir.iterdir():
             if child.is_file():
-                snapshot_name = boot_entry_name_parse(self.entry, child.name)
+                snapshot_name = boot_entry_name_parse(self.reference_entry, child.name)
                 if snapshot_name is not None:
                     snapshot = self.subvol.find_snapshot(snapshot_name)
                     self.entries[child.name] = snapshot
@@ -47,9 +46,9 @@ class SystemdBoot():
                         snapshot.systemdboot_entry = child.name
 
     def create_entry(self, snapshot):
-        entry_name = boot_entry_name_format(self.entry, snapshot.name)
-        ref_entry_path = PosixPath(self.boot_path, self.entries_dir, self.entry)
-        new_entry_filename = PosixPath(self.boot_path, self.entries_dir, entry_name)
+        entry_name = boot_entry_name_format(self.reference_entry, snapshot.name)
+        ref_entry_path = PosixPath(self.entries_dir, self.reference_entry)
+        new_entry_filename = PosixPath(self.entries_dir, entry_name)
         if not ref_entry_path.is_file():
             raise SnapshotException("Reference systemd-boot entry file {0} not found".format(ref_entry_path))
 
@@ -105,7 +104,7 @@ class SystemdBoot():
     def delete_entry(self, entry_name):
         if entry_name not in self.entries:
             raise SnapshotException("No such systemd-boot entry: {}".format(entry_name))
-        entry_file = PosixPath(self.boot_path, self.entries_dir, entry_name)
+        entry_file = PosixPath(self.entries_dir, entry_name)
         entry_file.unlink()
         del self.entries[entry_name]
 
