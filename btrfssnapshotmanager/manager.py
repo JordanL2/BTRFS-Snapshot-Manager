@@ -55,7 +55,8 @@ class SnapshotManager():
                 if systemdboot_run and manager.systemdboot is not None:
                     info()
                     info("Systemd-boot...")
-                    manager.systemdboot.run()
+                    for entry in manager.systemdboot:
+                        entry.run()
 
             else:
                 info("No periods reached")

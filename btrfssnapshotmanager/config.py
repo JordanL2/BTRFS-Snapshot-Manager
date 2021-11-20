@@ -123,20 +123,27 @@ class Config():
                 if 'systemd-boot' in config[subvol] and config[subvol]['systemd-boot'] is not None:
                     systemdboot_config = config[subvol]['systemd-boot']
 
-                    if 'entry' not in systemdboot_config:
-                        raise SnapshotException("Systemd-boot config missing entry for subvolume " + subvol)
-                    entry = systemdboot_config['entry']
+                    if 'entries' not in systemdboot_config:
+                        raise SnapshotException("Systemd-boot config missing entries for subvolume " + subvol)
 
-                    if 'retention' not in systemdboot_config or systemdboot_config['retention'] is None:
-                        raise SnapshotException("Systemd-boot retention config not found for subvolume {0}".format(subvol))
-                    retention = {}
-                    for period in PERIODS:
-                        if period.name in systemdboot_config['retention']:
-                            retention[period] = int(systemdboot_config['retention'][period.name])
+                    self.systemdboot[subvol] = []
 
-                    systemdboot = SystemdBoot(subvol_instance, entry, retention)
+                    for systemdboot_config_entry in systemdboot_config['entries']:
 
-                    if 'boot-path' in systemdboot_config:
-                        systemdboot.boot_path = systemdboot_config['boot-path']
+                        if 'entry' not in systemdboot_config_entry:
+                            raise SnapshotException("Systemd-boot config missing entry for subvolume " + subvol)
+                        entry = systemdboot_config_entry['entry']
 
-                    self.systemdboot[subvol] = systemdboot
+                        if 'retention' not in systemdboot_config_entry or systemdboot_config_entry['retention'] is None:
+                            raise SnapshotException("Systemd-boot retention config not found for subvolume {0}".format(subvol))
+                        retention = {}
+                        for period in PERIODS:
+                            if period.name in systemdboot_config_entry['retention']:
+                                retention[period] = int(systemdboot_config_entry['retention'][period.name])
+
+                        systemdboot = SystemdBoot(subvol_instance, entry, retention)
+
+                        if 'boot-path' in systemdboot_config:
+                            systemdboot.boot_path = systemdboot_config['boot-path']
+
+                        self.systemdboot[subvol].append(systemdboot)

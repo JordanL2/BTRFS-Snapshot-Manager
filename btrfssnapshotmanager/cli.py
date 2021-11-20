@@ -281,13 +281,18 @@ def systemdboot_config(args):
     snapshot_manager = SnapshotManager()
     systemdboot = get_systemdboot(snapshot_manager)
     if systemdboot is not None:
-        table = []
-        table.append(['SUBVOLUME', systemdboot.subvol.name])
-        table.append(['BOOT PATH', systemdboot.boot_path])
-        table.append(['ENTRY', systemdboot.entry])
-        for p in PERIODS:
-            if p in systemdboot.retention:
-                table.append([p.name.upper(), systemdboot.retention[p]])
+        table = [['SUBVOLUME', 'BOOT PATH', 'ENTRY', *[p.name.upper() for p in PERIODS]]]
+        for entry in systemdboot:
+            row = []
+            row.append(entry.subvol.name)
+            row.append(entry.boot_path)
+            row.append(entry.reference_entry)
+            for p in PERIODS:
+                if p in entry.retention:
+                    row.append(entry.retention[p])
+                else:
+                    row.append('')
+            table.append(row)
         output_table(table)
 
 def systemdboot_create(args):
@@ -348,7 +353,8 @@ def systemdboot_run(args):
         fail("No subvolumes configured for systemd-boot integration")
 
     info("Creating missing systemd-boot entries, and deleting ones no longer required")
-    systemdboot.run()
+    for entry in systemdboot:
+        entry.run()
 
 
 # General
