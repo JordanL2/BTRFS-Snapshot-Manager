@@ -63,7 +63,7 @@ class Subvolume():
     def init_snapshots(self):
         if self.has_snapshots():
             raise SnapshotException("Subvolume is already initialised for snapshots")
-        cmd("sudo btrfs subvolume create {0}".format(self.snapshots_dir))
+        cmd("btrfs subvolume create {0}".format(self.snapshots_dir))
         self.load_snapshots()
 
     def load_snapshots(self):
@@ -113,7 +113,7 @@ class Subvolume():
 
     def _check_path(self):
         try:
-            out = cmd("sudo btrfs subvolume show {0}".format(self.path))
+            out = cmd("btrfs subvolume show {0}".format(self.path))
             self.label = out.split("\n")[0].strip()
         except CommandException:
             return False
@@ -139,10 +139,10 @@ class Snapshot():
         self.systemdboot = {}
 
     def create(self):
-        cmd("sudo btrfs subvolume snapshot -r {0} {1}".format(self.subvolume.path, self.path))
+        cmd("btrfs subvolume snapshot -r {0} {1}".format(self.subvolume.path, self.path))
 
     def delete(self):
-        cmd("sudo btrfs subvolume delete --commit-each {0}".format(self.path))
+        cmd("btrfs subvolume delete --commit-each {0}".format(self.path))
         self.subvolume.snapshots.remove(self)
 
         # Delete systemd-boot entry

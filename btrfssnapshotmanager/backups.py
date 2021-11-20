@@ -49,7 +49,7 @@ class Backup():
 
         # Declare successful sync
         if self.last_sync_file is not None:
-            cmd("sudo touch {0}".format(PosixPath(self.subvol.snapshots_dir, self.last_sync_file)))
+            cmd("touch {0}".format(PosixPath(self.subvol.snapshots_dir, self.last_sync_file)))
 
     def location(self):
         raise Exception("Method must be overridden")
@@ -146,15 +146,15 @@ class LocalBtrfsBackup(LocalBackup):
 
     def transfer_source(self, source):
         info("Transferring via btrfs snapshot {0} to target {1}".format(source.path, self.location()))
-        cmd("sudo btrfs send {0} | sudo btrfs receive {1}".format(source.path, self.path, source.name))
+        cmd("btrfs send {0} | btrfs receive {1}".format(source.path, self.path, source.name))
 
     def transfer_source_delta(self, previous_source, source):
         info("Transferring via btrfs snapshot {0} (as delta from {1}) to target {2}".format(source.path, previous_source.path, self.location()))
-        cmd("sudo btrfs send -p {0} {1} | sudo btrfs receive {2}".format(previous_source.path, source.path, self.path))
+        cmd("btrfs send -p {0} {1} | btrfs receive {2}".format(previous_source.path, source.path, self.path))
 
     def delete_target(self, target_name):
         info("Deleting snapshot {0} on target {1}".format(target_name, self.location()))
-        cmd("sudo btrfs subvolume delete --commit-each {0}".format(PosixPath(self.path, target_name)))
+        cmd("btrfs subvolume delete --commit-each {0}".format(PosixPath(self.path, target_name)))
 
 
 class RemoteBtrfsBackup(RemoteBackup):
@@ -163,12 +163,12 @@ class RemoteBtrfsBackup(RemoteBackup):
 
     def transfer_source(self, source):
         info("Transferring via btrfs snapshot {0} to target {1}".format(source.name, self.location()))
-        cmd("sudo btrfs send {0} | {1} \"sudo btrfs receive {2}\"".format(source.path, self._ssh_command(), self.path),
+        cmd("btrfs send {0} | {1} \"sudo btrfs receive {2}\"".format(source.path, self._ssh_command(), self.path),
             attempts=self.cmd_attempts, fail_delay=self.cmd_fail_delay)
 
     def transfer_source_delta(self, previous_source, source):
         info("Transferring via btrfs snapshot {0} (as delta from {1}) to target {2}".format(source.name, previous_source.name, self.location()))
-        cmd("sudo btrfs send -p {0} {1} | {2} \"sudo btrfs receive {3}\"".format(previous_source.path, source.path, self._ssh_command(), self.path),
+        cmd("btrfs send -p {0} {1} | {2} \"sudo btrfs receive {3}\"".format(previous_source.path, source.path, self._ssh_command(), self.path),
             attempts=self.cmd_attempts, fail_delay=self.cmd_fail_delay)
 
     def delete_target(self, target_name):
@@ -193,7 +193,7 @@ class LocalRsyncBackup(LocalBackup):
 
     def delete_target(self, target_name):
         info("Deleting snapshot {0} on target {1}".format(target_name, self.location()))
-        cmd("sudo rm -rf {0}".format(PosixPath(self.path, target_name)))
+        cmd("rm -rf {0}".format(PosixPath(self.path, target_name)))
 
 
 class RemoteRsyncBackup(RemoteBackup):
