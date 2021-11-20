@@ -40,10 +40,8 @@ def cmd(command, attempts=None, fail_delay=None):
 
 def log_output(level, messages):
     if GLOBAL_CONFIG['log']['level'] <= level:
-        if GLOBAL_CONFIG['log']['levels'][level]['prefix'] is not None:
-            messages = list(messages)
-            messages.insert(0, GLOBAL_CONFIG['log']['levels'][level]['prefix'])
-        print(' '.join([str(m) for m in messages]), file=GLOBAL_CONFIG['log']['output'], flush=True)
+        print(GLOBAL_CONFIG['log']['levels'][level]['prefix']
+              + ' '.join([str(m) for m in messages]), file=GLOBAL_CONFIG['log']['output'], flush=True)
 
 def debug(*messages):
     log_output(0, messages)
@@ -62,7 +60,7 @@ GLOBAL_CONFIG = {
         'levels': [
             { 'name': 'debug', 'prefix': None },
             { 'name': 'info', 'prefix': None },
-            { 'name': 'warn', 'prefix': '[!]' },
+            { 'name': 'warn', 'prefix': '[!] ' },
         ],
     },
 }
