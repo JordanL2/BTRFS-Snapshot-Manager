@@ -79,8 +79,7 @@ def main():
 
     # snapshot list
     snapshot_list_parser = snapshot_subparsers.add_parser('list', help='list snapshots')
-    snapshot_list_parser.add_argument('path', help='path to subvolume')
-    snapshot_list_parser.add_argument('--details', required=False, default=False, action='store_true', help='output detailed list')
+    snapshot_list_parser.add_argument('path', nargs='?', help='path to subvolume')
     snapshot_list_parser.add_argument('--period', nargs='*', help='only list snapshots for this period')
     snapshot_list_parser.set_defaults(func=snapshot_list)
 
@@ -295,7 +294,7 @@ def snapshot_init(args):
 def snapshot_list(args):
     global_args(args)
     path = args.path
-    details = args.details
+
     periods = args.period
     if periods is not None:
         for p in periods:
@@ -303,19 +302,26 @@ def snapshot_list(args):
                 fail("No such period:", p)
         periods = [(PERIOD_NAME_MAP[p] if p != 'none' else None) for p in periods]
 
-    subvol = get_subvol(path)
-    if not subvol.has_snapshots():
-        fail("Subvolume", path, "is not initialised for snapshots")
+    snapshot_manager = SnapshotManager()
+    if path is None:
+        subvols = [m.subvol for m in snapshot_manager.managers.values()]
+    else:
+        subvols = [get_subvol(path)]
 
-    snapshots = subvol.search_snapshots(periods=periods)
-    if details:
-        table = [['NAME', 'DATE', 'PERIODS']]
+    table = []
+    for subvol in subvols:
+        if len(table) > 0:
+            table.append(None)
+        table.append([subvol.name, 'DATE', 'PERIODS'])
+
+        if not subvol.has_snapshots():
+            fail("Subvolume", subvol.path, "is not initialised for snapshots")
+
+        snapshots = subvol.search_snapshots(periods=periods)
         for snapshot in snapshots:
             table.append([snapshot.name, snapshot.date.strftime(dateformat_human), ', '.join([p.name for p in snapshot.get_periods()])])
-        output_table(table)
-    else:
-        for snapshot in snapshots:
-            out(snapshot.name)
+
+    output_table(table)
 
 
 # Systemd-Boot
