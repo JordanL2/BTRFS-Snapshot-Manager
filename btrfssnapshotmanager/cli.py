@@ -378,7 +378,7 @@ def systemdboot_run(args):
 # General
 
 def global_args(args):
-    GLOBAL_CONFIG['log_level'] = args.loglevel
+    GLOBAL_CONFIG['log']['level'] = args.loglevel
 
 def get_subvol(path):
     snapshot_manager = SnapshotManager()

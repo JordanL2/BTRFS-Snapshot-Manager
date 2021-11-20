@@ -30,28 +30,39 @@ def cmd(command, attempts=None, fail_delay=None):
         if result.returncode != 0:
             if attempts is not None:
                 attempt += 1
-                info("! Command failed, waiting before retrying...")
+                warn("Command failed, waiting before retrying...")
                 time.sleep(fail_delay)
-                info("! Retrying...")
+                warn("Retrying...")
             else:
                 raise CommandException(command, result.returncode, stderr)
         else:
             return stdout
 
+def log_output(level, messages):
+    if GLOBAL_CONFIG['log']['level'] <= level:
+        if GLOBAL_CONFIG['log']['levels'][level]['prefix'] is not None:
+            messages = list(messages)
+            messages.insert(0, GLOBAL_CONFIG['log']['levels'][level]['prefix'])
+        print(' '.join([str(m) for m in messages]), file=GLOBAL_CONFIG['log']['output'], flush=True)
+
 def debug(*messages):
-    if GLOBAL_CONFIG['log_level'] <= 0:
-        print(' '.join([str(m) for m in messages]), file=GLOBAL_CONFIG['log_output'], flush=True)
+    log_output(0, messages)
 
 def info(*messages):
-    if GLOBAL_CONFIG['log_level'] <= 1:
-        print(' '.join([str(m) for m in messages]), file=GLOBAL_CONFIG['log_output'], flush=True)
+    log_output(1, messages)
 
 def warn(*messages):
-    if GLOBAL_CONFIG['log_level'] <= 2:
-        print('[WARNING]', ' '.join([str(m) for m in messages]), file=GLOBAL_CONFIG['log_output'], flush=True)
+    log_output(2, messages)
 
 
 GLOBAL_CONFIG = {
-    'log_level': 0,
-    'log_output': sys.stdout,
+    'log': {
+        'level': 0,
+        'output': sys.stdout,
+        'levels': [
+            { 'name': 'debug', 'prefix': None },
+            { 'name': 'info', 'prefix': None },
+            { 'name': 'warn', 'prefix': '[!]' },
+        ],
+    },
 }
