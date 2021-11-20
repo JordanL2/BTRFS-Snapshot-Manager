@@ -64,10 +64,7 @@ class SystemdBoot():
         debug("---")
         with open(ref_entry_path, 'r') as fhin:
             with open(new_entry_filename, 'w') as fhout:
-                while True:
-                    line = fhin.readline().strip()
-                    if not line:
-                        break
+                while line := fhin.readline().strip():
 
                     entry_line_match = entry_line_regex.fullmatch(line)
                     if entry_line_match:
