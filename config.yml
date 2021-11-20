@@ -8,16 +8,14 @@
   systemd-boot:
     boot-path: /boot
     entries:
-    - entry: arch.conf
+    - entry: linux.conf
+      retention:
+        hourly: 5
+        daily: 7
+        weekly: 2
+    - entry: linux-lts.conf
       retention:
         daily: 7
-        weekly: 3
-        monthly: 1
-    - entry: arch-lts.conf
-      retention:
-        daily: 7
-        weekly: 3
-        monthly: 1
 /home:
   retention:
     hourly: 48

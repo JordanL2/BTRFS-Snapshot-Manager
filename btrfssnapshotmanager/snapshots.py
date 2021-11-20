@@ -114,7 +114,7 @@ class Subvolume():
     def _check_path(self):
         try:
             out = cmd("btrfs subvolume show {0}".format(self.path))
-            self.label = out.split("\n")[0].strip()
+            self.top_level_path = out.split("\n")[0].strip()
         except CommandException:
             return False
         return True

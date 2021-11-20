@@ -56,7 +56,7 @@ class SystemdBoot():
         # Generate path to snapshot from btrfs toplevel
         snapshot_toplevel_path = PosixPath(
             '/',
-            self.subvol.label,
+            self.subvol.top_level_path,
             self.subvol.snapshots_dir.relative_to(self.subvol.path),
             snapshot.name
         )
