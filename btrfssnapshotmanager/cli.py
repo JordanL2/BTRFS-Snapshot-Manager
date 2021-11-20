@@ -18,7 +18,7 @@ def main():
     subparsers = parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
 
     # backup
-    backup_parser = subparsers.add_parser('backup', help='backup-related commands')
+    backup_parser = subparsers.add_parser('backup', help='snapshot backup commands')
     backup_subparsers = backup_parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
 
     # backup list
@@ -39,7 +39,7 @@ def main():
     backup_targetlist_parser.set_defaults(func=backup_targetlist)
 
     # schedule
-    schedule_parser = subparsers.add_parser('schedule', help='schedule-related commands')
+    schedule_parser = subparsers.add_parser('schedule', help='snapshot schedule commands')
     schedule_subparsers = schedule_parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
 
     # schedule cleanup
@@ -58,7 +58,7 @@ def main():
     schedule_run_parser.set_defaults(func=schedule_run)
 
     # snapshot
-    snapshot_parser = subparsers.add_parser('snapshot', help='snapshot-related commands')
+    snapshot_parser = subparsers.add_parser('snapshot', help='snapshot management commands')
     snapshot_subparsers = snapshot_parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
 
     # snapshot create
@@ -85,7 +85,7 @@ def main():
     snapshot_list_parser.set_defaults(func=snapshot_list)
 
     # systemdboot
-    systemdboot_parser = subparsers.add_parser('systemdboot', help='systemdboot-related commands')
+    systemdboot_parser = subparsers.add_parser('systemdboot', help='systemd-boot integration commands')
     systemdboot_subparsers = systemdboot_parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
 
     # systemdboot config
