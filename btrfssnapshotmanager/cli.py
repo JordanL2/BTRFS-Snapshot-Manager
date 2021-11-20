@@ -85,6 +85,7 @@ def main():
 
     # systemdboot create
     systemdboot_create_parser = systemdboot_subparsers.add_parser('create', help='create a systemd-boot entry for a given snapshot')
+    systemdboot_create_parser.add_argument('entry', help='name of systemd-boot reference entry to make boot entry for')
     systemdboot_create_parser.add_argument('snapshot', help='name of snapshot to make boot entry for')
     systemdboot_create_parser.set_defaults(func=systemdboot_create)
 
@@ -297,17 +298,23 @@ def systemdboot_config(args):
 
 def systemdboot_create(args):
     global_args(args)
+    entry_name = args.entry
     snapshot_name = args.snapshot
     snapshot_manager = SnapshotManager()
     systemdboot = get_systemdboot(snapshot_manager)
     if systemdboot is None:
         fail("No subvolumes configured for systemd-boot integration")
 
-    snapshot = systemdboot.subvol.find_snapshot(snapshot_name)
-    if snapshot is None:
-        fail("Snapshot {0} not found in subvolume {1}".format(snapshot_name, systemdboot.subvol.name))
+    for entry in systemdboot:
+        if entry.reference_entry == entry_name:
+            snapshot = entry.subvol.find_snapshot(snapshot_name)
+            if snapshot is None:
+                fail("Snapshot {0} not found in subvolume {1}".format(snapshot_name, entry.subvol.name))
+            entry.create_entry(snapshot)
+            break
+    else:
+        fail("Did not find systemd-boot entry {0}".format(entry_name))
 
-    systemdboot.create_entry(snapshot)
 
 def systemdboot_delete(args):
     global_args(args)
@@ -317,7 +324,12 @@ def systemdboot_delete(args):
     if systemdboot is None:
         fail("No subvolumes configured for systemd-boot integration")
 
-    systemdboot.delete_entry(entry_name)
+    for systemdboot_entry in systemdboot:
+        if entry_name in systemdboot_entry.entries:
+            systemdboot_entry.delete_entry(entry_name)
+            break
+    else:
+        fail("Systemd-boot entry {0} not found".format(entry_name))
     info("Deleted systemd-boot entry {0}".format(entry_name))
 
 def systemdboot_list(args):
@@ -325,23 +337,25 @@ def systemdboot_list(args):
     snapshot_manager = SnapshotManager()
     systemdboot = get_systemdboot(snapshot_manager)
     if systemdboot is not None:
-        table = [['ENTRY', 'SNAPSHOT', 'DATE', 'PERIODS']]
+        table = [['REFERENCE', 'ENTRY', 'SNAPSHOT', 'DATE', 'PERIODS']]
+        for systemdboot_entry in systemdboot:
 
-        for entry, snapshot in sorted(systemdboot.entries.items(), key=lambda s: s[1].name):
-            if snapshot is not None:
-                table.append([
-                    entry,
-                    snapshot.name,
-                    snapshot.date.strftime(dateformat_human),
-                    ', '.join([p.name for p in snapshot.get_periods()]),
-                ])
-            else:
-                table.append([
-                    entry,
-                    'NOT FOUND',
-                    '',
-                    '',
-                ])
+            for entry, snapshot in sorted(systemdboot_entry.entries.items(), key=lambda s: s[1].name):
+                if snapshot is not None:
+                    table.append([
+                        systemdboot_entry.reference_entry,
+                        entry,
+                        snapshot.name,
+                        snapshot.date.strftime(dateformat_human),
+                        ', '.join([p.name for p in snapshot.get_periods()]),
+                    ])
+                else:
+                    table.append([
+                        entry,
+                        'NOT FOUND',
+                        '',
+                        '',
+                    ])
 
         output_table(table)
 
