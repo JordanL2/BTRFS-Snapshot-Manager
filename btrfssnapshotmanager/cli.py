@@ -187,13 +187,14 @@ def backup_targetlist(args):
             if len(manager.backups) > 0:
                 if len(table) > 0:
                     table.append(None)
-                table.append([subvol, 'SNAPSHOT', 'DATE', 'PERIODS'])
+                table.append([subvol, 'LOCATION', 'SNAPSHOT', 'DATE', 'PERIODS'])
                 for i, backup in enumerate(manager.backups):
                     if ids is None or len(ids) == 0 or i in ids:
                         target_snapshot_names = backup.get_target_snapshot_names()
                         for target_snapshot_name in sorted(target_snapshot_names):
                             snapshot_details = snapshot_name_parse(target_snapshot_name)
                             table.append([
+                                i,
                                 backup.location(),
                                 target_snapshot_name,
                                 snapshot_details['date'].strftime(dateformat_human),
