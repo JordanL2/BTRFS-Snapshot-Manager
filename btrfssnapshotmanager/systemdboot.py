@@ -62,7 +62,7 @@ class SystemdBoot():
 
         # Read reference entry one line at a time, modify and write to new entry
         info("Creating new entry {0}".format(entry_name))
-        info("---")
+        debug("---")
         with open(ref_entry_path, 'r') as fhin:
             with open(new_entry_filename, 'w') as fhout:
                 while True:
@@ -95,9 +95,9 @@ class SystemdBoot():
                     else:
                         warn("Invalid line: `{0}`".format(line))
 
-                    info(line)
+                    debug(line)
                     print(line, file=fhout)
-        info("---")
+        debug("---")
 
         self.entries[entry_name] = snapshot
 
