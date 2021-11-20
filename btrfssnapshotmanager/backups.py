@@ -91,9 +91,9 @@ class LocalBackup(Backup):
         names = []
         for child in self.path.iterdir():
             if child.is_dir():
-                snapshot = self.subvol._snapshot_name_parse(child.name)
-                if snapshot is not None:
-                    names.append(snapshot.name)
+                snapshot_details = snapshot_name_parse(child.name)
+                if snapshot_details is not None:
+                    names.append(child.name)
 
         return names
 
