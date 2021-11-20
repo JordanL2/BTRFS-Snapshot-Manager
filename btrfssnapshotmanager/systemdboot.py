@@ -30,6 +30,7 @@ class SystemdBoot():
         self.set_boot_path(systemdboot_default_boot_dir)
 
     def set_boot_path(self, boot_path):
+        self.boot_path = boot_path
         self.entries_dir = PosixPath(boot_path, systemdboot_default_entries_dir)
         self.load_entries()
 
