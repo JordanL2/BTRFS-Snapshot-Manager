@@ -340,7 +340,7 @@ def systemdboot_list(args):
         table = [['REFERENCE', 'ENTRY', 'SNAPSHOT', 'DATE', 'PERIODS']]
         for systemdboot in systemdboots:
 
-            for entry, snapshot in sorted(systemdboot.entries.items(), key=lambda s: s[1].name):
+            for entry, snapshot in sorted(systemdboot.entries.items(), key=lambda s: s[0]):
                 if snapshot is not None:
                     table.append([
                         systemdboot.reference_entry,
@@ -351,6 +351,7 @@ def systemdboot_list(args):
                     ])
                 else:
                     table.append([
+                        systemdboot.reference_entry,
                         entry,
                         'NOT FOUND',
                         '',

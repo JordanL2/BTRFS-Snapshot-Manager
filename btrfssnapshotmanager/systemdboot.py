@@ -42,8 +42,7 @@ class SystemdBoot():
                     snapshot = self.subvol.find_snapshot(snapshot_name)
                     self.entries[child.name] = snapshot
                     if snapshot is not None:
-                        snapshot.systemdboot = self
-                        snapshot.systemdboot_entry = child.name
+                        snapshot.systemdboot[self] = child.name
 
     def create_entry(self, snapshot):
         entry_name = boot_entry_name_format(self.reference_entry, snapshot.name)
@@ -106,6 +105,8 @@ class SystemdBoot():
             raise SnapshotException("No such systemd-boot entry: {}".format(entry_name))
         entry_file = PosixPath(self.entries_dir, entry_name)
         entry_file.unlink()
+        if self.entries[entry_name] is not None:
+            del self.entries[entry_name].systemdboot[self]
         del self.entries[entry_name]
 
     def run(self):
@@ -129,6 +130,9 @@ class SystemdBoot():
 
         # Delete entries not required
         for entry_name, snapshot in self.entries.copy().items():
-            if snapshot not in snapshots_needed:
+            if snapshot is not None and snapshot not in snapshots_needed:
                 info("Snapshot {0} no longer requires an entry".format(snapshot.name))
+                self.delete_entry(entry_name)
+            elif snapshot is None:
+                info("Entry {0} not associated with an existing snapshot".format(entry_name))
                 self.delete_entry(entry_name)

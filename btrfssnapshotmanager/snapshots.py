@@ -136,8 +136,7 @@ class Snapshot():
             self.create()
 
         # systemd-boot
-        self.systemdboot = None
-        self.systemdboot_entry = None
+        self.systemdboot = {}
 
     def create(self):
         cmd("sudo btrfs subvolume snapshot -r {0} {1}".format(self.subvolume.path, self.path))
@@ -147,8 +146,8 @@ class Snapshot():
         self.subvolume.snapshots.remove(self)
 
         # Delete systemd-boot entry
-        if self.systemdboot is not None:
-            self.systemdboot.delete_entry(self.systemdboot_entry)
+        for systemdboot, entry in self.systemdboot.copy().items():
+            systemdboot.delete_entry(entry)
 
     def get_periods(self):
         return [p for p in sorted(self.periods, key=lambda x: x.seconds)]
