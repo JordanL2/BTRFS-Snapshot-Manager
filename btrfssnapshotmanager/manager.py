@@ -15,8 +15,8 @@ class SnapshotManager():
                 self.config.retention[subvol],
                 self.config.backups[subvol],
             )
-            if subvol in self.config.systemdboot:
-                self.managers[subvol].systemdboot = self.config.systemdboot[subvol]
+            if subvol in self.config.systemdboots:
+                self.managers[subvol].systemdboots = self.config.systemdboots[subvol]
 
     def execute(self, subvols=None, cleanup=True, backup=True, systemdboot_run=True):
         managers_to_run = self.managers
@@ -52,11 +52,11 @@ class SnapshotManager():
                     manager.backup()
 
                 # If requires, sync systemd-boot entries
-                if systemdboot_run and manager.systemdboot is not None:
+                if systemdboot_run and manager.systemdboots is not None:
                     info()
                     info("Systemd-boot...")
-                    for entry in manager.systemdboot:
-                        entry.run()
+                    for systemdboot in manager.systemdboots:
+                        systemdboot.run()
 
             else:
                 info("No periods reached")
@@ -84,7 +84,7 @@ class SubvolumeManager():
             self.subvol.init_snapshots()
         self.retention_config = retention_config
         self.backups = backup_config
-        self.systemdboot = None
+        self.systemdboots = None
 
     def last_run(self, period):
         if period not in self.retention_config:

@@ -113,7 +113,7 @@ class Config():
                             self.backups[subvol].append(backup)
 
     def load_systemdboot(self):
-        self.systemdboot = {}
+        self.systemdboots = {}
         config = self.raw_config
 
         for subvol in config:
@@ -126,7 +126,7 @@ class Config():
                     if 'entries' not in systemdboot_config:
                         raise SnapshotException("Systemd-boot config missing entries for subvolume " + subvol)
 
-                    self.systemdboot[subvol] = []
+                    self.systemdboots[subvol] = []
 
                     for systemdboot_config_entry in systemdboot_config['entries']:
 
@@ -146,4 +146,4 @@ class Config():
                         if 'boot-path' in systemdboot_config:
                             systemdboot.boot_path = systemdboot_config['boot-path']
 
-                        self.systemdboot[subvol].append(systemdboot)
+                        self.systemdboots[subvol].append(systemdboot)

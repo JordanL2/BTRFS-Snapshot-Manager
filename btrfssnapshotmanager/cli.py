@@ -280,17 +280,17 @@ def snapshot_list(args):
 def systemdboot_config(args):
     global_args(args)
     snapshot_manager = SnapshotManager()
-    systemdboot = get_systemdboot(snapshot_manager)
-    if systemdboot is not None:
+    systemdboots = get_systemdboots(snapshot_manager)
+    if systemdboots is not None:
         table = [['SUBVOLUME', 'BOOT PATH', 'ENTRY', *[p.name.upper() for p in PERIODS]]]
-        for systemdboot_entry in systemdboot:
+        for systemdboot in systemdboots:
             row = []
-            row.append(systemdboot_entry.subvol.name)
-            row.append(systemdboot_entry.boot_path)
-            row.append(systemdboot_entry.reference_entry)
+            row.append(systemdboot.subvol.name)
+            row.append(systemdboot.boot_path)
+            row.append(systemdboot.reference_entry)
             for p in PERIODS:
-                if p in systemdboot_entry.retention:
-                    row.append(systemdboot_entry.retention[p])
+                if p in systemdboot.retention:
+                    row.append(systemdboot.retention[p])
                 else:
                     row.append('')
             table.append(row)
@@ -301,16 +301,16 @@ def systemdboot_create(args):
     entry_name = args.entry
     snapshot_name = args.snapshot
     snapshot_manager = SnapshotManager()
-    systemdboot = get_systemdboot(snapshot_manager)
-    if systemdboot is None:
+    systemdboots = get_systemdboots(snapshot_manager)
+    if systemdboots is None:
         fail("No subvolumes configured for systemd-boot integration")
 
-    for systemdboot_entry in systemdboot:
-        if systemdboot_entry.reference_entry == entry_name:
-            snapshot = systemdboot_entry.subvol.find_snapshot(snapshot_name)
+    for systemdboot in systemdboots:
+        if systemdboot.reference_entry == entry_name:
+            snapshot = systemdboot.subvol.find_snapshot(snapshot_name)
             if snapshot is None:
-                fail("Snapshot {0} not found in subvolume {1}".format(snapshot_name, systemdboot_entry.subvol.name))
-            systemdboot_entry.create_entry(snapshot)
+                fail("Snapshot {0} not found in subvolume {1}".format(snapshot_name, systemdboot.subvol.name))
+            systemdboot.create_entry(snapshot)
             break
     else:
         fail("Did not find systemd-boot entry {0}".format(entry_name))
@@ -320,13 +320,13 @@ def systemdboot_delete(args):
     global_args(args)
     entry_name = args.entry
     snapshot_manager = SnapshotManager()
-    systemdboot = get_systemdboot(snapshot_manager)
-    if systemdboot is None:
+    systemdboots = get_systemdboots(snapshot_manager)
+    if systemdboots is None:
         fail("No subvolumes configured for systemd-boot integration")
 
-    for systemdboot_entry in systemdboot:
-        if entry_name in systemdboot_entry.entries:
-            systemdboot_entry.delete_entry(entry_name)
+    for systemdboot in systemdboots:
+        if entry_name in systemdboot.entries:
+            systemdboot.delete_entry(entry_name)
             break
     else:
         fail("Systemd-boot entry {0} not found".format(entry_name))
@@ -335,15 +335,15 @@ def systemdboot_delete(args):
 def systemdboot_list(args):
     global_args(args)
     snapshot_manager = SnapshotManager()
-    systemdboot = get_systemdboot(snapshot_manager)
-    if systemdboot is not None:
+    systemdboots = get_systemdboots(snapshot_manager)
+    if systemdboots is not None:
         table = [['REFERENCE', 'ENTRY', 'SNAPSHOT', 'DATE', 'PERIODS']]
-        for systemdboot_entry in systemdboot:
+        for systemdboot in systemdboots:
 
-            for entry, snapshot in sorted(systemdboot_entry.entries.items(), key=lambda s: s[1].name):
+            for entry, snapshot in sorted(systemdboot.entries.items(), key=lambda s: s[1].name):
                 if snapshot is not None:
                     table.append([
-                        systemdboot_entry.reference_entry,
+                        systemdboot.reference_entry,
                         entry,
                         snapshot.name,
                         snapshot.date.strftime(dateformat_human),
@@ -362,13 +362,13 @@ def systemdboot_list(args):
 def systemdboot_run(args):
     global_args(args)
     snapshot_manager = SnapshotManager()
-    systemdboot = get_systemdboot(snapshot_manager)
-    if systemdboot is None:
+    systemdboots = get_systemdboots(snapshot_manager)
+    if systemdboots is None:
         fail("No subvolumes configured for systemd-boot integration")
 
     info("Creating missing systemd-boot entries, and deleting ones no longer required")
-    for systemdboot_entry in systemdboot:
-        systemdboot_entry.run()
+    for systemdboot in systemdboots:
+        systemdboot.run()
 
 
 # General
@@ -382,10 +382,10 @@ def get_subvol(path):
         return snapshot_manager.managers[path].subvol
     return Subvolume(path)
 
-def get_systemdboot(snapshot_manager):
+def get_systemdboots(snapshot_manager):
     for subvol, manager in snapshot_manager.managers.items():
-        if manager.systemdboot is not None:
-            return manager.systemdboot
+        if manager.systemdboots is not None:
+            return manager.systemdboots
     return None
 
 def out(*messages):
