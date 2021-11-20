@@ -1,61 +1,118 @@
 subvolumes:
+
+  # For each subvolume you want to keep snapshots of, you need an entry
+  # here.
+    # The 'path' field is the path on your filesystem the subvolume is
+    # mounted to.
   - path: /
+    # The 'retention' section specifies how many snapshots for each time
+    # period will be retained.
     retention:
       hourly: 48
       daily: 7
       weekly: 3
       monthly: 1
-    snapshots-path: /snapshots
-    systemd-boot:
-      boot-path: /boot
-      entries:
-      - entry: linux.conf
-        retention:
-          hourly: 5
-          daily: 7
-          weekly: 2
-      - entry: linux-lts.conf
-        retention:
-          daily: 7
+
+# Optional - Uncomment the next line to change the location of the snapshots
+# subvolume, defaults to .snapshots inside the subvolume. This path can be
+# absolute - e.g. "/snapshots".
+#
+#    snapshots-path: .snapshots
+
+# Uncomment the next section to enable integration with the
+# systemd-boot bootloader - entries are automatically generated,
+# which you can then select in the boot menu to boot into the snapshot.
+#
+#    systemd-boot:
+#      # Optional - set the path to the boot partition, defaults to /boot
+#      boot-path: /boot
+#
+#      entries:
+#
+#        # This specifies the boot entry file in loader/entries to use
+#        # when creating snapshot boot loader entries
+#      - entry: linux.conf
+#        # This section specifies how many snapshot boot loader entries will be
+#        # kept for each time period
+#        retention:
+#          hourly: 5
+#          daily: 7
+#          weekly: 2
+#          monthly: 1
+#
+#        # If you have multiple boot loader entries, e.g. for different kernel
+#        # versions, you can make snapshot boot loader entries for each one
+#        # with different retention settings
+#      - entry: linux-lts.conf
+#        retention:
+#          hourly: 3
+#          daily: 2
+#          weekly: 1
+
+# Uncomment the next section to enable automatic backup of your snapshots to
+# a local (eg a connected USB drive) or remote (eg NAS or server) location.
+#
+# Backups can be made using with btrfs - sending the subvolume to another btrfs
+# filesystem - or using rsync.
+#
+# For each backup, you can specify the retention how many snapshots for each
+# time period will be kept on the target.
+#
+#    backup:
+#
+#      # Btrfs - local backup
+#      - type: btrfs
+#        local:
+#          path: /backups/btrfs/home
+#        retention:
+#          daily: 7
+#          weekly: 3
+#          monthly: 1
+#        # Optional - After successful backup, a file in the source subvolume
+#        # snapshots directory can be created with this name, to indicate the
+#        # last time a successful backup run completed. This can be either
+#        # relative to the snapshots directory, or absolute.
+#        last_sync_file: .lastsync
+#
+#      # Btrfs - remote backup
+#      - type: btrfs
+#        remote:
+#          host: mybackupserver
+#          user: backupuser
+#          ssh-options: -i /root/.ssh/backupuser
+#          path: /data/Backup/btrfs/home
+#        retention:
+#          daily: 7
+#          weekly: 3
+#          monthly: 1
+#
+#      # Rsync - local backup
+#      - type: rsync
+#        local:
+#          path: /backups/rsync/home
+#        retention:
+#          daily: 7
+#          weekly: 3
+#          monthly: 1
+#
+#      # Rsync - remote backup
+#      - type: rsync
+#        remote:
+#          host: mybackupserver
+#          user: backupuser
+#          ssh-options: -i /root/.ssh/backupuser
+#          path: /data/Backup/rsync/home
+#        retention:
+#          daily: 7
+#          weekly: 3
+#          monthly: 1
+
+
+  # Here is another subvolume for which snapshots will be generated
+  # and kept.
   - path: /home
     retention:
       hourly: 48
       daily: 7
       weekly: 3
       monthly: 3
-    backup:
-      - type: rsync
-        local:
-          path: /backups/rsync/home
-        retention:
-          daily: 7
-          weekly: 3
-          monthly: 1
-        last_sync_file: .lastsync
-      - type: rsync
-        remote:
-          host: mybackupserver
-          user: backupuser
-          ssh-options: -i /root/.ssh/backupuser
-          path: /data/Backup/rsync/home
-        retention:
-          daily: 7
-          weekly: 3
-          monthly: 1
-      - type: btrfs
-        local:
-          path: /backups/btrfs/home
-        retention:
-          daily: 7
-          weekly: 3
-          monthly: 1
-      - type: btrfs
-        remote:
-          host: mybackupserver
-          user: backupuser
-          ssh-options: -i /root/.ssh/backupuser
-          path: /data/Backup/btrfs/home
-        retention:
-          daily: 7
-          weekly: 3
-          monthly: 1

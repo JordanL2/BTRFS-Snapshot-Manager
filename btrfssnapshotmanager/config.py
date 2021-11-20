@@ -35,6 +35,8 @@ class Config():
         if 'subvolumes' in self.raw_config and self.raw_config['subvolumes'] is not None:
             for subvol_config in self.raw_config['subvolumes']:
                 if subvol_config is not None:
+                    if 'path' not in subvol_config or type(subvol_config['path']) != str:
+                        raise SnapshotException("Mandatory field 'path' missing in subvolume config")
                     config[subvol_config['path']] = subvol_config
         return config
 
