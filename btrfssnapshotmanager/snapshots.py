@@ -125,10 +125,10 @@ class Subvolume():
 
 class Snapshot():
 
-    def __init__(self, subvolume, name, date, periods, create=False):
-        self.subvolume = subvolume
+    def __init__(self, subvol, name, date, periods, create=False):
+        self.subvol = subvol
         self.name = name
-        self.path = PosixPath(subvolume.snapshots_dir, name)
+        self.path = PosixPath(subvol.snapshots_dir, name)
         self.date = date
         self.periods = periods
 
@@ -139,11 +139,11 @@ class Snapshot():
         self.systemdboot = {}
 
     def create(self):
-        cmd("btrfs subvolume snapshot -r {0} {1}".format(self.subvolume.path, self.path))
+        cmd("btrfs subvolume snapshot -r {0} {1}".format(self.subvol.path, self.path))
 
     def delete(self):
         cmd("btrfs subvolume delete --commit-each {0}".format(self.path))
-        self.subvolume.snapshots.remove(self)
+        self.subvol.snapshots.remove(self)
 
         # Delete systemd-boot entry
         for systemdboot, entry in self.systemdboot.copy().items():
