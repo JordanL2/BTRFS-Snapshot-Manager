@@ -82,15 +82,15 @@ class SystemdBoot():
 
                         elif key == 'options':
                             options = value.split()
-                            for o in options:
+                            for oi, o in enumerate(options.copy()):
                                 # Options - rootflags
                                 if o.startswith('rootflags='):
                                     flags = o[10:].split(',')
-                                    for i, f in enumerate(flags.copy()):
+                                    for fi, f in enumerate(flags.copy()):
                                         if f.startswith('subvol='):
-                                            flags[i] = "subvol={0}".format(snapshot_toplevel_path)
-                                    new_rootflags = 'rootflags=' + ','.join(flags)
-                                    value = value.replace(o, new_rootflags)
+                                            flags[fi] = "subvol={0}".format(snapshot_toplevel_path)
+                                    options[oi] = 'rootflags=' + ','.join(flags)
+                            value = ' '.join(options)
 
                         line = key + space + value
                     else:
