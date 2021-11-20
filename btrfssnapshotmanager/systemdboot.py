@@ -6,9 +6,9 @@ from pathlib import PosixPath
 import re
 
 
-default_boot_dir = '/boot'
-default_entries_dir = 'loader/entries'
-entry_line_regex = re.compile(r'(\S+)(\s*)(.*?)')
+systemdboot_default_boot_dir = '/boot'
+systemdboot_default_entries_dir = 'loader/entries'
+systemdboot_entry_line_regex = re.compile(r'(\S+)(\s*)(.*?)')
 
 def boot_entry_name_parse(entry, name):
     file_regex = re.compile('snapshot\-(\d\d\d\d-\d\d-\d\d_\d\d-\d\d-\d\d_?[HDWM]*)\-' + entry)
@@ -27,10 +27,10 @@ class SystemdBoot():
         self.subvol = subvol
         self.reference_entry = entry
         self.retention = retention
-        self.set_boot_path(default_boot_dir)
+        self.set_boot_path(systemdboot_default_boot_dir)
 
     def set_boot_path(self, boot_path):
-        self.entries_dir = PosixPath(boot_path, default_entries_dir)
+        self.entries_dir = PosixPath(boot_path, systemdboot_default_entries_dir)
         self.load_entries()
 
     def load_entries(self):
@@ -68,7 +68,7 @@ class SystemdBoot():
             with open(new_entry_filename, 'w') as fhout:
                 while line := fhin.readline().strip():
 
-                    entry_line_match = entry_line_regex.fullmatch(line)
+                    entry_line_match = systemdboot_entry_line_regex.fullmatch(line)
                     if entry_line_match:
                         key = entry_line_match.group(1)
                         space = entry_line_match.group(2)
