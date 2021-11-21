@@ -132,13 +132,12 @@ class Config():
                     if max_number is not None and found_items > max_number:
                         raise ConfigException(parents + ["[{0}]".format('|'.join(sorted(list(required_items))))], "at most {0} required, found {1}".format(max_number, found_items))
 
-                else:
-                    if name not in config:
-                        if required:
-                            raise ConfigException(parents + [name], 'is required')
-                    else:
-                        # Validate the item
-                        self.validate_config(config[name], spec_value, parents + [name], strict)
+                elif name not in config and required:
+                    raise ConfigException(parents + [name], 'is required')
+
+                # Validate the item
+                if name in config:
+                    self.validate_config(config[name], spec_value, parents + [name], strict)
 
             # If strict is enabled, go through each item of config and ensure it's in spec
             if strict:
