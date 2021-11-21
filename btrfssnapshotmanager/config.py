@@ -9,13 +9,10 @@ import yaml
 
 class ConfigException(Exception):
 
-    def __init__(self, parents, item, problem):
+    def __init__(self, parents, problem):
         self.parents = parents
-        self.item = item
-        self.error = "{0}{1}/{2} {3}".format(
-            ('/' if len(parents) > 0 else ''),
+        self.error = "/{0} {1}".format(
             '/'.join(parents),
-            item,
             problem
         )
         super().__init__(self, self.error)
@@ -95,54 +92,50 @@ class Config():
         self.validate_config(self.raw_config, self.config_spec, [], True)
 
     def validate_config(self, config, spec, parents, strict):
-        if type(config) != dict:
-            raise ConfigException(parents, '', "should be type {0}, found type {1}".format(dict.__name__, type(config).__name__))
+        # Check type
+        expected_type = type(spec)
+        if expected_type == type:
+            expected_type = spec
+        config_type = type(config)
+        if expected_type == tuple:
+            if config_type in (list, dict):
+                raise ConfigException(parents, "must be one of: [{0}], found: {1}".format(', '.join(["\"{0}\"".format(sv) for sv in spec]), config_type.__name__))
+            if config not in spec:
+                raise ConfigException(parents, "must be one of: [{0}], found: \"{1}\"".format(', '.join(["\"{0}\"".format(sv) for sv in spec]), config))
+        elif expected_type != config_type:
+            raise ConfigException(parents, "should be type {0}, found type {1}".format(expected_type.__name__, config_type.__name__))
 
-        # Go through each item of spec and ensure config matches
-        for spec_item, spec_value in spec.items():
-            name = spec_item[0]
-            required = spec_item[1]
-            expected_type = type(spec_value)
-            if expected_type == type:
-                expected_type = spec_value
+        # Iterate through list
+        if type(config) == list:
+            for i, config_list_item in enumerate(config):
+                self.validate_config(config_list_item, spec[0], parents + [str(i)], strict)
 
-            # Check existence
-            if name not in config:
-                if type(required) == tuple:
-                    for required_alternative_item in required:
-                        if required_alternative_item in config:
-                            break
-                    else:
-                        raise ConfigException(parents, "[{0}]".format('|'.join([name] + list(required))), 'at least one required')
-                elif required:
-                    raise ConfigException(parents, name, 'is required')
-                continue
-            config_item = config[name]
+        # Iterate through dict
+        elif type(config) == dict:
+            for spec_item, spec_value in spec.items():
+                name = spec_item[0]
+                required = spec_item[1]
 
-            # Check type
-            config_type = type(config_item)
-            if expected_type == tuple:
-                if config_type in (list, dict):
-                    raise ConfigException(parents, name, "must be one of: [{0}], found: {1}".format(', '.join(["\"{0}\"".format(sv) for sv in spec_value]), config_type.__name__))
-                if config_item not in spec_value:
-                    raise ConfigException(parents, name, "must be one of: [{0}], found: \"{1}\"".format(', '.join(["\"{0}\"".format(sv) for sv in spec_value]), config_item))
-            elif expected_type != config_type:
-                raise ConfigException(parents, name, "should be type {0}, found type {1}".format(expected_type.__name__, config_type.__name__))
+                # Check existence
+                if name not in config:
+                    if type(required) == tuple:
+                        for required_alternative_item in required:
+                            if required_alternative_item in config:
+                                break
+                        else:
+                            raise ConfigException(parents + ["[{0}]".format('|'.join([name] + list(required)))], 'at least one required')
+                    elif required:
+                        raise ConfigException(parents + [name], 'is required')
+                    continue
+                config_item = config[name]
 
-            # List type
-            if config_type == list:
-                for i, config_list_item in enumerate(config_item):
-                    self.validate_config(config_list_item, spec_value[0], parents + [name, str(i)], strict)
-
-            # Dict type
-            if config_type == dict:
                 self.validate_config(config_item, spec_value, parents + [name], strict)
 
-        # If strict is enabled, go through each item of config and ensure it's in spec
-        if strict:
-            for config_name in config.keys():
-                if len([s for s in spec if s[0] == config_name]) == 0:
-                    raise ConfigException(parents, config_name, 'is not recognised')
+            # If strict is enabled, go through each item of config and ensure it's in spec
+            if strict:
+                for config_name in config.keys():
+                    if len([s for s in spec if s[0] == config_name]) == 0:
+                        raise ConfigException(parents + [config_name], 'is not recognised')
 
 
     def get_subvolume_config(self):
