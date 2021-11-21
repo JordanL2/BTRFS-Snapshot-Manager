@@ -92,8 +92,8 @@ class Subvolume():
         self._sort_snapshots()
 
         # Systemdboot
-        if self.manager.systemdboot_manager is not None:
-            self.manager.systemdboot_manager.create_boot_snapshot_if_needed(date=date)
+        if self.manager.snapshot_manager.systemdboot_manager is not None:
+            self.manager.snapshot_manager.systemdboot_manager.create_boot_snapshot_if_needed(date=date)
 
         return snapshot
 
@@ -150,8 +150,8 @@ class Snapshot():
             systemdboot.delete_entry(entry)
 
         # Check if systemd-boot boot-snapshots can be deleted
-        if self.subvol.manager.systemdboot_manager is not None:
-            self.subvol.manager.systemdboot_manager.remove_unused_boot_snapshots()
+        if self.subvol.manager.snapshot_manager.systemdboot_manager is not None:
+            self.subvol.manager.snapshot_manager.systemdboot_manager.remove_unused_boot_snapshots()
 
 
     def get_periods(self):

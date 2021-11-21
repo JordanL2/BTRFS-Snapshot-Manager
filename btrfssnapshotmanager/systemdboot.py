@@ -41,7 +41,7 @@ class SystemdBootSnapshot():
         return PosixPath(self.snapshot_manager.snapshots_dir, self.name)
 
 
-class SystemdBootSnapshotManager():
+class SystemdBootManager():
 
     def __init__(self, subvol):
         self.subvol = subvol
@@ -122,6 +122,7 @@ class SystemdBootSnapshotManager():
         return None
 
     def remove_unused_boot_snapshots(self):
+        debug("Checking if any boot snapshots can be deleted...")
         boot_snapshots_to_delete = set(self.boot_snapshots)
         for snapshot in self.subvol.snapshots:
             boot_snapshot = self.get_boot_snapshot_for_snapshot(snapshot)
@@ -132,7 +133,7 @@ class SystemdBootSnapshotManager():
             self.delete_boot_snapshot(boot_snapshot.name)
 
 
-class SystemdBootEntry():
+class SystemdBootEntryManager():
 
     def __init__(self, systemdboot_manager, subvol, entry, retention):
         self.systemdboot_manager = systemdboot_manager
