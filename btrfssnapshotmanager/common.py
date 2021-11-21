@@ -40,8 +40,9 @@ def cmd(command, attempts=None, fail_delay=None):
 
 def log_output(level, messages):
     if GLOBAL_CONFIG['log']['level'] <= level:
-        print(GLOBAL_CONFIG['log']['levels'][level]['prefix']
-              + ' '.join([str(m) for m in messages]), file=GLOBAL_CONFIG['log']['output'], flush=True)
+        log_config = GLOBAL_CONFIG['log']['levels'][level]
+        print(log_config['prefix']
+              + ' '.join([str(m) for m in messages]), file=log_config['output'], flush=True)
 
 def debug(*messages):
     log_output(0, messages)
@@ -52,15 +53,23 @@ def info(*messages):
 def warn(*messages):
     log_output(2, messages)
 
+def error(*messages):
+    log_output(3, messages)
+
+def fatal(*messages, error_code=1):
+    log_output(4, messages)
+    sys.exit(error_code)
+
 
 GLOBAL_CONFIG = {
     'log': {
         'level': 0,
-        'output': sys.stdout,
         'levels': [
-            { 'name': 'debug', 'prefix': '' },
-            { 'name': 'info', 'prefix': '' },
-            { 'name': 'warn', 'prefix': '[!] ' },
+            { 'name': 'debug', 'prefix': ''    , 'output': sys.stdout, },
+            { 'name': 'info' , 'prefix': ''    , 'output': sys.stdout, },
+            { 'name': 'warn' , 'prefix': '[!] ', 'output': sys.stderr, },
+            { 'name': 'error', 'prefix': '[!] ', 'output': sys.stderr, },
+            { 'name': 'fatal', 'prefix': '[!] ', 'output': sys.stderr, },
         ],
     },
 }

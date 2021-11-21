@@ -3,7 +3,6 @@
 from btrfssnapshotmanager.manager import *
 
 import argparse
-import sys
 
 
 dateformat_human =  '%a %d %b %Y %H:%M:%S'
@@ -11,10 +10,10 @@ dateformat_human =  '%a %d %b %Y %H:%M:%S'
 
 def main():
     if cmd('whoami') != 'root':
-        fail("Must run as root user")
+        fatal("Must run as root user")
 
     parser = argparse.ArgumentParser(prog='btrfs-snapshot-manager')
-    parser.add_argument('--log-level', type=int, default=1, dest='loglevel', help='log level: 0=debug, 1=info, 2=warn')
+    parser.add_argument('--log-level', type=int, default=1, dest='loglevel', help='log level: 0=debug, 1=info, 2=warn 3=error 4=fatal')
     subparsers = parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
 
     # backup
@@ -114,7 +113,7 @@ def main():
     try:
         args.func(args)
     except SnapshotException as e:
-        fail(e.error)
+        fatal(e.error)
 
 
 # Backups
@@ -125,7 +124,7 @@ def backup_list(args):
     snapshot_manager = SnapshotManager()
 
     if path is not None and path not in snapshot_manager.managers:
-        fail("Config not found for subvolume", path)
+        fatal("Config not found for subvolume", path)
 
     table = []
     for subvol, manager in snapshot_manager.managers.items():
@@ -158,7 +157,7 @@ def backup_run(args):
     snapshot_manager = SnapshotManager()
 
     if path is not None and path not in snapshot_manager.managers:
-        fail("Config not found for subvolume", path)
+        fatal("Config not found for subvolume", path)
 
     empty_line = False
     for subvol, manager in snapshot_manager.managers.items():
@@ -178,7 +177,7 @@ def backup_targetlist(args):
     snapshot_manager = SnapshotManager()
 
     if path is not None and path not in snapshot_manager.managers:
-        fail("Config not found for subvolume", path)
+        fatal("Config not found for subvolume", path)
 
     table = []
     for subvol, manager in snapshot_manager.managers.items():
@@ -212,7 +211,7 @@ def schedule_cleanup(args):
     if paths is not None:
         for path in paths:
             if path not in snapshot_manager.managers:
-                fail("Config not found for subvolume", path)
+                fatal("Config not found for subvolume", path)
 
     snapshot_manager.cleanup(subvols=paths)
 
@@ -221,7 +220,7 @@ def schedule_list(args):
     path = args.path
     snapshot_manager = SnapshotManager()
     if path is not None and path not in snapshot_manager.managers:
-        fail("Config not found for subvolume", path)
+        fatal("Config not found for subvolume", path)
 
     table = []
     for subvol, manager in snapshot_manager.managers.items():
@@ -259,7 +258,7 @@ def schedule_run(args):
     if paths is not None:
         for path in paths:
             if path not in snapshot_manager.managers:
-                fail("Config not found for subvolume", path)
+                fatal("Config not found for subvolume", path)
 
     snapshot_manager.execute(subvols=paths)
 
@@ -280,7 +279,7 @@ def snapshot_delete(args):
     subvol = get_subvol(path)
     snapshot = subvol.find_snapshot(name)
     if snapshot is None:
-        fail("Could not find snapshot", name, "in subvolume", path)
+        fatal("Could not find snapshot", name, "in subvolume", path)
     snapshot.delete()
     info("Deleted snapshot", name, "from subvolume", path)
 
@@ -299,7 +298,7 @@ def snapshot_list(args):
     if periods is not None:
         for p in periods:
             if p != 'none' and p not in PERIOD_NAME_MAP:
-                fail("No such period:", p)
+                fatal("No such period:", p)
         periods = [(PERIOD_NAME_MAP[p] if p != 'none' else None) for p in periods]
 
     snapshot_manager = SnapshotManager()
@@ -315,7 +314,7 @@ def snapshot_list(args):
         table.append([subvol.name, 'DATE', 'PERIODS'])
 
         if not subvol.has_snapshots():
-            fail("Subvolume", subvol.path, "is not initialised for snapshots")
+            fatal("Subvolume", subvol.path, "is not initialised for snapshots")
 
         snapshots = subvol.search_snapshots(periods=periods)
         for snapshot in snapshots:
@@ -352,17 +351,17 @@ def systemdboot_create(args):
     snapshot_manager = SnapshotManager()
     systemdboots = get_systemdboots(snapshot_manager)
     if systemdboots is None:
-        fail("No subvolumes configured for systemd-boot integration")
+        fatal("No subvolumes configured for systemd-boot integration")
 
     for systemdboot in systemdboots:
         if systemdboot.reference_entry == entry_name:
             snapshot = systemdboot.subvol.find_snapshot(snapshot_name)
             if snapshot is None:
-                fail("Snapshot {0} not found in subvolume {1}".format(snapshot_name, systemdboot.subvol.name))
+                fatal("Snapshot {0} not found in subvolume {1}".format(snapshot_name, systemdboot.subvol.name))
             systemdboot.create_entry(snapshot)
             break
     else:
-        fail("Did not find systemd-boot entry {0}".format(entry_name))
+        fatal("Did not find systemd-boot entry {0}".format(entry_name))
 
 
 def systemdboot_delete(args):
@@ -371,14 +370,14 @@ def systemdboot_delete(args):
     snapshot_manager = SnapshotManager()
     systemdboots = get_systemdboots(snapshot_manager)
     if systemdboots is None:
-        fail("No subvolumes configured for systemd-boot integration")
+        fatal("No subvolumes configured for systemd-boot integration")
 
     for systemdboot in systemdboots:
         if entry_name in systemdboot.entries:
             systemdboot.delete_entry(entry_name)
             break
     else:
-        fail("Systemd-boot entry {0} not found".format(entry_name))
+        fatal("Systemd-boot entry {0} not found".format(entry_name))
     info("Deleted systemd-boot entry {0}".format(entry_name))
 
 def systemdboot_list(args):
@@ -417,14 +416,14 @@ def systemdboot_run(args):
     snapshot_manager = SnapshotManager()
     systemdboots = get_systemdboots(snapshot_manager)
     if systemdboots is None:
-        fail("No subvolumes configured for systemd-boot integration")
+        fatal("No subvolumes configured for systemd-boot integration")
 
     info("Creating missing systemd-boot entries, and deleting ones no longer required")
     for systemdboot in systemdboots:
         systemdboot.run()
 
 
-# General
+# Common
 
 def global_args(args):
     GLOBAL_CONFIG['log']['level'] = args.loglevel
@@ -443,13 +442,6 @@ def get_systemdboots(snapshot_manager):
 
 def out(*messages):
     print(' '.join([str(m) for m in messages]), flush=True)
-
-def err(*messages):
-    print(' '.join([str(m) for m in messages]), flush=True, file=sys.stderr)
-
-def fail(*messages):
-    err(*messages)
-    sys.exit(1)
 
 def output_table(table):
     if len(table) == 0:
