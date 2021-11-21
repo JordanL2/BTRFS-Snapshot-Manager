@@ -231,6 +231,8 @@ class Config():
                 if 'boot-path' in systemdboot_config:
                     systemdboot_manager.set_boot_path(systemdboot_config['boot-path'])
 
+                subvol_instance.systemdboot_manager = systemdboot_manager
+
                 self.systemdboot_entry_managers = []
 
                 for systemdboot_config_entry in systemdboot_config['entries']:

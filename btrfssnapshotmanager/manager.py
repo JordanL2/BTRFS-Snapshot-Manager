@@ -80,7 +80,6 @@ class SubvolumeManager():
     def __init__(self, snapshot_manager, subvol_instance, retention_config, backup_config):
         self.snapshot_manager = snapshot_manager
         self.subvol = subvol_instance
-        self.subvol.manager = self
         if not self.subvol.has_snapshots():
             self.subvol.init_snapshots()
         self.retention_config = retention_config
