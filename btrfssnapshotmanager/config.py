@@ -28,10 +28,10 @@ class Config():
                 ('path', True): str,
                 ('snapshots-path', False): str,
                 ('retention', True): {
-                    ('hourly', ('daily', 'weekly', 'monthly')): int,
-                    ('daily', ('hourly', 'weekly', 'monthly')): int,
-                    ('weekly', ('hourly', 'daily', 'monthly')): int,
-                    ('monthly', ('hourly', 'daily', 'weekly')): int,
+                    ('hourly', ('hourly', 'daily', 'weekly', 'monthly')): int,
+                    ('daily', False): int,
+                    ('weekly', False): int,
+                    ('monthly', False): int,
                 },
                 ('systemd-boot', False): {
                     ('boot-path', False): str,
@@ -39,10 +39,10 @@ class Config():
                         {
                             ('entry', True): str,
                             ('retention', True): {
-                                ('hourly', ('daily', 'weekly', 'monthly')): int,
-                                ('daily', ('hourly', 'weekly', 'monthly')): int,
-                                ('weekly', ('hourly', 'daily', 'monthly')): int,
-                                ('monthly', ('hourly', 'daily', 'weekly')): int,
+                                ('hourly', ('hourly', 'daily', 'weekly', 'monthly')): int,
+                                ('daily', False): int,
+                                ('weekly', False): int,
+                                ('monthly', False): int,
                             },
                         },
                     ],
@@ -51,20 +51,20 @@ class Config():
                     {
                         ('type', True): ('btrfs', 'rsync'),
                         ('last_sync_file', False): str,
-                        ('local', ('remote',)): {
+                        ('local', ('local', 'remote')): {
                             ('path', True): str,
                         },
-                        ('remote', ('local',)): {
+                        ('remote', False): {
                             ('host', True): str,
                             ('user', False): str,
                             ('ssh-options', False): str,
                             ('path', True): str,
                         },
                         ('retention', True): {
-                            ('hourly', ('daily', 'weekly', 'monthly')): int,
-                            ('daily', ('hourly', 'weekly', 'monthly')): int,
-                            ('weekly', ('hourly', 'daily', 'monthly')): int,
-                            ('monthly', ('hourly', 'daily', 'weekly')): int,
+                            ('hourly', ('hourly', 'daily', 'weekly', 'monthly')): int,
+                            ('daily', False): int,
+                            ('weekly', False): int,
+                            ('monthly', False): int,
                         },
                     },
                 ],
@@ -123,7 +123,7 @@ class Config():
                             if required_alternative_item in config:
                                 break
                         else:
-                            raise ConfigException(parents + ["[{0}]".format('|'.join(sorted([name] + list(required))))], 'at least one required')
+                            raise ConfigException(parents + ["[{0}]".format('|'.join(sorted(list(required))))], 'at least one required')
                     elif required:
                         raise ConfigException(parents + [name], 'is required')
                     continue
