@@ -500,9 +500,9 @@ def systemdboot_snapshot_list(args):
     global_args(args)
     snapshot_manager = SnapshotManager()
     systemdboot_manager = get_systemdboot_manager(snapshot_manager)
-    table = [[systemdboot_manager.boot_path, 'DATE']]
+    table = [[systemdboot_manager.boot_path, 'PATH', 'DATE']]
     for boot_snapshot in systemdboot_manager.boot_snapshots:
-        table.append([boot_snapshot.name, boot_snapshot.date.strftime(dateformat_human)])
+        table.append([boot_snapshot.name, boot_snapshot.path(), boot_snapshot.date.strftime(dateformat_human)])
     if len(table) > 1:
         output_table(table)
 

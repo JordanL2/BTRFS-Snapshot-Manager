@@ -32,9 +32,13 @@ def systemdboot_snapshot_name_format(date):
 
 class SystemdBootSnapshot():
 
-    def __init__(self, name):
+    def __init__(self, snapshot_manager, name):
+        self.snapshot_manager = snapshot_manager
         self.name = name
         self.date = systemdboot_snapshot_name_parse(name)
+
+    def path(self):
+        return PosixPath(self.snapshot_manager.snapshots_dir, self.name)
 
 
 class SystemdBootSnapshotManager():
@@ -56,7 +60,7 @@ class SystemdBootSnapshotManager():
         for child in self.snapshots_dir.iterdir():
             if child.is_dir():
                 try:
-                    self.boot_snapshots.append(SystemdBootSnapshot(child.name))
+                    self.boot_snapshots.append(SystemdBootSnapshot(self, child.name))
                 except ValueError:
                     pass
         self.boot_snapshots = sorted(self.boot_snapshots, key=lambda s: s.date)
@@ -78,7 +82,7 @@ class SystemdBootSnapshotManager():
         for init_file in self.init_files:
             cmd("cp {1}/{0} {2}/{3}/{0}".format(init_file, self.boot_path, self.snapshots_dir, boot_snapshot_name))
 
-        boot_snapshot = SystemdBootSnapshot(boot_snapshot_name)
+        boot_snapshot = SystemdBootSnapshot(self, boot_snapshot_name)
         self.boot_snapshots.append(boot_snapshot)
 
     def create_boot_snapshot_if_needed(self, date=None):
@@ -129,7 +133,8 @@ class SystemdBootSnapshotManager():
 
 class SystemdBootEntry():
 
-    def __init__(self, subvol, entry, retention):
+    def __init__(self, systemdboot_manager, subvol, entry, retention):
+        self.systemdboot_manager = systemdboot_manager
         self.subvol = subvol
         self.reference_entry = entry
         self.retention = retention
@@ -168,6 +173,9 @@ class SystemdBootEntry():
             snapshot.name
         )
 
+        # Get boot snapshot for this snapshot
+        boot_snapshot = self.systemdboot_manager.get_boot_snapshot_for_snapshot(snapshot)
+
         # Read reference entry one line at a time, modify and write to new entry
         info("Creating new entry {0}".format(entry_name))
         debug("---")
@@ -183,6 +191,10 @@ class SystemdBootEntry():
 
                         if key == 'title':
                             value = "Snapshot - {0} - {1}".format(snapshot.date.strftime('%a %d-%b %H:%M:%S'), value)
+
+                        elif key in ('linux', 'initrd') and boot_snapshot is not None:
+                            # If there is a boot snapshot, use the linux / initrds in that
+                            value = str(PosixPath(boot_snapshot.path(), PosixPath(value).relative_to('/')))
 
                         elif key == 'options':
                             options = value.split()

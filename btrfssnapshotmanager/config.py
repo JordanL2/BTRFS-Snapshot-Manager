@@ -242,7 +242,7 @@ class Config():
                         if period.name in systemdboot_config_entry['retention']:
                             retention[period] = int(systemdboot_config_entry['retention'][period.name])
 
-                    systemdbootentry = SystemdBootEntry(subvol_instance, entry, retention)
+                    systemdbootentry = SystemdBootEntry(systemdboot_manager, subvol_instance, entry, retention)
 
                     if 'boot-path' in systemdboot_config:
                         systemdbootentry.set_boot_path(systemdboot_config['boot-path'])
