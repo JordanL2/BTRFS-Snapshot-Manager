@@ -121,18 +121,22 @@ def main():
     systemdboot_snapshot_parser = systemdboot_subparsers.add_parser('snapshot', help='systemd-boot integration commands')
     systemdboot_snapshot_subparsers = systemdboot_snapshot_parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
 
-    # systemdboot snapshot check
-    systemdboot_snapshot_check_parser = systemdboot_snapshot_subparsers.add_parser('check', help='create a snapshot of boot init files if needed')
-    systemdboot_snapshot_check_parser.set_defaults(func=systemdboot_snapshot_check)
-
     # systemdboot snapshot create
     systemdboot_snapshot_create_parser = systemdboot_snapshot_subparsers.add_parser('create', help='force creating a snapshot of boot init files')
     systemdboot_snapshot_create_parser.set_defaults(func=systemdboot_snapshot_create)
+
+    # systemdboot snapshot create-needed
+    systemdboot_snapshot_createneeded_parser = systemdboot_snapshot_subparsers.add_parser('create-needed', help='create a snapshot of boot init files if needed')
+    systemdboot_snapshot_createneeded_parser.set_defaults(func=systemdboot_snapshot_createneeded)
 
     # systemdboot snapshots delete
     systemdboot_snapshot_delete_parser = systemdboot_snapshot_subparsers.add_parser('delete', help='delete snapshot of boot init files')
     systemdboot_snapshot_delete_parser.add_argument('name', help='name of boot snapshot to delete')
     systemdboot_snapshot_delete_parser.set_defaults(func=systemdboot_snapshot_delete)
+
+    # systemdboot snapshots delete-unneeded
+    systemdboot_snapshot_deleteunneeded_parser = systemdboot_snapshot_subparsers.add_parser('delete-unneeded', help='delete snapshots no longer needed')
+    systemdboot_snapshot_deleteunneeded_parser.set_defaults(func=systemdboot_snapshot_deleteunneeded)
 
     # systemdboot snapshots list
     systemdboot_snapshot_list_parser = systemdboot_snapshot_subparsers.add_parser('list', help='list snapshots of boot init files')
@@ -465,18 +469,18 @@ def systemdboot_run(args):
     for systemdboot in systemdboots:
         systemdboot.run()
 
-def systemdboot_snapshot_check(args):
-    global_args(args)
-    snapshot_manager = SnapshotManager()
-    systemdboot_manager = get_systemdboot_manager(snapshot_manager)
-    systemdboot_manager.create_boot_snapshot_if_needed()
-
 def systemdboot_snapshot_create(args):
     global_args(args)
     snapshot_manager = SnapshotManager()
     systemdboot_manager = get_systemdboot_manager(snapshot_manager)
     systemdboot_manager.create_boot_snapshot()
     info("Created new boot snapshot: {0}".format(systemdboot_manager.boot_snapshots[-1].name))
+
+def systemdboot_snapshot_createneeded(args):
+    global_args(args)
+    snapshot_manager = SnapshotManager()
+    systemdboot_manager = get_systemdboot_manager(snapshot_manager)
+    systemdboot_manager.create_boot_snapshot_if_needed()
 
 def systemdboot_snapshot_delete(args):
     global_args(args)
@@ -485,6 +489,12 @@ def systemdboot_snapshot_delete(args):
     systemdboot_manager = get_systemdboot_manager(snapshot_manager)
     systemdboot_manager.delete_boot_snapshot(name)
     info("Deleted boot snapshot {0}".format(name))
+
+def systemdboot_snapshot_deleteunneeded(args):
+    global_args(args)
+    snapshot_manager = SnapshotManager()
+    systemdboot_manager = get_systemdboot_manager(snapshot_manager)
+    systemdboot_manager.remove_unused_boot_snapshots()
 
 def systemdboot_snapshot_list(args):
     global_args(args)

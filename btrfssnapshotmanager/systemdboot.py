@@ -117,8 +117,14 @@ class SystemdBootSnapshotManager():
         return None
 
     def remove_unused_boot_snapshots(self):
-        #TODO
-        pass
+        boot_snapshots_to_delete = set(self.boot_snapshots)
+        for snapshot in self.subvol.snapshots:
+            boot_snapshot = self.get_boot_snapshot_for_snapshot(snapshot)
+            if boot_snapshot is not None and boot_snapshot in boot_snapshots_to_delete:
+                boot_snapshots_to_delete.remove(boot_snapshot)
+        for boot_snapshot in boot_snapshots_to_delete:
+            info("No longer need boot snapshot {0}".format(boot_snapshot.name))
+            self.delete_boot_snapshot(boot_snapshot.name)
 
 
 class SystemdBootEntry():
