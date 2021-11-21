@@ -372,7 +372,7 @@ def snapshot_list(args):
 def systemdboot_config(args):
     global_args(args)
     snapshot_manager = SnapshotManager()
-    systemdboot_entry_managers = snapshot_manager.systemdboot_entry_managers
+    systemdboot_entry_managers = snapshot_manager.systemdboot_manager.entry_managers
     if systemdboot_entry_managers is not None:
         table = [['SUBVOLUME', 'BOOT PATH', 'ENTRY', *[p.name.upper() for p in PERIODS]]]
         for systemdboot_entry_manager in systemdboot_entry_managers:
@@ -393,7 +393,7 @@ def systemdboot_create(args):
     entry_name = args.entry
     snapshot_name = args.snapshot
     snapshot_manager = SnapshotManager()
-    systemdboot_entry_managers = snapshot_manager.systemdboot_entry_managers
+    systemdboot_entry_managers = snapshot_manager.systemdboot_manager.entry_managers
     if systemdboot_entry_managers is None:
         fatal("No subvolumes configured for systemd-boot integration")
 
@@ -411,7 +411,7 @@ def systemdboot_delete(args):
     global_args(args)
     entry_name = args.entry
     snapshot_manager = SnapshotManager()
-    systemdboot_entry_managers = snapshot_manager.systemdboot_entry_managers
+    systemdboot_entry_managers = snapshot_manager.systemdboot_manager.entry_managers
     if systemdboot_entry_managers is None:
         fatal("No subvolumes configured for systemd-boot integration")
 
@@ -426,8 +426,8 @@ def systemdboot_delete(args):
 def systemdboot_list(args):
     global_args(args)
     snapshot_manager = SnapshotManager()
-    systemdboot_entry_managers = snapshot_manager.systemdboot_entry_managers
     systemdboot_manager = snapshot_manager.systemdboot_manager
+    systemdboot_entry_managers = systemdboot_manager.entry_managers
     if systemdboot_entry_managers is not None:
         table = []
         for systemdboot_entry_manager in systemdboot_entry_managers:
@@ -461,7 +461,7 @@ def systemdboot_list(args):
 def systemdboot_run(args):
     global_args(args)
     snapshot_manager = SnapshotManager()
-    systemdboot_entry_managers = snapshot_manager.systemdboot_entry_managers
+    systemdboot_entry_managers = snapshot_manager.systemdboot_manager.entry_managers
     if systemdboot_entry_managers is None:
         fatal("No subvolumes configured for systemd-boot integration")
 

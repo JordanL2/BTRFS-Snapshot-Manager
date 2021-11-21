@@ -218,7 +218,6 @@ class Config():
 
     def load_systemdboot(self):
         self.systemdboot_manager = None
-        self.systemdboot_entry_managers = None
         config = self.get_subvolume_config()
         for subvol, subvol_config in config.items():
             subvol_instance = self.subvolumes[subvol]
@@ -232,8 +231,6 @@ class Config():
                     systemdboot_manager.set_boot_path(systemdboot_config['boot-path'])
 
                 subvol_instance.systemdboot_manager = systemdboot_manager
-
-                self.systemdboot_entry_managers = []
 
                 for systemdboot_config_entry in systemdboot_config['entries']:
 
@@ -249,4 +246,4 @@ class Config():
                     if 'boot-path' in systemdboot_config:
                         systemdbootentry.set_boot_path(systemdboot_config['boot-path'])
 
-                    self.systemdboot_entry_managers.append(systemdbootentry)
+                    self.systemdboot_manager.entry_managers.append(systemdbootentry)
