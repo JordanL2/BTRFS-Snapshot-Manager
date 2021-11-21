@@ -137,7 +137,6 @@ class Config():
                     if len([s for s in spec if s[0] == config_name]) == 0:
                         raise ConfigException(parents + [config_name], 'is not recognised')
 
-
     def get_subvolume_config(self):
         config = {}
         if 'subvolumes' in self.raw_config:
