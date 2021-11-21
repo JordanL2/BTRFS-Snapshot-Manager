@@ -123,7 +123,7 @@ class Config():
                             if required_alternative_item in config:
                                 break
                         else:
-                            raise ConfigException(parents + ["[{0}]".format('|'.join([name] + list(required)))], 'at least one required')
+                            raise ConfigException(parents + ["[{0}]".format('|'.join(sorted([name] + list(required))))], 'at least one required')
                     elif required:
                         raise ConfigException(parents + [name], 'is required')
                     continue
