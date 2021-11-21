@@ -129,6 +129,11 @@ def main():
     systemdboot_snapshot_create_parser = systemdboot_snapshot_subparsers.add_parser('create', help='force creating a snapshot of boot init files')
     systemdboot_snapshot_create_parser.set_defaults(func=systemdboot_snapshot_create)
 
+    # systemdboot snapshots delete
+    systemdboot_snapshot_delete_parser = systemdboot_snapshot_subparsers.add_parser('delete', help='delete snapshot of boot init files')
+    systemdboot_snapshot_delete_parser.add_argument('name', help='name of boot snapshot to delete')
+    systemdboot_snapshot_delete_parser.set_defaults(func=systemdboot_snapshot_delete)
+
     # systemdboot snapshots list
     systemdboot_snapshot_list_parser = systemdboot_snapshot_subparsers.add_parser('list', help='list snapshots of boot init files')
     systemdboot_snapshot_list_parser.set_defaults(func=systemdboot_snapshot_list)
@@ -473,6 +478,14 @@ def systemdboot_snapshot_create(args):
     systemdboot_manager.create_boot_snapshot()
     info("Created new boot snapshot: {0}".format(systemdboot_manager.boot_snapshots[-1].name))
 
+def systemdboot_snapshot_delete(args):
+    global_args(args)
+    name = args.name
+    snapshot_manager = SnapshotManager()
+    systemdboot_manager = get_systemdboot_manager(snapshot_manager)
+    systemdboot_manager.delete_boot_snapshot(name)
+    info("Deleted boot snapshot {0}".format(name))
+
 def systemdboot_snapshot_list(args):
     global_args(args)
     snapshot_manager = SnapshotManager()
@@ -480,7 +493,8 @@ def systemdboot_snapshot_list(args):
     table = [[systemdboot_manager.boot_path, 'DATE']]
     for boot_snapshot in systemdboot_manager.boot_snapshots:
         table.append([boot_snapshot.name, boot_snapshot.date.strftime(dateformat_human)])
-    output_table(table)
+    if len(table) > 1:
+        output_table(table)
 
 # Common
 

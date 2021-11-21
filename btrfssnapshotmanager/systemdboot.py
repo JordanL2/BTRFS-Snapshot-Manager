@@ -101,9 +101,14 @@ class SystemdBootSnapshotManager():
         else:
             debug("New boot snapshot is not required")
 
-    def delete_boot_snapshot(self, boot_snapshot):
-        #TODO
-        pass
+    def delete_boot_snapshot(self, boot_snapshot_name):
+        debug("Deleting boot snapshot {0}".format(boot_snapshot_name))
+        boot_snapshot = [b for b in self.boot_snapshots if b.name == boot_snapshot_name]
+        if len(boot_snapshot) != 1:
+            raise SnapshotException("Could not find boot snapshot {0}".format(boot_snapshot_name))
+        boot_snapshot = boot_snapshot[0]
+        cmd("rm -rf {0}/{1}".format(self.snapshots_dir, boot_snapshot.name))
+        self.load_boot_snapshots()
 
     def get_boot_snapshot_for_snapshot(self, snapshot):
         for boot_snapshot in reversed(self.boot_snapshots):
