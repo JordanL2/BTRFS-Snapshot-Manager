@@ -28,7 +28,7 @@ class Config():
                 ('path', True): str,
                 ('snapshots-path', False): str,
                 ('retention', True): {
-                    ('hourly', ('hourly', 'daily', 'weekly', 'monthly')): int,
+                    ('hourly', (1, None, 'hourly', 'daily', 'weekly', 'monthly')): int,
                     ('daily', False): int,
                     ('weekly', False): int,
                     ('monthly', False): int,
@@ -39,7 +39,7 @@ class Config():
                         {
                             ('entry', True): str,
                             ('retention', True): {
-                                ('hourly', ('hourly', 'daily', 'weekly', 'monthly')): int,
+                                ('hourly', (1, None, 'hourly', 'daily', 'weekly', 'monthly')): int,
                                 ('daily', False): int,
                                 ('weekly', False): int,
                                 ('monthly', False): int,
@@ -51,7 +51,7 @@ class Config():
                     {
                         ('type', True): ('btrfs', 'rsync'),
                         ('last_sync_file', False): str,
-                        ('local', ('local', 'remote')): {
+                        ('local', (1, 1, 'local', 'remote')): {
                             ('path', True): str,
                         },
                         ('remote', False): {
@@ -61,7 +61,7 @@ class Config():
                             ('path', True): str,
                         },
                         ('retention', True): {
-                            ('hourly', ('hourly', 'daily', 'weekly', 'monthly')): int,
+                            ('hourly', (1, None, 'hourly', 'daily', 'weekly', 'monthly')): int,
                             ('daily', False): int,
                             ('weekly', False): int,
                             ('monthly', False): int,
@@ -117,19 +117,28 @@ class Config():
                 required = spec_item[1]
 
                 # Check existence
-                if name not in config:
-                    if type(required) == tuple:
-                        for required_alternative_item in required:
-                            if required_alternative_item in config:
-                                break
-                        else:
-                            raise ConfigException(parents + ["[{0}]".format('|'.join(sorted(list(required))))], 'at least one required')
-                    elif required:
-                        raise ConfigException(parents + [name], 'is required')
-                    continue
-                config_item = config[name]
+                if type(required) == tuple:
+                    min_number = required[0]
+                    max_number = required[1]
+                    required_items = required[2:]
+                    found_items = 0
+                    for required_alternative_item in required_items:
+                        if required_alternative_item in config:
+                            found_items += 1
+                    if min_number is not None and max_number is not None and min_number == max_number and found_items != min_number:
+                        raise ConfigException(parents + ["[{0}]".format('|'.join(sorted(list(required_items))))], "exactly {0} required, found {1}".format(min_number, found_items))
+                    if min_number is not None and found_items < min_number:
+                        raise ConfigException(parents + ["[{0}]".format('|'.join(sorted(list(required_items))))], "at least {0} required, found {1}".format(min_number, found_items))
+                    if max_number is not None and found_items > max_number:
+                        raise ConfigException(parents + ["[{0}]".format('|'.join(sorted(list(required_items))))], "at most {0} required, found {1}".format(max_number, found_items))
 
-                self.validate_config(config_item, spec_value, parents + [name], strict)
+                else:
+                    if name not in config:
+                        if required:
+                            raise ConfigException(parents + [name], 'is required')
+                    else:
+                        # Validate the item
+                        self.validate_config(config[name], spec_value, parents + [name], strict)
 
             # If strict is enabled, go through each item of config and ensure it's in spec
             if strict:
@@ -185,7 +194,7 @@ class Config():
                         elif backup_type == 'rsync':
                             backup = LocalRsyncBackup(subvol_instance, retention, path)
 
-                    elif 'remote' in backup_config:
+                    else:
                         host = backup_config['remote']['host']
 
                         path = backup_config['remote']['path']
