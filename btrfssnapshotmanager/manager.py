@@ -16,6 +16,7 @@ class SnapshotManager():
                 self.config.backups[subvol],
             )
             if subvol in self.config.systemdboots:
+                self.managers[subvol].systemdboot_manager = self.config.systemdboot_manager[subvol]
                 self.managers[subvol].systemdboots = self.config.systemdboots[subvol]
 
     def execute(self, subvols=None, cleanup=True, backup=True, systemdboot_run=True):
@@ -80,10 +81,12 @@ class SubvolumeManager():
     def __init__(self, snapshot_manager, subvol_instance, retention_config, backup_config):
         self.snapshot_manager = snapshot_manager
         self.subvol = subvol_instance
+        self.subvol.manager = self
         if not self.subvol.has_snapshots():
             self.subvol.init_snapshots()
         self.retention_config = retention_config
         self.backups = backup_config
+        self.systemdboot_manager = None
         self.systemdboots = None
 
     def last_run(self, period):

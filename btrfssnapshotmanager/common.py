@@ -23,7 +23,7 @@ class SnapshotException(Exception):
         super().__init__(self, error)
 
 
-def cmd(command, attempts=None, fail_delay=None):
+def cmd(command, attempts=None, fail_delay=None, return_code=False):
     attempt = 0
     while attempt == 0 or (attempts is not None and attempt < attempts):
         result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -36,6 +36,10 @@ def cmd(command, attempts=None, fail_delay=None):
                 time.sleep(fail_delay)
                 warn("Retrying...")
             else:
+                if return_code:
+                    return result.returncode
                 raise CommandException(command, result.returncode, stderr)
         else:
+            if return_code:
+                return result.returncode
             return stdout

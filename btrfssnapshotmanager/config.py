@@ -217,6 +217,7 @@ class Config():
                     self.backups[subvol].append(backup)
 
     def load_systemdboot(self):
+        self.systemdboot_manager = {}
         self.systemdboots = {}
         config = self.get_subvolume_config()
         for subvol, subvol_config in config.items():
@@ -224,6 +225,11 @@ class Config():
 
             if 'systemd-boot' in subvol_config:
                 systemdboot_config = subvol_config['systemd-boot']
+
+                systemdboot_manager = SystemdBootSnapshotManager(subvol_instance)
+                self.systemdboot_manager[subvol] = systemdboot_manager
+                if 'boot-path' in systemdboot_config:
+                    systemdboot_manager.set_boot_path(systemdboot_config['boot-path'])
 
                 self.systemdboots[subvol] = []
 
@@ -236,9 +242,9 @@ class Config():
                         if period.name in systemdboot_config_entry['retention']:
                             retention[period] = int(systemdboot_config_entry['retention'][period.name])
 
-                    systemdboot = SystemdBoot(subvol_instance, entry, retention)
+                    systemdbootentry = SystemdBootEntry(subvol_instance, entry, retention)
 
                     if 'boot-path' in systemdboot_config:
-                        systemdboot.set_boot_path(systemdboot_config['boot-path'])
+                        systemdbootentry.set_boot_path(systemdboot_config['boot-path'])
 
-                    self.systemdboots[subvol].append(systemdboot)
+                    self.systemdboots[subvol].append(systemdbootentry)

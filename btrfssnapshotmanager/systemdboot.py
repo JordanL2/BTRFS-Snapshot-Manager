@@ -2,13 +2,16 @@
 
 from btrfssnapshotmanager.common import *
 
+from datetime import *
 from pathlib import PosixPath
 import re
 
 
 systemdboot_default_boot_dir = '/boot'
 systemdboot_default_entries_dir = 'loader/entries'
+systemdboot_default_snapshots_dir = 'snapshots'
 systemdboot_entry_line_regex = re.compile(r'(\S+)(\s*)(.*?)')
+systemdboot_snapshot_format = '%Y-%m-%d_%H-%M-%S'
 
 def boot_entry_name_parse(entry, name):
     file_regex = re.compile('snapshot\-(\d\d\d\d-\d\d-\d\d_\d\d-\d\d-\d\d_?[HDWM]*)\-' + entry)
@@ -20,8 +23,97 @@ def boot_entry_name_parse(entry, name):
 def boot_entry_name_format(entry, name):
     return "snapshot-{0}-{1}".format(name, entry)
 
+def systemdboot_snapshot_name_parse(name):
+    return datetime.strptime(name, systemdboot_snapshot_format)
 
-class SystemdBoot():
+def systemdboot_snapshot_name_format(date):
+    return date.strftime(systemdboot_snapshot_format)
+
+
+class SystemdBootSnapshot():
+
+    def __init__(self, name):
+        self.name = name
+        self.date = systemdboot_snapshot_name_parse(name)
+
+
+class SystemdBootSnapshotManager():
+
+    def __init__(self, subvol):
+        self.subvol = subvol
+        self.set_boot_path(systemdboot_default_boot_dir)
+
+    def set_boot_path(self, boot_path):
+        self.boot_path = boot_path
+        self.snapshots_dir = PosixPath(boot_path, systemdboot_default_snapshots_dir)
+        self.load_boot_snapshots()
+        self.load_init_files()
+
+    def load_boot_snapshots(self):
+        self.boot_snapshots = []
+        if not self.snapshots_dir.is_dir():
+            self.snapshots_dir.mkdir()
+        for child in self.snapshots_dir.iterdir():
+            if child.is_dir():
+                try:
+                    self.boot_snapshots.append(SystemdBootSnapshot(child.name))
+                except ValueError:
+                    pass
+        self.boot_snapshots = sorted(self.boot_snapshots, key=lambda s: s.date)
+
+    def load_init_files(self):
+        self.init_files = []
+        for child in PosixPath(self.boot_path).iterdir():
+            if child.is_file():
+                self.init_files.append(child.name)
+        self.init_files = sorted(self.init_files)
+
+    def create_boot_snapshot(self):
+        now = datetime.now()
+        boot_snapshot_name = systemdboot_snapshot_name_format(now)
+        debug("Creating new boot snapshot: {0}/{1}".format(self.snapshots_dir, boot_snapshot_name))
+
+        cmd("mkdir {0}/{1}".format(self.snapshots_dir, boot_snapshot_name))
+        for init_file in self.init_files:
+            cmd("cp {1}/{0} {2}/{3}/{0}".format(init_file, self.boot_path, self.snapshots_dir, boot_snapshot_name))
+
+        boot_snapshot = SystemdBootSnapshot(boot_snapshot_name)
+        self.boot_snapshots.append(boot_snapshot)
+
+    def create_boot_snapshot_if_needed(self):
+        debug("Determining if new boot snapshot required...")
+        needed = False
+        if len(self.boot_snapshots) == 0:
+            needed = True
+            debug("No boot snapshots found, new boot snapshot required")
+        else:
+            last_boot_snapshot = self.boot_snapshots[-1]
+            for init_file in self.init_files:
+                command = "diff {1}/{0} {2}/{3}/{0}".format(init_file, self.boot_path, self.snapshots_dir, last_boot_snapshot.name)
+                code = cmd(command, return_code=True)
+                if code != 0:
+                    needed = True
+                    debug("Init file {0} has changed, new boot snapshot required".format(init_file))
+
+        if needed:
+            self.create_boot_snapshot()
+        else:
+            debug("New boot snapshot is not required")
+
+    def delete_boot_snapshot(self, boot_snapshot):
+        #TODO
+        pass
+
+    def get_boot_snapshot_for_snapshot(self, snapshot):
+        #TODO
+        pass
+
+    def remote_unused_boot_snapshots(self):
+        #TODO
+        pass
+
+
+class SystemdBootEntry():
 
     def __init__(self, subvol, entry, retention):
         self.subvol = subvol

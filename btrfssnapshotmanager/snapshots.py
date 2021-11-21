@@ -42,16 +42,16 @@ def snapshot_name_format(date, periods):
 
 class Subvolume():
 
-    snapshots = None
-
     def __init__(self, path):
         self.name = path
         self.path = PosixPath(path)
         if not self._check_path():
             raise SnapshotException("Not a valid btrfs subvolume")
         self.snapshots_dir = PosixPath(path, snapshots_dir_name)
+        self. snapshots = None
         if self.has_snapshots():
             self.load_snapshots()
+        self.manager = None
 
     def set_snapshot_dir(self, path):
         self.snapshots_dir = PosixPath(self.path, path)
@@ -86,9 +86,15 @@ class Subvolume():
         if periods is None:
             periods = []
         name = snapshot_name_format(date, periods)
-        snapshot = Snapshot(self, name, date, periods, create=True)
+        snapshot = Snapshot(self, name, date, periods)
+        cmd("btrfs subvolume snapshot -r {0} {1}".format(self.path, snapshot.path))
         self.snapshots.append(snapshot)
         self._sort_snapshots()
+
+        # Systemdboot
+        if self.manager.systemdboot_manager is not None:
+            self.manager.systemdboot_manager.create_boot_snapshot_if_needed()
+
         return snapshot
 
     def find_snapshot(self, name):
@@ -125,21 +131,15 @@ class Subvolume():
 
 class Snapshot():
 
-    def __init__(self, subvol, name, date, periods, create=False):
+    def __init__(self, subvol, name, date, periods):
         self.subvol = subvol
         self.name = name
         self.path = PosixPath(subvol.snapshots_dir, name)
         self.date = date
         self.periods = periods
 
-        if create:
-            self.create()
-
         # systemd-boot
         self.systemdboot = {}
-
-    def create(self):
-        cmd("btrfs subvolume snapshot -r {0} {1}".format(self.subvol.path, self.path))
 
     def delete(self):
         cmd("btrfs subvolume delete --commit-each {0}".format(self.path))
@@ -148,6 +148,11 @@ class Snapshot():
         # Delete systemd-boot entry
         for systemdboot, entry in self.systemdboot.copy().items():
             systemdboot.delete_entry(entry)
+
+        # Systemdboot
+        if self.subvol.manager.systemdboot_manager is not None:
+            self.subvol.manager.systemdboot_manager.remote_unused_boot_snapshots()
+
 
     def get_periods(self):
         return [p for p in sorted(self.periods, key=lambda x: x.seconds)]

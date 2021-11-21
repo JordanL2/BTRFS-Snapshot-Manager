@@ -117,6 +117,22 @@ def main():
     systemdboot_run_parser = systemdboot_subparsers.add_parser('run', help='create and delete systemd-boot entries as required by config')
     systemdboot_run_parser.set_defaults(func=systemdboot_run)
 
+    # systemdboot snapshot
+    systemdboot_snapshot_parser = systemdboot_subparsers.add_parser('snapshot', help='systemd-boot integration commands')
+    systemdboot_snapshot_subparsers = systemdboot_snapshot_parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
+
+    # systemdboot snapshot check
+    systemdboot_snapshot_check_parser = systemdboot_snapshot_subparsers.add_parser('check', help='create a snapshot of boot init files if needed')
+    systemdboot_snapshot_check_parser.set_defaults(func=systemdboot_snapshot_check)
+
+    # systemdboot snapshot create
+    systemdboot_snapshot_create_parser = systemdboot_snapshot_subparsers.add_parser('create', help='force creating a snapshot of boot init files')
+    systemdboot_snapshot_create_parser.set_defaults(func=systemdboot_snapshot_create)
+
+    # systemdboot snapshots list
+    systemdboot_snapshot_list_parser = systemdboot_snapshot_subparsers.add_parser('list', help='list snapshots of boot init files')
+    systemdboot_snapshot_list_parser.set_defaults(func=systemdboot_snapshot_list)
+
     args = parser.parse_args()
     try:
         args.func(args)
@@ -382,7 +398,6 @@ def systemdboot_create(args):
     else:
         fatal("Did not find systemd-boot entry {0}".format(entry_name))
 
-
 def systemdboot_delete(args):
     global_args(args)
     entry_name = args.entry
@@ -441,6 +456,27 @@ def systemdboot_run(args):
     for systemdboot in systemdboots:
         systemdboot.run()
 
+def systemdboot_snapshot_check(args):
+    global_args(args)
+    snapshot_manager = SnapshotManager()
+    systemdboot_manager = get_systemdboot_manager(snapshot_manager)
+    systemdboot_manager.create_boot_snapshot_if_needed()
+
+def systemdboot_snapshot_create(args):
+    global_args(args)
+    snapshot_manager = SnapshotManager()
+    systemdboot_manager = get_systemdboot_manager(snapshot_manager)
+    systemdboot_manager.create_boot_snapshot()
+    info("Created new boot snapshot: {0}".format(systemdboot_manager.boot_snapshots[-1].name))
+
+def systemdboot_snapshot_list(args):
+    global_args(args)
+    snapshot_manager = SnapshotManager()
+    systemdboot_manager = get_systemdboot_manager(snapshot_manager)
+    table = [[systemdboot_manager.boot_path, 'DATE']]
+    for boot_snapshot in systemdboot_manager.boot_snapshots:
+        table.append([boot_snapshot.name, boot_snapshot.date.strftime(dateformat_human)])
+    output_table(table)
 
 # Common
 
@@ -457,6 +493,12 @@ def get_systemdboots(snapshot_manager):
     for subvol, manager in snapshot_manager.managers.items():
         if manager.systemdboots is not None:
             return manager.systemdboots
+    return None
+
+def get_systemdboot_manager(snapshot_manager):
+    for subvol, manager in snapshot_manager.managers.items():
+        if manager.systemdboot_manager is not None:
+            return manager.systemdboot_manager
     return None
 
 def out(*messages):
