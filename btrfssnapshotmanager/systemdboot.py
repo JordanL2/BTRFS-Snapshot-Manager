@@ -99,6 +99,7 @@ class SystemdBootSnapshotManager():
                 if code != 0:
                     needed = True
                     debug("Init file {0} has changed, new boot snapshot required".format(init_file))
+                    break
 
         if needed:
             self.create_boot_snapshot(date=date)
