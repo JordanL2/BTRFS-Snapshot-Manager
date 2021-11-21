@@ -418,27 +418,31 @@ def systemdboot_list(args):
     global_args(args)
     snapshot_manager = SnapshotManager()
     systemdboots = get_systemdboots(snapshot_manager)
+    systemdboot_manager = get_systemdboot_manager(snapshot_manager)
     if systemdboots is not None:
         table = []
         for systemdboot in systemdboots:
 
             if len(table) > 0:
                 table.append(None)
-            table.append([systemdboot.reference_entry, 'SNAPSHOT', 'DATE', 'PERIODS'])
+            table.append([systemdboot.reference_entry, 'SNAPSHOT', 'DATE', 'PERIODS', 'BOOT SNAPSHOT'])
 
             for entry, snapshot in sorted(systemdboot.entries.items(), key=lambda s: s[0]):
                 if snapshot is not None:
+                    boot_snapshot = systemdboot_manager.get_boot_snapshot_for_snapshot(snapshot)
                     table.append([
                         entry,
                         snapshot.name,
                         snapshot.date.strftime(dateformat_human),
                         ', '.join([p.name for p in snapshot.get_periods()]),
+                        (boot_snapshot.name if boot_snapshot is not None else 'NOT FOUND'),
                     ])
                 else:
                     table.append([
                         systemdboot.reference_entry,
                         entry,
                         'NOT FOUND',
+                        '',
                         '',
                         '',
                     ])

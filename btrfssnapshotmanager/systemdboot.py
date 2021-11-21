@@ -68,9 +68,10 @@ class SystemdBootSnapshotManager():
                 self.init_files.append(child.name)
         self.init_files = sorted(self.init_files)
 
-    def create_boot_snapshot(self):
-        now = datetime.now()
-        boot_snapshot_name = systemdboot_snapshot_name_format(now)
+    def create_boot_snapshot(self, date=None):
+        if date is None:
+            date = datetime.now()
+        boot_snapshot_name = systemdboot_snapshot_name_format(date)
         debug("Creating new boot snapshot: {0}/{1}".format(self.snapshots_dir, boot_snapshot_name))
 
         cmd("mkdir {0}/{1}".format(self.snapshots_dir, boot_snapshot_name))
@@ -80,7 +81,7 @@ class SystemdBootSnapshotManager():
         boot_snapshot = SystemdBootSnapshot(boot_snapshot_name)
         self.boot_snapshots.append(boot_snapshot)
 
-    def create_boot_snapshot_if_needed(self):
+    def create_boot_snapshot_if_needed(self, date=None):
         debug("Determining if new boot snapshot required...")
         needed = False
         if len(self.boot_snapshots) == 0:
@@ -96,7 +97,7 @@ class SystemdBootSnapshotManager():
                     debug("Init file {0} has changed, new boot snapshot required".format(init_file))
 
         if needed:
-            self.create_boot_snapshot()
+            self.create_boot_snapshot(date=date)
         else:
             debug("New boot snapshot is not required")
 
@@ -105,10 +106,12 @@ class SystemdBootSnapshotManager():
         pass
 
     def get_boot_snapshot_for_snapshot(self, snapshot):
-        #TODO
-        pass
+        for boot_snapshot in reversed(self.boot_snapshots):
+            if boot_snapshot.date <= snapshot.date:
+                return boot_snapshot
+        return None
 
-    def remote_unused_boot_snapshots(self):
+    def remove_unused_boot_snapshots(self):
         #TODO
         pass
 
