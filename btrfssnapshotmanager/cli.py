@@ -123,7 +123,7 @@ def main():
     except SnapshotException as e:
         fatal(e.error)
     except ConfigException as e:
-        fatal(e.error)
+        fatal("Config failed validation: " + e.error)
 
 
 # Backups

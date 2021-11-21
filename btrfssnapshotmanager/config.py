@@ -54,10 +54,10 @@ class Config():
                     {
                         ('type', True): ('btrfs', 'rsync'),
                         ('last_sync_file', False): str,
-                        ('local', False): {
+                        ('local', ('remote',)): {
                             ('path', True): str,
                         },
-                        ('remote', False): {
+                        ('remote', ('local',)): {
                             ('host', True): str,
                             ('user', False): str,
                             ('ssh-options', False): str,
@@ -108,7 +108,13 @@ class Config():
 
             # Check existence
             if name not in config:
-                if required:
+                if type(required) == tuple:
+                    for required_alternative_item in required:
+                        if required_alternative_item in config:
+                            break
+                    else:
+                        raise ConfigException(parents, "[{0}]".format('|'.join([name] + list(required))), 'at least one required')
+                elif required:
                     raise ConfigException(parents, name, 'is required')
                 continue
             config_item = config[name]
@@ -141,7 +147,7 @@ class Config():
 
     def get_subvolume_config(self):
         config = {}
-        if 'subvolumes' in self.raw_config and self.raw_config['subvolumes'] is not None:
+        if 'subvolumes' in self.raw_config:
             for subvol_config in self.raw_config['subvolumes']:
                 config[subvol_config['path']] = subvol_config
         return config
@@ -157,10 +163,9 @@ class Config():
                 self.subvolumes[subvol].set_snapshot_dir(subvol_config['snapshots-path'])
 
             subvol_retention = {}
-            if 'retention' in subvol_config and subvol_config['retention'] is not None:
-                for period in PERIODS:
-                    if period.name in subvol_config['retention']:
-                        subvol_retention[period] = int(subvol_config['retention'][period.name])
+            for period in PERIODS:
+                if period.name in subvol_config['retention']:
+                    subvol_retention[period] = int(subvol_config['retention'][period.name])
             self.retention[subvol] = subvol_retention
 
     def load_backups(self):
@@ -170,27 +175,17 @@ class Config():
             subvol_instance = self.subvolumes[subvol]
 
             self.backups[subvol] = []
-            if 'backup' in subvol_config and subvol_config['backup'] is not None:
+            if 'backup' in subvol_config:
                 for backup_config in subvol_config['backup']:
 
-                    backup = None
-
-                    if 'type' not in backup_config:
-                        raise SnapshotException("Backup type not found for subvolume " + subvol)
                     backup_type = backup_config['type']
-                    if backup_type not in ('btrfs', 'rsync'):
-                        raise SnapshotException("Backup type '{0}' invalid for subvolume {1}".format(backup_type, subvol))
 
-                    if 'retention' not in backup_config or backup_config['retention'] is None:
-                        raise SnapshotException("Backup retention config not found fore subvolume {0}".format(subvol))
                     retention = {}
                     for period in PERIODS:
                         if period.name in backup_config['retention']:
                             retention[period] = int(backup_config['retention'][period.name])
 
                     if 'local' in backup_config:
-                        if backup_config['local'] is None or 'path' not in backup_config['local']:
-                            raise SnapshotException("Local backup config missing path for subvolume " + subvol)
                         path = backup_config['local']['path']
 
                         if backup_type == 'btrfs':
@@ -199,12 +194,8 @@ class Config():
                             backup = LocalRsyncBackup(subvol_instance, retention, path)
 
                     elif 'remote' in backup_config:
-                        if backup_config['remote'] is None or 'host' not in backup_config['remote']:
-                            raise SnapshotException("Remote backup config missing host for subvolume " + subvol)
                         host = backup_config['remote']['host']
 
-                        if 'path' not in backup_config['remote']:
-                            raise SnapshotException("Remote backup config missing path for subvolume " + subvol)
                         path = backup_config['remote']['path']
 
                         user = None
@@ -220,10 +211,10 @@ class Config():
                         elif backup_type == 'rsync':
                             backup = RemoteRsyncBackup(subvol_instance, retention, host, user, ssh_options, path)
 
-                    if backup is not None:
-                        if 'last_sync_file' in backup_config:
-                            backup.last_sync_file = backup_config['last_sync_file']
-                        self.backups[subvol].append(backup)
+                    if 'last_sync_file' in backup_config:
+                        backup.last_sync_file = backup_config['last_sync_file']
+
+                    self.backups[subvol].append(backup)
 
     def load_systemdboot(self):
         self.systemdboots = {}
@@ -234,19 +225,12 @@ class Config():
             if 'systemd-boot' in subvol_config and subvol_config['systemd-boot'] is not None:
                 systemdboot_config = subvol_config['systemd-boot']
 
-                if 'entries' not in systemdboot_config:
-                    raise SnapshotException("Systemd-boot config missing entries for subvolume " + subvol)
-
                 self.systemdboots[subvol] = []
 
                 for systemdboot_config_entry in systemdboot_config['entries']:
 
-                    if 'entry' not in systemdboot_config_entry:
-                        raise SnapshotException("Systemd-boot config missing entry for subvolume " + subvol)
                     entry = systemdboot_config_entry['entry']
 
-                    if 'retention' not in systemdboot_config_entry or systemdboot_config_entry['retention'] is None:
-                        raise SnapshotException("Systemd-boot retention config not found for subvolume {0}".format(subvol))
                     retention = {}
                     for period in PERIODS:
                         if period.name in systemdboot_config_entry['retention']:
