@@ -7,9 +7,73 @@ from pathlib import PosixPath
 import yaml
 
 
+class ConfigException(Exception):
+
+    def __init__(self, parents, item, problem):
+        self.parents = parents
+        self.item = item
+        self.error = "{0}{1}/{2} {3}".format(
+            ('/' if len(parents) > 0 else ''),
+            '/'.join(parents),
+            item,
+            problem
+        )
+        super().__init__(self, self.error)
+
+
 class Config():
 
     config_file = PosixPath('/etc/btrfs-snapshot-manager/config.yml')
+
+    config_spec = {
+        ('subvolumes', False): [
+            {
+                ('path', True): str,
+                ('snapshots-path', False): str,
+                ('retention', True): {
+                    ('hourly', False): int,
+                    ('daily', False): int,
+                    ('weekly', False): int,
+                    ('monthly', False): int,
+                },
+                ('systemd-boot', False): {
+                    ('boot-path', False): str,
+                    ('entries', True): [
+                        {
+                            ('entry', True): str,
+                            ('retention', True): {
+                                ('hourly', False): int,
+                                ('daily', False): int,
+                                ('weekly', False): int,
+                                ('monthly', False): int,
+                            },
+                        },
+                    ],
+                },
+                ('backup', False): [
+                    {
+                        ('type', True): ('btrfs', 'rsync'),
+                        ('last_sync_file', False): str,
+                        ('local', False): {
+                            ('path', True): str,
+                        },
+                        ('remote', False): {
+                            ('host', True): str,
+                            ('user', False): str,
+                            ('ssh-options', False): str,
+                            ('path', True): str,
+                        },
+                        ('retention', True): {
+                            ('hourly', False): int,
+                            ('daily', False): int,
+                            ('weekly', False): int,
+                            ('monthly', False): int,
+                        },
+                    },
+                ],
+            },
+        ],
+    }
 
     def __init__(self, snapshot_manager):
         self.snapshot_manager = snapshot_manager
@@ -21,23 +85,65 @@ class Config():
     def load_config(self):
         if not self.config_file.is_file():
             self.raw_config = {}
-            return
-        with open(self.config_file, 'r') as fh:
-            config = yaml.load(fh, Loader=yaml.CLoader)
-
-        if config is None:
-            self.raw_config = {}
         else:
-            self.raw_config = config
+            with open(self.config_file, 'r') as fh:
+                config = yaml.load(fh, Loader=yaml.CLoader)
+            if config is None:
+                self.raw_config = {}
+            else:
+                self.raw_config = config
+        self.validate_config(self.raw_config, self.config_spec, [], True)
+
+    def validate_config(self, config, spec, parents, strict):
+        if type(config) != dict:
+            raise ConfigException(parents, '', "should be type {0}, found type {1}".format(dict.__name__, type(config).__name__))
+
+        # Go through each item of spec and ensure config matches
+        for spec_item, spec_value in spec.items():
+            name = spec_item[0]
+            required = spec_item[1]
+            expected_type = type(spec_value)
+            if expected_type == type:
+                expected_type = spec_value
+
+            # Check existence
+            if name not in config:
+                if required:
+                    raise ConfigException(parents, name, 'is required')
+                continue
+            config_item = config[name]
+
+            # Check type
+            config_type = type(config_item)
+            if expected_type == tuple:
+                if config_type in (list, dict):
+                    raise ConfigException(parents, name, "must be one of: [{0}], found: {1}".format(', '.join(["\"{0}\"".format(sv) for sv in spec_value]), config_type.__name__))
+                if config_item not in spec_value:
+                    raise ConfigException(parents, name, "must be one of: [{0}], found: \"{1}\"".format(', '.join(["\"{0}\"".format(sv) for sv in spec_value]), config_item))
+            elif expected_type != config_type:
+                raise ConfigException(parents, name, "should be type {0}, found type {1}".format(expected_type.__name__, config_type.__name__))
+
+            # List type
+            if config_type == list:
+                for i, config_list_item in enumerate(config_item):
+                    self.validate_config(config_list_item, spec_value[0], parents + [name, str(i)], strict)
+
+            # Dict type
+            if config_type == dict:
+                self.validate_config(config_item, spec_value, parents + [name], strict)
+
+        # If strict is enabled, go through each item of config and ensure it's in spec
+        if strict:
+            for config_name in config.keys():
+                if len([s for s in spec if s[0] == config_name]) == 0:
+                    raise ConfigException(parents, config_name, 'is not recognised')
+
 
     def get_subvolume_config(self):
         config = {}
         if 'subvolumes' in self.raw_config and self.raw_config['subvolumes'] is not None:
             for subvol_config in self.raw_config['subvolumes']:
-                if subvol_config is not None:
-                    if 'path' not in subvol_config or type(subvol_config['path']) != str:
-                        raise SnapshotException("Mandatory field 'path' missing in subvolume config")
-                    config[subvol_config['path']] = subvol_config
+                config[subvol_config['path']] = subvol_config
         return config
 
     def load_retention(self):
@@ -48,7 +154,7 @@ class Config():
             # Initialise subvolume object
             self.subvolumes[subvol] = Subvolume(subvol)
             if 'snapshots-path' in subvol_config:
-                self.subvolumes[subvol].set_snapshot_dir(subvol_config['snapshots_path'])
+                self.subvolumes[subvol].set_snapshot_dir(subvol_config['snapshots-path'])
 
             subvol_retention = {}
             if 'retention' in subvol_config and subvol_config['retention'] is not None:

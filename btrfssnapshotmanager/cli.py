@@ -37,6 +37,14 @@ def main():
     backup_targetlist_parser.add_argument('--id', nargs='*', help='only run backups with these ids')
     backup_targetlist_parser.set_defaults(func=backup_targetlist)
 
+    # config
+    config_parser = subparsers.add_parser('config', help='config commands')
+    config_subparsers = config_parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
+
+    # config check
+    config_check_parser = config_subparsers.add_parser('check', help='validate config file')
+    config_check_parser.set_defaults(func=config_check)
+
     # schedule
     schedule_parser = subparsers.add_parser('schedule', help='snapshot schedule commands')
     schedule_subparsers = schedule_parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
@@ -113,6 +121,8 @@ def main():
     try:
         args.func(args)
     except SnapshotException as e:
+        fatal(e.error)
+    except ConfigException as e:
         fatal(e.error)
 
 
@@ -200,6 +210,15 @@ def backup_targetlist(args):
                             ])
 
     output_table(table)
+
+
+# Config
+
+def config_check(args):
+    global_args(args)
+    snapshot_manager = SnapshotManager()
+
+    info("Config is valid.")
 
 
 # Schedule
