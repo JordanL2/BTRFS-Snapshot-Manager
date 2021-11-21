@@ -214,7 +214,7 @@ class Config():
         for subvol, subvol_config in config.items():
             subvol_instance = self.subvolumes[subvol]
 
-            if 'systemd-boot' in subvol_config and subvol_config['systemd-boot'] is not None:
+            if 'systemd-boot' in subvol_config:
                 systemdboot_config = subvol_config['systemd-boot']
 
                 self.systemdboots[subvol] = []
