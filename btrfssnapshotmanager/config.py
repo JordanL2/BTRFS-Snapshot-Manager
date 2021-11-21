@@ -106,12 +106,12 @@ class Config():
             raise ConfigException(parents, "should be type {0}, found type {1}".format(expected_type.__name__, config_type.__name__))
 
         # Iterate through list
-        if type(config) == list:
+        if config_type == list:
             for i, config_list_item in enumerate(config):
                 self.validate_config(config_list_item, spec[0], parents + [str(i)], strict)
 
         # Iterate through dict
-        elif type(config) == dict:
+        elif config_type == dict:
             for spec_item, spec_value in spec.items():
                 name = spec_item[0]
                 required = spec_item[1]
