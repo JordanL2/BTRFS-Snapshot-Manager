@@ -125,6 +125,7 @@ class SubvolumeManager():
         for snapshot in snapshots:
             if snapshot not in dont_delete:
                 info("Deleting snapshot:", snapshot.name)
+                snapshot.delete()
                 count += 1
         if count == 0:
             info("Nothing to do")
