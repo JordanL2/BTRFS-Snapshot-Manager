@@ -6,7 +6,10 @@ sudo pip3 install .
 
 # Make config dir and empty config file
 sudo mkdir -p /etc/btrfs-snapshot-manager
-sudo touch /etc/btrfs-snapshot-manager/config.yml
+if [[ ! -f /etc/btrfs-snapshot-manager/config.yml ]]
+then
+    sudo cp config.yml /etc/btrfs-snapshot-manager/config.yml
+fi
 
 # Set up service and timer
 sudo cp btrfs-snapshot.service /etc/systemd/system/

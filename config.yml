@@ -83,14 +83,14 @@ subvolumes:
 #          weekly: 1
 
 
-  # Here is another subvolume for which snapshots will be generated
+  # Here is another subvolume for which snapshots could be generated
   # and kept.
-  - path: /home
-    retention:
-      hourly: 48
-      daily: 7
-      weekly: 3
-      monthly: 3
+#  - path: /home
+#    retention:
+#      hourly: 48
+#      daily: 7
+#      weekly: 3
+#      monthly: 3
 
 
 # Uncomment the next section to configure global settings for the systemd-boot
