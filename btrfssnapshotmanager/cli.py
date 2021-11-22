@@ -445,7 +445,7 @@ def systemdboot_list(args):
                         snapshot.name,
                         snapshot.date.strftime(dateformat_human),
                         ', '.join([p.name for p in snapshot.get_periods()]),
-                        (boot_snapshot.name if boot_snapshot is not None else 'NOT FOUND'),
+                        (boot_snapshot.name if boot_snapshot is not None else 'None'),
                     ])
                 else:
                     table.append([
@@ -455,7 +455,7 @@ def systemdboot_list(args):
                         'NOT FOUND',
                         '',
                         '',
-                        '',
+                        (boot_snapshot.name if boot_snapshot is not None else 'None'),
                     ])
 
         output_table(table)
