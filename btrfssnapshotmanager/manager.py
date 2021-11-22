@@ -133,10 +133,10 @@ class SubvolumeManager():
     def backup(self, ids=None):
         empty_line = False
         for i, backup in enumerate(self.backups):
+            if ids is not None and i not in ids:
+                continue
             if empty_line:
                 info()
             empty_line = True
-            if ids is not None and i not in ids:
-                continue
             info("Running backup for {0} to {1}".format(self.subvol.path, backup.location()))
             backup.backup()
