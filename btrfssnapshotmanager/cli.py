@@ -366,6 +366,9 @@ def systemdboot_config(args):
     global_args(args)
     snapshot_manager = SnapshotManager()
     systemdboot_manager = snapshot_manager.systemdboot_manager
+    if systemdboot_manager is None:
+        raise SnapshotException("No systemd-boot config enabled.")
+
     entry_managers = systemdboot_manager.entry_managers
     if entry_managers is not None:
         table = [[systemdboot_manager.boot_path, 'SUBVOLUME', *[p.name.upper() for p in PERIODS]]]
@@ -386,6 +389,10 @@ def systemdboot_create(args):
     entry_name = args.entry
     snapshot_name = args.snapshot
     snapshot_manager = SnapshotManager()
+    systemdboot_manager = snapshot_manager.systemdboot_manager
+    if systemdboot_manager is None:
+        raise SnapshotException("No systemd-boot config enabled.")
+
     entry_managers = snapshot_manager.systemdboot_manager.entry_managers
     if entry_managers is None:
         fatal("No subvolumes configured for systemd-boot integration")
@@ -404,6 +411,10 @@ def systemdboot_delete(args):
     global_args(args)
     entry_name = args.entry
     snapshot_manager = SnapshotManager()
+    systemdboot_manager = snapshot_manager.systemdboot_manager
+    if systemdboot_manager is None:
+        raise SnapshotException("No systemd-boot config enabled.")
+
     entry_managers = snapshot_manager.systemdboot_manager.entry_managers
     if entry_managers is None:
         fatal("No subvolumes configured for systemd-boot integration")
@@ -419,6 +430,10 @@ def systemdboot_delete(args):
 def systemdboot_list(args):
     global_args(args)
     snapshot_manager = SnapshotManager()
+    systemdboot_manager = snapshot_manager.systemdboot_manager
+    if systemdboot_manager is None:
+        raise SnapshotException("No systemd-boot config enabled.")
+
     entry_managers = snapshot_manager.systemdboot_manager.entry_managers
     if entry_managers is not None:
         table = []
@@ -461,6 +476,10 @@ def systemdboot_list(args):
 def systemdboot_run(args):
     global_args(args)
     snapshot_manager = SnapshotManager()
+    systemdboot_manager = snapshot_manager.systemdboot_manager
+    if systemdboot_manager is None:
+        raise SnapshotException("No systemd-boot config enabled.")
+
     entry_managers = snapshot_manager.systemdboot_manager.entry_managers
     if entry_managers is None:
         fatal("No subvolumes configured for systemd-boot integration")
@@ -473,6 +492,9 @@ def systemdboot_snapshot_create(args):
     global_args(args)
     snapshot_manager = SnapshotManager()
     systemdboot_manager = snapshot_manager.systemdboot_manager
+    if systemdboot_manager is None:
+        raise SnapshotException("No systemd-boot config enabled.")
+
     boot_snapshot = systemdboot_manager.create_boot_snapshot()
     info("Created new boot snapshot: {0}".format(boot_snapshot.name))
 
@@ -480,6 +502,9 @@ def systemdboot_snapshot_createneeded(args):
     global_args(args)
     snapshot_manager = SnapshotManager()
     systemdboot_manager = snapshot_manager.systemdboot_manager
+    if systemdboot_manager is None:
+        raise SnapshotException("No systemd-boot config enabled.")
+
     systemdboot_manager.create_boot_snapshot_if_needed()
 
 def systemdboot_snapshot_delete(args):
@@ -487,6 +512,9 @@ def systemdboot_snapshot_delete(args):
     name = args.name
     snapshot_manager = SnapshotManager()
     systemdboot_manager = snapshot_manager.systemdboot_manager
+    if systemdboot_manager is None:
+        raise SnapshotException("No systemd-boot config enabled.")
+
     systemdboot_manager.delete_boot_snapshot(name)
     info("Deleted boot snapshot {0}".format(name))
 
@@ -494,12 +522,18 @@ def systemdboot_snapshot_deleteunneeded(args):
     global_args(args)
     snapshot_manager = SnapshotManager()
     systemdboot_manager = snapshot_manager.systemdboot_manager
+    if systemdboot_manager is None:
+        raise SnapshotException("No systemd-boot config enabled.")
+
     systemdboot_manager.remove_unused_boot_snapshots()
 
 def systemdboot_snapshot_list(args):
     global_args(args)
     snapshot_manager = SnapshotManager()
     systemdboot_manager = snapshot_manager.systemdboot_manager
+    if systemdboot_manager is None:
+        raise SnapshotException("No systemd-boot config enabled.")
+
     table = [['BOOT SNAPSHOT', 'PATH', 'DATE']]
     for boot_snapshot in systemdboot_manager.boot_snapshots:
         table.append([boot_snapshot.name, boot_snapshot.path(), boot_snapshot.date.strftime(dateformat_human)])

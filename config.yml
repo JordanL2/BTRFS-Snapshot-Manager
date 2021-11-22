@@ -1,17 +1,25 @@
-subvolumes:
+# This is an example config file for btrfs-snapshot-manager.
+#
+# You will need to uncomment the below line to enable per-subvolume snapshots.
+#
+#subvolumes:
 
-  # For each subvolume you want to keep snapshots of, you need an entry
-  # here.
-    # The 'path' field is the path on your filesystem the subvolume is
-    # mounted to.
-  - path: /
-    # The 'retention' section specifies how many snapshots for each time
-    # period will be retained.
-    retention:
-      hourly: 48
-      daily: 7
-      weekly: 3
-      monthly: 1
+# For each subvolume you want to keep snapshots of, you need an entry
+# here.
+#
+# Uncomment the below section to enable snapshots of the subvolume mounted
+# to /.
+#
+#    # The 'path' field is the path on your filesystem the subvolume is
+#    # mounted to.
+#  - path: /
+#    # The 'retention' section specifies how many snapshots for each time
+#    # period will be retained.
+#    retention:
+#      hourly: 48
+#      daily: 7
+#      weekly: 3
+#      monthly: 1
 
 # Optional - Uncomment the next line to change the location of the snapshots
 # subvolume, defaults to .snapshots inside the subvolume. This path can be
@@ -83,8 +91,8 @@ subvolumes:
 #          weekly: 1
 
 
-  # Here is another subvolume for which snapshots could be generated
-  # and kept.
+# Here is another subvolume for which snapshots could be generated
+# and kept.
 #  - path: /home
 #    retention:
 #      hourly: 48
