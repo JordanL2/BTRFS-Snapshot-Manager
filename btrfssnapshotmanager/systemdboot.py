@@ -45,6 +45,7 @@ class SystemdBootManager():
 
     def __init__(self, subvol):
         self.subvol = subvol
+        self.entry_managers = []
         self.set_boot_path(systemdboot_default_boot_dir)
 
     def set_boot_path(self, boot_path):
@@ -52,7 +53,6 @@ class SystemdBootManager():
         self.snapshots_dir = PosixPath(boot_path, systemdboot_default_snapshots_dir)
         self.load_boot_snapshots()
         self.load_init_files()
-        self.entry_managers = []
 
     def load_boot_snapshots(self):
         self.boot_snapshots = []
