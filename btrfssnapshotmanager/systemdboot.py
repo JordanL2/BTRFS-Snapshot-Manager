@@ -104,7 +104,7 @@ class SystemdBootManager():
             last_boot_snapshot = self.boot_snapshots[-1]
             for init_file in self.init_files:
                 command = "diff {1}/{0} {2}/{3}/{0}".format(init_file, self.boot_path, self.snapshots_dir, last_boot_snapshot.name)
-                code = cmd(command, return_code=True)
+                code = cmd(command, return_code=True)[2]
                 if code != 0:
                     needed = True
                     debug("- Init file {0} has changed, new boot snapshot required".format(init_file))

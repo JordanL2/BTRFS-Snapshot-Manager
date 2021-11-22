@@ -37,9 +37,9 @@ def cmd(command, attempts=None, fail_delay=None, return_code=False):
                 warn("Retrying...")
             else:
                 if return_code:
-                    return result.returncode
+                    return (stdout, stderr, result.returncode)
                 raise CommandException(command, result.returncode, stderr)
         else:
             if return_code:
-                return result.returncode
+                return (stdout, stderr, result.returncode)
             return stdout
