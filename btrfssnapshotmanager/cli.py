@@ -366,16 +366,16 @@ def systemdboot_config(args):
     global_args(args)
     snapshot_manager = SnapshotManager()
     systemdboot_manager = snapshot_manager.systemdboot_manager
-    systemdboot_entry_managers = systemdboot_manager.entry_managers
-    if systemdboot_entry_managers is not None:
+    entry_managers = systemdboot_manager.entry_managers
+    if entry_managers is not None:
         table = [[systemdboot_manager.boot_path, 'SUBVOLUME', *[p.name.upper() for p in PERIODS]]]
-        for systemdboot_entry_manager in systemdboot_entry_managers:
+        for entry_manager in entry_managers:
             row = []
-            row.append(systemdboot_entry_manager.reference_entry)
-            row.append(systemdboot_entry_manager.subvol.name)
+            row.append(entry_manager.reference_entry)
+            row.append(entry_manager.subvol.name)
             for p in PERIODS:
-                if p in systemdboot_entry_manager.retention:
-                    row.append(systemdboot_entry_manager.retention[p])
+                if p in entry_manager.retention:
+                    row.append(entry_manager.retention[p])
                 else:
                     row.append('')
             table.append(row)
@@ -386,16 +386,16 @@ def systemdboot_create(args):
     entry_name = args.entry
     snapshot_name = args.snapshot
     snapshot_manager = SnapshotManager()
-    systemdboot_entry_managers = snapshot_manager.systemdboot_manager.entry_managers
-    if systemdboot_entry_managers is None:
+    entry_managers = snapshot_manager.systemdboot_manager.entry_managers
+    if entry_managers is None:
         fatal("No subvolumes configured for systemd-boot integration")
 
-    for systemdboot_entry_manager in systemdboot_entry_managers:
-        if systemdboot_entry_manager.reference_entry == entry_name:
-            snapshot = systemdboot_entry_manager.subvol.find_snapshot(snapshot_name)
+    for entry_manager in entry_managers:
+        if entry_manager.reference_entry == entry_name:
+            snapshot = entry_manager.subvol.find_snapshot(snapshot_name)
             if snapshot is None:
-                fatal("Snapshot {0} not found in subvolume {1}".format(snapshot_name, systemdboot_entry_manager.subvol.name))
-            systemdboot_entry_manager.create_entry(snapshot)
+                fatal("Snapshot {0} not found in subvolume {1}".format(snapshot_name, entry_manager.subvol.name))
+            entry_manager.create_entry(snapshot)
             break
     else:
         fatal("Did not find systemd-boot entry {0}".format(entry_name))
@@ -404,13 +404,13 @@ def systemdboot_delete(args):
     global_args(args)
     entry_name = args.entry
     snapshot_manager = SnapshotManager()
-    systemdboot_entry_managers = snapshot_manager.systemdboot_manager.entry_managers
-    if systemdboot_entry_managers is None:
+    entry_managers = snapshot_manager.systemdboot_manager.entry_managers
+    if entry_managers is None:
         fatal("No subvolumes configured for systemd-boot integration")
 
-    for systemdboot_entry_manager in systemdboot_entry_managers:
-        if entry_name in systemdboot_entry_manager.entries:
-            systemdboot_entry_manager.delete_entry(entry_name)
+    for entry_manager in entry_managers:
+        if entry_name in [e.name for e in entry_manager.entries]:
+            entry_manager.delete_entry(entry_name)
             break
     else:
         fatal("Systemd-boot entry {0} not found".format(entry_name))
@@ -419,16 +419,16 @@ def systemdboot_delete(args):
 def systemdboot_list(args):
     global_args(args)
     snapshot_manager = SnapshotManager()
-    systemdboot_entry_managers = snapshot_manager.systemdboot_manager.entry_managers
-    if systemdboot_entry_managers is not None:
+    entry_managers = snapshot_manager.systemdboot_manager.entry_managers
+    if entry_managers is not None:
         table = []
-        for systemdboot_entry_manager in systemdboot_entry_managers:
+        for entry_manager in entry_managers:
 
             if len(table) > 0:
                 table.append(None)
-            table.append([systemdboot_entry_manager.reference_entry, 'SUBVOLUME', 'SNAPSHOT', 'DATE', 'PERIODS', 'BOOT SNAPSHOT'])
+            table.append([entry_manager.reference_entry, 'SUBVOLUME', 'SNAPSHOT', 'DATE', 'PERIODS', 'BOOT SNAPSHOT'])
 
-            for entry in systemdboot_entry_manager.entries:
+            for entry in entry_manager.entries:
                 snapshot = entry.snapshot
                 boot_snapshot_name = 'None'
                 boot_snapshot = entry.boot_snapshot
@@ -439,7 +439,7 @@ def systemdboot_list(args):
                 if snapshot is not None:
                     table.append([
                         entry.name,
-                        systemdboot_entry_manager.subvol.name,
+                        entry_manager.subvol.name,
                         snapshot.name,
                         snapshot.date.strftime(dateformat_human),
                         ', '.join([p.name for p in snapshot.get_periods()]),
@@ -447,9 +447,9 @@ def systemdboot_list(args):
                     ])
                 else:
                     table.append([
-                        systemdboot_entry_manager.reference_entry,
+                        entry_manager.reference_entry,
                         entry.name,
-                        systemdboot_entry_manager.subvol.name,
+                        entry_manager.subvol.name,
                         'NOT FOUND',
                         '',
                         '',
@@ -461,13 +461,13 @@ def systemdboot_list(args):
 def systemdboot_run(args):
     global_args(args)
     snapshot_manager = SnapshotManager()
-    systemdboot_entry_managers = snapshot_manager.systemdboot_manager.entry_managers
-    if systemdboot_entry_managers is None:
+    entry_managers = snapshot_manager.systemdboot_manager.entry_managers
+    if entry_managers is None:
         fatal("No subvolumes configured for systemd-boot integration")
 
     info("Creating missing systemd-boot entries, and deleting ones no longer required")
-    for systemdboot_entry_manager in systemdboot_entry_managers:
-        systemdboot_entry_manager.run()
+    for entry_manager in entry_managers:
+        entry_manager.run()
 
 def systemdboot_snapshot_create(args):
     global_args(args)
