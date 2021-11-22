@@ -158,18 +158,42 @@ class SystemdBootManager():
 
 class SystemdBootEntry():
 
-    def __init__(self, entry_manager, name, snapshot, boot_snapshot):
+    def __init__(self, entry_manager, name, snapshot, boot_snapshot=None):
         self.entry_manager = entry_manager
         self.name = name
         self.snapshot = snapshot
         self.boot_snapshot = boot_snapshot
+        if self.boot_snapshot is None:
+            self.boot_snapshot = self.find_boot_snapshot()
+
+    def path(self):
+        return PosixPath(self.entry_manager.entries_dir, self.name)
 
     def delete(self):
-        entry_file = PosixPath(self.entry_manager.entries_dir, self.name)
+        entry_file = self.path()
         entry_file.unlink()
         if self.snapshot is not None:
             del self.snapshot.systemdboot[self.entry_manager]
         self.entry_manager.entries.remove(self)
+
+    def find_boot_snapshot(self):
+        entry_file = self.path()
+        with open(entry_file, 'r') as fhin:
+            while line := fhin.readline().strip():
+
+                entry_line_match = systemdboot_entry_line_regex.fullmatch(line)
+                if entry_line_match:
+                    key = entry_line_match.group(1)
+                    space = entry_line_match.group(2)
+                    value = entry_line_match.group(3)
+
+                if key in ('linux', 'initrd'):
+                    init_file_path = PurePosixPath(value)
+                    parent_dir = init_file_path.parts[-2]
+                    try:
+                        return SystemdBootSnapshot(self.entry_manager.systemdboot_manager, str(parent_dir))
+                    except ValueError:
+                        return None
 
 
 class SystemdBootEntryManager():
@@ -195,11 +219,7 @@ class SystemdBootEntryManager():
                 snapshot_name = boot_entry_name_parse(self.reference_entry, child.name)
                 if snapshot_name is not None:
                     snapshot = self.subvol.find_snapshot(snapshot_name)
-                    boot_snapshot = None
-                    if snapshot is not None:
-                        #TODO - this needs to change to read the file and check what boot snapshot it's actually using
-                        boot_snapshot = self.systemdboot_manager.get_boot_snapshot_for_snapshot(snapshot)
-                    boot_entry = SystemdBootEntry(self, child.name, snapshot, boot_snapshot)
+                    boot_entry = SystemdBootEntry(self, child.name, snapshot)
                     self.entries.append(boot_entry)
                     if snapshot is not None:
                         snapshot.systemdboot[self] = child.name
