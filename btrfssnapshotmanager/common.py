@@ -7,6 +7,13 @@ import sys
 import time
 
 
+class SnapshotException(Exception):
+
+    def __init__(self, error):
+        self.error = error
+        super().__init__(self, error)
+
+
 class CommandException(Exception):
 
     def __init__(self, command, code, error):
@@ -14,13 +21,6 @@ class CommandException(Exception):
         self.code = code
         self.error = error
         super().__init__(self, "Command `{}` returned code {} - {}".format(command, code, error))
-
-
-class SnapshotException(Exception):
-
-    def __init__(self, error):
-        self.error = error
-        super().__init__(self, error)
 
 
 def cmd(command, attempts=None, fail_delay=None, return_code=False):
