@@ -15,7 +15,7 @@ class SnapshotManager():
                 self.config.retention[subvol],
                 self.config.backups[subvol],
             )
-            self.systemdboot_manager = self.config.systemdboot_manager
+        self.systemdboot_manager = self.config.systemdboot_manager
 
     def execute(self, subvols=None, cleanup=True, backup=True, systemdboot_run=True):
         managers_to_run = self.managers
