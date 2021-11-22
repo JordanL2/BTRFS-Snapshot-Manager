@@ -32,26 +32,31 @@ def systemdboot_snapshot_name_format(date):
 
 class SystemdBootSnapshot():
 
-    def __init__(self, snapshot_manager, name):
-        self.snapshot_manager = snapshot_manager
+    def __init__(self, systemdboot_manager, name):
+        self.systemdboot_manager = systemdboot_manager
         self.name = name
         self.date = systemdboot_snapshot_name_parse(name)
 
     def path(self):
-        return PosixPath(self.snapshot_manager.snapshots_dir, self.name)
+        return PosixPath(self.systemdboot_manager.snapshots_dir, self.name)
 
     def path_for_bootloader(self):
         return PurePosixPath(
             '/',
             PosixPath(
-                self.snapshot_manager.snapshots_dir,
+                self.systemdboot_manager.snapshots_dir,
                 self.name
-            ).relative_to(self.snapshot_manager.boot_path)
+            ).relative_to(self.systemdboot_manager.boot_path)
         )
 
     def delete(self):
         cmd("rm -rf {0}".format(self.path()))
-        self.snapshot_manager.boot_snapshots.remove(self)
+        self.systemdboot_manager.boot_snapshots.remove(self)
+        for entry_manager in self.systemdboot_manager.entry_managers:
+            entry_manager.delete_using_nonexistent_boot_snapshot()
+
+    def exists(self):
+        return self.path().is_dir()
 
 
 class SystemdBootManager():
@@ -294,6 +299,19 @@ class SystemdBootEntryManager():
         else:
             raise SnapshotException("No such systemd-boot entry: {}".format(entry_name))
 
+    def delete_using_nonexistent_snapshot(self):
+        for entry in self.entries.copy():
+            snapshot = entry.snapshot
+            if snapshot is None:
+                info("Entry {0} not associated with an existing snapshot".format(entry.name))
+                entry.delete()
+
+    def delete_using_nonexistent_boot_snapshot(self):
+        for entry in self.entries.copy():
+            if entry.boot_snapshot is not None and not entry.boot_snapshot.exists():
+                 info("Entry {0} is using non-existent boot snapshot {1}".format(entry.name, entry.boot_snapshot.name))
+                 entry.delete()
+
     def run(self):
         snapshots_needed = set()
         for period, count in self.retention.items():
@@ -307,19 +325,18 @@ class SystemdBootEntryManager():
         for s in snapshots_needed:
             debug("-", s.name)
 
+        # Delete entries not required or broken
+        self.delete_using_nonexistent_snapshot()
+        self.delete_using_nonexistent_boot_snapshot()
+        for entry in self.entries.copy():
+            snapshot = entry.snapshot
+            if snapshot not in snapshots_needed:
+                info("Snapshot {0} no longer requires an entry".format(snapshot.name))
+                entry.delete()
+
         # Create missing entries
         entry_snapshots = [e.snapshot for e in self.entries]
         for s in snapshots_needed:
             if s not in entry_snapshots:
                 info("Snapshot {0} requires an entry".format(s.name))
                 self.create_entry(s)
-
-        # Delete entries not required
-        for entry in self.entries.copy():
-            snapshot = entry.snapshot
-            if snapshot is not None and snapshot not in snapshots_needed:
-                info("Snapshot {0} no longer requires an entry".format(snapshot.name))
-                entry.delete()
-            elif snapshot is None:
-                info("Entry {0} not associated with an existing snapshot".format(entry_name))
-                entry.delete()

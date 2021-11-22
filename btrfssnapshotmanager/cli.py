@@ -437,15 +437,20 @@ def systemdboot_list(args):
 
             for entry in systemdboot_entry_manager.entries:
                 snapshot = entry.snapshot
+                boot_snapshot_name = 'None'
+                boot_snapshot = entry.boot_snapshot
+                if boot_snapshot is not None:
+                    boot_snapshot_name = boot_snapshot.name
+                    if not boot_snapshot.exists():
+                        boot_snapshot_name += " [NOT FOUND]"
                 if snapshot is not None:
-                    boot_snapshot = entry.boot_snapshot
                     table.append([
                         entry.name,
                         systemdboot_entry_manager.subvol.name,
                         snapshot.name,
                         snapshot.date.strftime(dateformat_human),
                         ', '.join([p.name for p in snapshot.get_periods()]),
-                        (boot_snapshot.name if boot_snapshot is not None else 'None'),
+                        boot_snapshot_name,
                     ])
                 else:
                     table.append([
@@ -455,7 +460,7 @@ def systemdboot_list(args):
                         'NOT FOUND',
                         '',
                         '',
-                        (boot_snapshot.name if boot_snapshot is not None else 'None'),
+                        boot_snapshot_name,
                     ])
 
         output_table(table)
