@@ -45,28 +45,14 @@ def main():
     config_check_parser = config_subparsers.add_parser('check', help='validate config file')
     config_check_parser.set_defaults(func=config_check)
 
-    # schedule
-    schedule_parser = subparsers.add_parser('schedule', help='snapshot schedule commands')
-    schedule_subparsers = schedule_parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
-
-    # schedule cleanup
-    schedule_cleanup_parser = schedule_subparsers.add_parser('cleanup', help='delete unrequired snapshots')
-    schedule_cleanup_parser.add_argument('path', nargs='*', help='path to subvolume')
-    schedule_cleanup_parser.set_defaults(func=schedule_cleanup)
-
-    # schedule list
-    schedule_list_parser = schedule_subparsers.add_parser('list', help='list snapshot schedules')
-    schedule_list_parser.add_argument('path', nargs='?', help='path to subvolume')
-    schedule_list_parser.set_defaults(func=schedule_list)
-
-    # schedule run
-    schedule_run_parser = schedule_subparsers.add_parser('run', help='execute scheduled snapshots')
-    schedule_run_parser.add_argument('path', nargs='*', help='path to subvolume')
-    schedule_run_parser.set_defaults(func=schedule_run)
-
     # snapshot
     snapshot_parser = subparsers.add_parser('snapshot', help='snapshot management commands')
     snapshot_subparsers = snapshot_parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
+
+    # snapshot cleanup
+    snapshot_cleanup_parser = snapshot_subparsers.add_parser('cleanup', help='delete unrequired snapshots')
+    snapshot_cleanup_parser.add_argument('path', nargs='*', help='path to subvolume')
+    snapshot_cleanup_parser.set_defaults(func=snapshot_cleanup)
 
     # snapshot create
     snapshot_create_parser = snapshot_subparsers.add_parser('create', help='create snapshot')
@@ -89,6 +75,16 @@ def main():
     snapshot_list_parser.add_argument('path', nargs='?', help='path to subvolume')
     snapshot_list_parser.add_argument('--period', nargs='*', help='only list snapshots for this period')
     snapshot_list_parser.set_defaults(func=snapshot_list)
+
+    # snapshot run
+    snapshot_run_parser = snapshot_subparsers.add_parser('run', help='execute scheduled snapshots')
+    snapshot_run_parser.add_argument('path', nargs='*', help='path to subvolume')
+    snapshot_run_parser.set_defaults(func=snapshot_run)
+
+    # snapshot schedule
+    snapshot_schedule_parser = snapshot_subparsers.add_parser('schedule', help='list snapshot schedules')
+    snapshot_schedule_parser.add_argument('path', nargs='?', help='path to subvolume')
+    snapshot_schedule_parser.set_defaults(func=snapshot_schedule)
 
     # systemdboot
     systemdboot_parser = subparsers.add_parser('systemdboot', help='systemd-boot integration commands')
@@ -246,9 +242,9 @@ def config_check(args):
     info("Config is valid.")
 
 
-# Schedule
+# Snapshots
 
-def schedule_cleanup(args):
+def snapshot_cleanup(args):
     global_args(args)
     paths = args.path
     snapshot_manager = SnapshotManager()
@@ -258,56 +254,6 @@ def schedule_cleanup(args):
                 fatal("Config not found for subvolume", path)
 
     snapshot_manager.cleanup(subvols=paths)
-
-def schedule_list(args):
-    global_args(args)
-    path = args.path
-    snapshot_manager = SnapshotManager()
-    if path is not None and path not in snapshot_manager.managers:
-        fatal("Config not found for subvolume", path)
-
-    table = []
-    for subvol, manager in snapshot_manager.managers.items():
-        if path is None or subvol == path:
-            if len(manager.retention_config) > 0:
-                if len(table) > 0:
-                    table.append(None)
-                table.append([subvol, 'LAST RUN', 'NEXT RUN'])
-                for period in sorted(manager.retention_config.keys(), key=lambda p: p.seconds):
-                    row = []
-                    row.append(period.name)
-
-                    last_run = manager.last_run(period)
-                    if last_run is None:
-                        last_run = 'Never'
-                    else:
-                        last_run = last_run.strftime(dateformat_human)
-                    row.append(last_run)
-
-                    next_run = manager.next_run(period)
-                    if next_run is None:
-                        next_run = 'Immediately'
-                    else:
-                        next_run = next_run.strftime(dateformat_human)
-                    row.append(next_run)
-
-                    table.append(row)
-
-    output_table(table)
-
-def schedule_run(args):
-    global_args(args)
-    paths = args.path
-    snapshot_manager = SnapshotManager()
-    if paths is not None:
-        for path in paths:
-            if path not in snapshot_manager.managers:
-                fatal("Config not found for subvolume", path)
-
-    snapshot_manager.execute(subvols=paths)
-
-
-# Snapshots
 
 def snapshot_create(args):
     global_args(args)
@@ -363,6 +309,53 @@ def snapshot_list(args):
         snapshots = subvol.search_snapshots(periods=periods)
         for snapshot in snapshots:
             table.append([snapshot.name, snapshot.date.strftime(dateformat_human), ', '.join([p.name for p in snapshot.get_periods()])])
+
+    output_table(table)
+
+def snapshot_run(args):
+    global_args(args)
+    paths = args.path
+    snapshot_manager = SnapshotManager()
+    if paths is not None:
+        for path in paths:
+            if path not in snapshot_manager.managers:
+                fatal("Config not found for subvolume", path)
+
+    snapshot_manager.execute(subvols=paths)
+
+def snapshot_schedule(args):
+    global_args(args)
+    path = args.path
+    snapshot_manager = SnapshotManager()
+    if path is not None and path not in snapshot_manager.managers:
+        fatal("Config not found for subvolume", path)
+
+    table = []
+    for subvol, manager in snapshot_manager.managers.items():
+        if path is None or subvol == path:
+            if len(manager.retention_config) > 0:
+                if len(table) > 0:
+                    table.append(None)
+                table.append([subvol, 'LAST RUN', 'NEXT RUN'])
+                for period in sorted(manager.retention_config.keys(), key=lambda p: p.seconds):
+                    row = []
+                    row.append(period.name)
+
+                    last_run = manager.last_run(period)
+                    if last_run is None:
+                        last_run = 'Never'
+                    else:
+                        last_run = last_run.strftime(dateformat_human)
+                    row.append(last_run)
+
+                    next_run = manager.next_run(period)
+                    if next_run is None:
+                        next_run = 'Immediately'
+                    else:
+                        next_run = next_run.strftime(dateformat_human)
+                    row.append(next_run)
+
+                    table.append(row)
 
     output_table(table)
 

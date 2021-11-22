@@ -3,4 +3,4 @@ Description=BTRFS Snapshots
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/btrfs-snapshot-manager schedule run
+ExecStart=/usr/bin/btrfs-snapshot-manager snapshot run
