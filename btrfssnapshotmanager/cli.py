@@ -473,8 +473,8 @@ def systemdboot_snapshot_create(args):
     global_args(args)
     snapshot_manager = SnapshotManager()
     systemdboot_manager = snapshot_manager.systemdboot_manager
-    systemdboot_manager.create_boot_snapshot()
-    info("Created new boot snapshot: {0}".format(systemdboot_manager.boot_snapshots[-1].name))
+    boot_snapshot = systemdboot_manager.create_boot_snapshot()
+    info("Created new boot snapshot: {0}".format(boot_snapshot.name))
 
 def systemdboot_snapshot_createneeded(args):
     global_args(args)

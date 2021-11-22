@@ -97,6 +97,7 @@ class SystemdBootManager():
 
         boot_snapshot = SystemdBootSnapshot(self, boot_snapshot_name)
         self.boot_snapshots.append(boot_snapshot)
+        return boot_snapshot
 
     def create_boot_snapshot_if_needed(self, date=None):
         debug("Determining if new boot snapshot required...")
