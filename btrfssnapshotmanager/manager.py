@@ -50,15 +50,15 @@ class SnapshotManager():
                     info("Backup...")
                     manager.backup()
 
-                # If requires, sync systemd-boot entries
-                if systemdboot_run and manager.systemdboot_manager is not None:
-                    info()
-                    info("Systemd-boot...")
-                    for entry_manager in manager.systemdboot_manager.entry_managers:
-                        entry_manager.run()
-
             else:
                 info("No periods reached")
+
+        # If requires, sync systemd-boot entries
+        if systemdboot_run and self.systemdboot_manager is not None:
+            info()
+            info("Systemd-boot...")
+            for entry_manager in self.systemdboot_manager.entry_managers:
+                entry_manager.run()
 
     def cleanup(self, subvols=None):
         managers_to_run = self.managers
