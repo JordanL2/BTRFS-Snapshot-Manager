@@ -19,36 +19,6 @@ subvolumes:
 #
 #    snapshots-path: .snapshots
 
-# Uncomment the next section to enable integration with the
-# systemd-boot bootloader - entries are automatically generated,
-# which you can then select in the boot menu to boot into the snapshot.
-#
-#    systemd-boot:
-#      # Optional - set the path to the boot partition, defaults to /boot
-#      boot-path: /boot
-#
-#      entries:
-#
-#        # This specifies the boot entry file in loader/entries to use
-#        # when creating snapshot boot loader entries
-#      - entry: linux.conf
-#        # This section specifies how many snapshot boot loader entries will be
-#        # kept for each time period
-#        retention:
-#          hourly: 5
-#          daily: 7
-#          weekly: 2
-#          monthly: 1
-#
-#        # If you have multiple boot loader entries, e.g. for different kernel
-#        # versions, you can make snapshot boot loader entries for each one
-#        # with different retention settings
-#      - entry: linux-lts.conf
-#        retention:
-#          hourly: 3
-#          daily: 2
-#          weekly: 1
-
 # Uncomment the next section to enable automatic backup of your snapshots to
 # a local (eg a connected USB drive) or remote (eg NAS or server) location.
 #
@@ -107,6 +77,32 @@ subvolumes:
 #          weekly: 3
 #          monthly: 1
 
+# Uncomment the next section to enable integration with the
+# systemd-boot bootloader - entries are automatically generated,
+# which you can then select in the boot menu to boot into the snapshot.
+#
+#    systemd-boot:
+#
+#      # This specifies the boot entry file in loader/entries to use
+#      # when creating snapshot boot loader entries
+#      - entry: linux.conf
+#        # This section specifies how many snapshot boot loader entries will be
+#        # kept for each time period
+#        retention:
+#          hourly: 5
+#          daily: 7
+#          weekly: 2
+#          monthly: 1
+#
+#        # If you have multiple boot loader entries, e.g. for different kernel
+#        # versions, you can make snapshot boot loader entries for each one
+#        # with different retention settings
+#      - entry: linux-lts.conf
+#        retention:
+#          hourly: 3
+#          daily: 2
+#          weekly: 1
+
 
   # Here is another subvolume for which snapshots will be generated
   # and kept.
@@ -116,3 +112,10 @@ subvolumes:
       daily: 7
       weekly: 3
       monthly: 3
+
+
+# Uncomment the next section to config global settings for the systemd-boot
+# integration
+#systemd-boot:
+#  # Optional - set the path to the boot partition, defaults to /boot
+#  boot-path: /boot

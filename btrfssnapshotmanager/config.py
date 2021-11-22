@@ -33,20 +33,6 @@ class Config():
                     ('weekly', False): int,
                     ('monthly', False): int,
                 },
-                ('systemd-boot', False): {
-                    ('boot-path', False): str,
-                    ('entries', True): [
-                        {
-                            ('entry', True): str,
-                            ('retention', True): {
-                                ('hourly', (1, None, 'hourly', 'daily', 'weekly', 'monthly')): int,
-                                ('daily', False): int,
-                                ('weekly', False): int,
-                                ('monthly', False): int,
-                            },
-                        },
-                    ],
-                },
                 ('backup', False): [
                     {
                         ('type', True): ('btrfs', 'rsync'),
@@ -68,8 +54,22 @@ class Config():
                         },
                     },
                 ],
+                ('systemd-boot', False): [
+                    {
+                        ('entry', True): str,
+                        ('retention', True): {
+                            ('hourly', (1, None, 'hourly', 'daily', 'weekly', 'monthly')): int,
+                            ('daily', False): int,
+                            ('weekly', False): int,
+                            ('monthly', False): int,
+                        },
+                    },
+                ],
             },
         ],
+        ('systemd-boot', False): {
+            ('boot-path', False): str,
+        },
     }
 
     def __init__(self, snapshot_manager):
@@ -218,22 +218,28 @@ class Config():
 
     def load_systemdboot(self):
         self.systemdboot_manager = None
+
+        if 'systemd-boot' in self.raw_config:
+            systemdboot_config = self.raw_config['systemd-boot']
+            systemdboot_manager = SystemdBootManager()
+            self.systemdboot_manager = systemdboot_manager
+            if 'boot-path' in systemdboot_config:
+                systemdboot_manager.set_boot_path(systemdboot_config['boot-path'])
+
         config = self.get_subvolume_config()
         for subvol, subvol_config in config.items():
             subvol_instance = self.subvolumes[subvol]
 
             if 'systemd-boot' in subvol_config:
-                systemdboot_config = subvol_config['systemd-boot']
-
                 if self.systemdboot_manager is None:
-                    systemdboot_manager = SystemdBootManager(subvol_instance)
+                    systemdboot_manager = SystemdBootManager()
                     self.systemdboot_manager = systemdboot_manager
-                    if 'boot-path' in systemdboot_config:
-                        systemdboot_manager.set_boot_path(systemdboot_config['boot-path'])
+
+                systemdboot_config = subvol_config['systemd-boot']
 
                 subvol_instance.systemdboot_manager = systemdboot_manager
 
-                for systemdboot_config_entry in systemdboot_config['entries']:
+                for systemdboot_config_entry in systemdboot_config:
 
                     entry = systemdboot_config_entry['entry']
 

@@ -61,7 +61,7 @@ class SystemdBootSnapshot():
 
 class SystemdBootManager():
 
-    def __init__(self, subvol):
+    def __init__(self):
         self.entry_managers = []
         self.set_boot_path(systemdboot_default_boot_dir)
 
