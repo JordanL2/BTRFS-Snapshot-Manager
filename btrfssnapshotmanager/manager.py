@@ -53,7 +53,7 @@ class SnapshotManager():
             else:
                 info("No periods reached")
 
-        # If requires, sync systemd-boot entries
+        # If required, sync systemd-boot entries
         if systemdboot_run and self.systemdboot_manager is not None:
             info()
             info("Systemd-boot...")

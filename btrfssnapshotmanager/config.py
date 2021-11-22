@@ -225,10 +225,11 @@ class Config():
             if 'systemd-boot' in subvol_config:
                 systemdboot_config = subvol_config['systemd-boot']
 
-                systemdboot_manager = SystemdBootManager(subvol_instance)
-                self.systemdboot_manager = systemdboot_manager
-                if 'boot-path' in systemdboot_config:
-                    systemdboot_manager.set_boot_path(systemdboot_config['boot-path'])
+                if self.systemdboot_manager is None:
+                    systemdboot_manager = SystemdBootManager(subvol_instance)
+                    self.systemdboot_manager = systemdboot_manager
+                    if 'boot-path' in systemdboot_config:
+                        systemdboot_manager.set_boot_path(systemdboot_config['boot-path'])
 
                 subvol_instance.systemdboot_manager = systemdboot_manager
 
@@ -241,7 +242,7 @@ class Config():
                         if period.name in systemdboot_config_entry['retention']:
                             retention[period] = int(systemdboot_config_entry['retention'][period.name])
 
-                    systemdbootentry = SystemdBootEntryManager(systemdboot_manager, subvol_instance, entry, retention)
+                    systemdbootentry = SystemdBootEntryManager(self.systemdboot_manager, subvol_instance, entry, retention)
 
                     if 'boot-path' in systemdboot_config:
                         systemdbootentry.set_boot_path(systemdboot_config['boot-path'])
