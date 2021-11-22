@@ -48,7 +48,7 @@ class Subvolume():
         if not self._check_path():
             raise SnapshotException("Not a valid btrfs subvolume")
         self.snapshots_dir = PosixPath(path, snapshots_dir_name)
-        self. snapshots = None
+        self.snapshots = None
         if self.has_snapshots():
             self.load_snapshots()
 
