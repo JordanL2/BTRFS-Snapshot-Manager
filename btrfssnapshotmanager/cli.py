@@ -433,7 +433,7 @@ def systemdboot_list(args):
 
             if len(table) > 0:
                 table.append(None)
-            table.append([systemdboot_entry_manager.reference_entry, 'SNAPSHOT', 'DATE', 'PERIODS', 'BOOT SNAPSHOT'])
+            table.append([systemdboot_entry_manager.reference_entry, 'SUBVOLUME', 'SNAPSHOT', 'DATE', 'PERIODS', 'BOOT SNAPSHOT'])
 
             for entry in systemdboot_entry_manager.entries:
                 snapshot = entry.snapshot
@@ -441,6 +441,7 @@ def systemdboot_list(args):
                     boot_snapshot = entry.boot_snapshot
                     table.append([
                         entry.name,
+                        systemdboot_entry_manager.subvol.name,
                         snapshot.name,
                         snapshot.date.strftime(dateformat_human),
                         ', '.join([p.name for p in snapshot.get_periods()]),
@@ -450,6 +451,7 @@ def systemdboot_list(args):
                     table.append([
                         systemdboot_entry_manager.reference_entry,
                         entry.name,
+                        systemdboot_entry_manager.subvol.name,
                         'NOT FOUND',
                         '',
                         '',
