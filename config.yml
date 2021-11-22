@@ -20,17 +20,17 @@ subvolumes:
 #    snapshots-path: .snapshots
 
 # Uncomment the next section to enable automatic backup of your snapshots to
-# a local (eg a connected USB drive) or remote (eg NAS or server) location.
+# a local (e.g. a connected USB drive) or remote (e.g. NAS or server) location.
 #
-# Backups can be made using with btrfs - sending the subvolume to another btrfs
-# filesystem - or using rsync.
+# Backups can be made using with btrfs - sending the subvolume snapshot to
+# another btrfs filesystem - or using rsync.
 #
-# For each backup, you can specify the retention how many snapshots for each
-# time period will be kept on the target.
+# For each backup, you can specify how many snapshots for each time period will
+# be kept on the target.
 #
 #    backup:
 #
-#      # Btrfs - local backup
+#      # Example: Btrfs, local backup
 #      - type: btrfs
 #        local:
 #          path: /backups/btrfs/home
@@ -44,28 +44,7 @@ subvolumes:
 #        # relative to the snapshots directory, or absolute.
 #        last_sync_file: .lastsync
 #
-#      # Btrfs - remote backup
-#      - type: btrfs
-#        remote:
-#          host: mybackupserver
-#          user: backupuser
-#          ssh-options: -i /root/.ssh/backupuser
-#          path: /data/Backup/btrfs/home
-#        retention:
-#          daily: 7
-#          weekly: 3
-#          monthly: 1
-#
-#      # Rsync - local backup
-#      - type: rsync
-#        local:
-#          path: /backups/rsync/home
-#        retention:
-#          daily: 7
-#          weekly: 3
-#          monthly: 1
-#
-#      # Rsync - remote backup
+#      # Example: Rsync, remote backup
 #      - type: rsync
 #        remote:
 #          host: mybackupserver
@@ -77,26 +56,26 @@ subvolumes:
 #          weekly: 3
 #          monthly: 1
 
-# Uncomment the next section to enable integration with the
-# systemd-boot bootloader - entries are automatically generated,
-# which you can then select in the boot menu to boot into the snapshot.
+# Uncomment the next section to enable integration with the systemd-boot
+# boot-loader. Boot loader entries are automatically generated, which you can
+# then select in the boot menu to boot into the snapshot.
 #
 #    systemd-boot:
 #
-#      # This specifies the boot entry file in loader/entries to use
-#      # when creating snapshot boot loader entries
+#      # This specifies the boot entry file in loader/entries to use as a
+#      # reference when creating snapshot boot-loader entries.
 #      - entry: linux.conf
-#        # This section specifies how many snapshot boot loader entries will be
-#        # kept for each time period
+#        # This section specifies how many snapshot boot-loader entries will be
+#        # kept for each time period.
 #        retention:
 #          hourly: 5
 #          daily: 7
 #          weekly: 2
 #          monthly: 1
 #
-#        # If you have multiple boot loader entries, e.g. for different kernel
-#        # versions, you can make snapshot boot loader entries for each one
-#        # with different retention settings
+#        # If you have multiple boot-loader entries, e.g. for different kernel
+#        # versions, you can make snapshot boot-loader entries for each one
+#        # with different retention settings.
 #      - entry: linux-lts.conf
 #        retention:
 #          hourly: 3
@@ -114,8 +93,8 @@ subvolumes:
       monthly: 3
 
 
-# Uncomment the next section to config global settings for the systemd-boot
-# integration
+# Uncomment the next section to configure global settings for the systemd-boot
+# integration.
 #systemd-boot:
 #  # Optional - set the path to the boot partition, defaults to /boot
 #  boot-path: /boot
