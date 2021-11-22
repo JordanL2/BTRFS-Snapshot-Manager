@@ -49,6 +49,10 @@ class SystemdBootSnapshot():
             ).relative_to(self.snapshot_manager.boot_path)
         )
 
+    def delete(self):
+        cmd("rm -rf {0}".format(self.path()))
+        self.snapshot_manager.boot_snapshots.remove(self)
+
 
 class SystemdBootManager():
 
@@ -121,8 +125,7 @@ class SystemdBootManager():
         if len(boot_snapshot) != 1:
             raise SnapshotException("Could not find boot snapshot {0}".format(boot_snapshot_name))
         boot_snapshot = boot_snapshot[0]
-        cmd("rm -rf {0}/{1}".format(self.snapshots_dir, boot_snapshot.name))
-        self.load_boot_snapshots()
+        boot_snapshot.delete()
 
     def get_boot_snapshot_for_snapshot(self, snapshot):
         for boot_snapshot in reversed(self.boot_snapshots):
@@ -141,7 +144,7 @@ class SystemdBootManager():
                     boot_snapshots_to_delete.remove(boot_snapshot)
         for boot_snapshot in boot_snapshots_to_delete:
             info("- No longer need boot snapshot {0}".format(boot_snapshot.name))
-            self.delete_boot_snapshot(boot_snapshot.name)
+            boot_snapshot.delete()
 
     def _subvols(self):
         subvols = []
