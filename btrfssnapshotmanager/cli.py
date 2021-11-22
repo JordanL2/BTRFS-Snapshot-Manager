@@ -372,14 +372,14 @@ def snapshot_list(args):
 def systemdboot_config(args):
     global_args(args)
     snapshot_manager = SnapshotManager()
-    systemdboot_entry_managers = snapshot_manager.systemdboot_manager.entry_managers
+    systemdboot_manager = snapshot_manager.systemdboot_manager
+    systemdboot_entry_managers = systemdboot_manager.entry_managers
     if systemdboot_entry_managers is not None:
-        table = [['SUBVOLUME', 'BOOT PATH', 'ENTRY', *[p.name.upper() for p in PERIODS]]]
+        table = [[systemdboot_manager.boot_path, 'SUBVOLUME', *[p.name.upper() for p in PERIODS]]]
         for systemdboot_entry_manager in systemdboot_entry_managers:
             row = []
-            row.append(systemdboot_entry_manager.subvol.name)
-            row.append(systemdboot_entry_manager.boot_path)
             row.append(systemdboot_entry_manager.reference_entry)
+            row.append(systemdboot_entry_manager.subvol.name)
             for p in PERIODS:
                 if p in systemdboot_entry_manager.retention:
                     row.append(systemdboot_entry_manager.retention[p])
@@ -507,7 +507,7 @@ def systemdboot_snapshot_list(args):
     global_args(args)
     snapshot_manager = SnapshotManager()
     systemdboot_manager = snapshot_manager.systemdboot_manager
-    table = [[systemdboot_manager.boot_path, 'PATH', 'DATE']]
+    table = [['BOOT SNAPSHOT', 'PATH', 'DATE']]
     for boot_snapshot in systemdboot_manager.boot_snapshots:
         table.append([boot_snapshot.name, boot_snapshot.path(), boot_snapshot.date.strftime(dateformat_human)])
     if len(table) > 1:

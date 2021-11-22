@@ -70,6 +70,9 @@ class SystemdBootManager():
         self.snapshots_dir = PosixPath(boot_path, systemdboot_default_snapshots_dir)
         self.load_boot_snapshots()
         self.load_init_files()
+        self.entries_dir = PosixPath(self.boot_path, systemdboot_default_entries_dir)
+        for entry_manager in self.entry_managers:
+            entry_manager.load_entries()
 
     def load_boot_snapshots(self):
         self.boot_snapshots = []
@@ -172,7 +175,7 @@ class SystemdBootEntry():
             self.boot_snapshot = self.find_boot_snapshot()
 
     def path(self):
-        return PosixPath(self.entry_manager.entries_dir, self.name)
+        return PosixPath(self.entry_manager.systemdboot_manager.entries_dir, self.name)
 
     def delete(self):
         entry_file = self.path()
@@ -208,18 +211,13 @@ class SystemdBootEntryManager():
         self.subvol = subvol
         self.reference_entry = entry
         self.retention = retention
-        self.set_boot_path(systemdboot_default_boot_dir)
-
-    def set_boot_path(self, boot_path):
-        self.boot_path = boot_path
-        self.entries_dir = PosixPath(boot_path, systemdboot_default_entries_dir)
         self.load_entries()
 
     def load_entries(self):
         self.entries = []
-        if not self.entries_dir.is_dir():
-            raise SnapshotException("Boot path {0} does not exist".format(self.entries_dir))
-        for child in self.entries_dir.iterdir():
+        if not self.systemdboot_manager.entries_dir.is_dir():
+            raise SnapshotException("Boot path {0} does not exist".format(self.systemdboot_manager.entries_dir))
+        for child in self.systemdboot_manager.entries_dir.iterdir():
             if child.is_file():
                 snapshot_name = boot_entry_name_parse(self.reference_entry, child.name)
                 if snapshot_name is not None:
@@ -232,8 +230,8 @@ class SystemdBootEntryManager():
 
     def create_entry(self, snapshot):
         entry_name = boot_entry_name_format(self.reference_entry, snapshot.name)
-        ref_entry_path = PosixPath(self.entries_dir, self.reference_entry)
-        new_entry_filename = PosixPath(self.entries_dir, entry_name)
+        ref_entry_path = PosixPath(self.systemdboot_manager.entries_dir, self.reference_entry)
+        new_entry_filename = PosixPath(self.systemdboot_manager.entries_dir, entry_name)
         if not ref_entry_path.is_file():
             raise SnapshotException("Reference systemd-boot entry file {0} not found".format(ref_entry_path))
 
