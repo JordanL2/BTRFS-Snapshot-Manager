@@ -3,7 +3,7 @@
 from btrfssnapshotmanager.common import *
 
 from datetime import *
-from pathlib import PosixPath
+from pathlib import PosixPath, PurePosixPath
 import re
 
 
@@ -39,6 +39,15 @@ class SystemdBootSnapshot():
 
     def path(self):
         return PosixPath(self.snapshot_manager.snapshots_dir, self.name)
+
+    def path_for_bootloader(self):
+        return PurePosixPath(
+            '/',
+            PosixPath(
+                self.snapshot_manager.snapshots_dir,
+                self.name
+            ).relative_to(self.snapshot_manager.boot_path)
+        )
 
 
 class SystemdBootManager():
@@ -197,7 +206,7 @@ class SystemdBootEntryManager():
 
                         elif key in ('linux', 'initrd') and boot_snapshot is not None:
                             # If there is a boot snapshot, use the linux / initrds in that
-                            value = str(PosixPath(boot_snapshot.path(), PosixPath(value).relative_to('/')))
+                            value = str(PosixPath(boot_snapshot.path_for_bootloader(), PosixPath(value).relative_to('/')))
 
                         elif key == 'options':
                             options = value.split()
