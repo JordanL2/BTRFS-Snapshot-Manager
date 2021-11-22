@@ -156,6 +156,22 @@ class SystemdBootManager():
         return subvols
 
 
+class SystemdBootEntry():
+
+    def __init__(self, entry_manager, name, snapshot, boot_snapshot):
+        self.entry_manager = entry_manager
+        self.name = name
+        self.snapshot = snapshot
+        self.boot_snapshot = boot_snapshot
+
+    def delete(self):
+        entry_file = PosixPath(self.entry_manager.entries_dir, self.name)
+        entry_file.unlink()
+        if self.snapshot is not None:
+            del self.snapshot.systemdboot[self.entry_manager]
+        self.entry_manager.entries.remove(self)
+
+
 class SystemdBootEntryManager():
 
     def __init__(self, systemdboot_manager, subvol, entry, retention):
@@ -171,7 +187,7 @@ class SystemdBootEntryManager():
         self.load_entries()
 
     def load_entries(self):
-        self.entries = {}
+        self.entries = []
         if not self.entries_dir.is_dir():
             raise SnapshotException("Boot path {0} does not exist".format(self.entries_dir))
         for child in self.entries_dir.iterdir():
@@ -179,9 +195,15 @@ class SystemdBootEntryManager():
                 snapshot_name = boot_entry_name_parse(self.reference_entry, child.name)
                 if snapshot_name is not None:
                     snapshot = self.subvol.find_snapshot(snapshot_name)
-                    self.entries[child.name] = snapshot
+                    boot_snapshot = None
+                    if snapshot is not None:
+                        #TODO - this needs to change to read the file and check what boot snapshot it's actually using
+                        boot_snapshot = self.systemdboot_manager.get_boot_snapshot_for_snapshot(snapshot)
+                    boot_entry = SystemdBootEntry(self, child.name, snapshot, boot_snapshot)
+                    self.entries.append(boot_entry)
                     if snapshot is not None:
                         snapshot.systemdboot[self] = child.name
+        self.entries = sorted(self.entries, key=lambda e: e.name)
 
     def create_entry(self, snapshot):
         entry_name = boot_entry_name_format(self.reference_entry, snapshot.name)
@@ -241,16 +263,16 @@ class SystemdBootEntryManager():
                     print(line, file=fhout)
         debug("---")
 
-        self.entries[entry_name] = snapshot
+        boot_entry = SystemdBootEntry(self, entry_name, snapshot, boot_snapshot)
+        self.entries.append(boot_entry)
 
     def delete_entry(self, entry_name):
-        if entry_name not in self.entries:
+        for entry in self.entries:
+            if entry.name == entry_name:
+                entry.delete()
+                break
+        else:
             raise SnapshotException("No such systemd-boot entry: {}".format(entry_name))
-        entry_file = PosixPath(self.entries_dir, entry_name)
-        entry_file.unlink()
-        if self.entries[entry_name] is not None:
-            del self.entries[entry_name].systemdboot[self]
-        del self.entries[entry_name]
 
     def run(self):
         snapshots_needed = set()
@@ -266,16 +288,18 @@ class SystemdBootEntryManager():
             debug("-", s.name)
 
         # Create missing entries
+        entry_snapshots = [e.snapshot for e in self.entries]
         for s in snapshots_needed:
-            if s not in self.entries.values():
+            if s not in entry_snapshots:
                 info("Snapshot {0} requires an entry".format(s.name))
                 self.create_entry(s)
 
         # Delete entries not required
-        for entry_name, snapshot in self.entries.copy().items():
+        for entry in self.entries.copy():
+            snapshot = entry.snapshot
             if snapshot is not None and snapshot not in snapshots_needed:
                 info("Snapshot {0} no longer requires an entry".format(snapshot.name))
-                self.delete_entry(entry_name)
+                entry.delete()
             elif snapshot is None:
                 info("Entry {0} not associated with an existing snapshot".format(entry_name))
-                self.delete_entry(entry_name)
+                entry.delete()

@@ -426,8 +426,7 @@ def systemdboot_delete(args):
 def systemdboot_list(args):
     global_args(args)
     snapshot_manager = SnapshotManager()
-    systemdboot_manager = snapshot_manager.systemdboot_manager
-    systemdboot_entry_managers = systemdboot_manager.entry_managers
+    systemdboot_entry_managers = snapshot_manager.systemdboot_manager.entry_managers
     if systemdboot_entry_managers is not None:
         table = []
         for systemdboot_entry_manager in systemdboot_entry_managers:
@@ -436,11 +435,12 @@ def systemdboot_list(args):
                 table.append(None)
             table.append([systemdboot_entry_manager.reference_entry, 'SNAPSHOT', 'DATE', 'PERIODS', 'BOOT SNAPSHOT'])
 
-            for entry, snapshot in sorted(systemdboot_entry_manager.entries.items(), key=lambda s: s[0]):
+            for entry in systemdboot_entry_manager.entries:
+                snapshot = entry.snapshot
                 if snapshot is not None:
-                    boot_snapshot = systemdboot_manager.get_boot_snapshot_for_snapshot(snapshot)
+                    boot_snapshot = entry.boot_snapshot
                     table.append([
-                        entry,
+                        entry.name,
                         snapshot.name,
                         snapshot.date.strftime(dateformat_human),
                         ', '.join([p.name for p in snapshot.get_periods()]),
@@ -449,7 +449,7 @@ def systemdboot_list(args):
                 else:
                     table.append([
                         systemdboot_entry_manager.reference_entry,
-                        entry,
+                        entry.name,
                         'NOT FOUND',
                         '',
                         '',
