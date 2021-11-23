@@ -37,14 +37,10 @@ class SnapshotManager():
 
                 # If specified, delete unwanted snapshots
                 if cleanup:
-                    info('----------------')
-                    info("Cleanup...")
                     manager.cleanup()
 
                 # If required, ensure backups are in sync
                 if backup:
-                    info('----------------')
-                    info("Backup...")
                     manager.backup()
 
             else:
@@ -53,7 +49,7 @@ class SnapshotManager():
         # If required, sync systemd-boot entries
         if systemdboot_run and self.systemdboot_manager is not None:
             info('================')
-            info("Systemd-boot...")
+            info("Systemd-boot")
             for entry_manager in self.systemdboot_manager.entry_managers:
                 entry_manager.run()
 
