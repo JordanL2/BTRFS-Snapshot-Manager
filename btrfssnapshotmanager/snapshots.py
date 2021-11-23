@@ -65,8 +65,8 @@ class Subvolume():
     def init_snapshots(self):
         if self.has_snapshots():
             raise SnapshotException("Subvolume is already initialised for snapshots")
+        info("Initialising subvolume", self.path, "for snapshots")
         cmd("btrfs subvolume create {0}".format(self.snapshots_dir))
-        info("Initialised subvolume", self.path, "for snapshots")
         self.load_snapshots()
 
     def load_snapshots(self):
