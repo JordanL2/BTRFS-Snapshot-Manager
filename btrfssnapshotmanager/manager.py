@@ -23,7 +23,7 @@ class SnapshotManager():
             managers_to_run = dict([(s, m) for s, m in managers_to_run.items() if s in subvols])
 
         title_length = max([len(s) for s, m in managers_to_run.items()])
-        title_length = max(title_length, len('Systemd-boot'))
+        title_length = max(title_length, len('systemd-boot'))
 
         for subvol, manager in managers_to_run.items():
             info("======================== {0} ========================".format(format(subvol, "<{0}".format(title_length))))
@@ -50,7 +50,7 @@ class SnapshotManager():
 
         # If required, sync systemd-boot entries
         if systemdboot_run and self.systemdboot_manager is not None:
-            info("======================== {0} ========================".format(format('Systemd-boot', "<{0}".format(title_length))))
+            info("======================== {0} ========================".format(format('systemd-boot', "<{0}".format(title_length))))
             for entry_manager in self.systemdboot_manager.entry_managers:
                 entry_manager.run()
 
