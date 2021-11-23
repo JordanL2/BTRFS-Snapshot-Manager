@@ -23,7 +23,7 @@ class SnapshotManager():
             managers_to_run = dict([(s, m) for s, m in managers_to_run.items() if s in subvols])
 
         for subvol, manager in managers_to_run.items():
-            info('================')
+            info('================================================')
             info("Subvolume:", subvol)
             periods = []
             for period, count in manager.retention_config.items():
@@ -48,7 +48,7 @@ class SnapshotManager():
 
         # If required, sync systemd-boot entries
         if systemdboot_run and self.systemdboot_manager is not None:
-            info('================')
+            info('================================================')
             info("Systemd-boot")
             for entry_manager in self.systemdboot_manager.entry_managers:
                 entry_manager.run()
@@ -59,7 +59,7 @@ class SnapshotManager():
             managers_to_run = dict([(s, m) for s, m in managers_to_run.items() if s in subvols])
 
         for subvol, manager in managers_to_run.items():
-            info('================')
+            info('================================================')
             info("Subvolume:", subvol)
             manager.cleanup()
 
@@ -69,7 +69,7 @@ class SnapshotManager():
             managers_to_run = dict([(s, m) for s, m in managers_to_run.items() if s in subvols and len(m.backups) > 0])
 
         for subvol, manager in managers_to_run.items():
-            info('================')
+            info('================================================')
             info("Subvolume:", subvol)
             manager.backup(ids=ids)
 
