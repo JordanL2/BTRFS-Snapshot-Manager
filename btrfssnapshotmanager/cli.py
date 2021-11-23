@@ -114,7 +114,7 @@ def main():
     systemdboot_run_parser.set_defaults(func=systemdboot_run)
 
     # systemdboot snapshot
-    systemdboot_snapshot_parser = systemdboot_subparsers.add_parser('snapshot', help='systemd-boot integration commands')
+    systemdboot_snapshot_parser = systemdboot_subparsers.add_parser('snapshot', help='systemd-boot boot snapshot commands')
     systemdboot_snapshot_subparsers = systemdboot_snapshot_parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
 
     # systemdboot snapshot create
