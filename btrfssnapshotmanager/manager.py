@@ -22,9 +22,11 @@ class SnapshotManager():
         if subvols is not None and len(subvols) > 0:
             managers_to_run = dict([(s, m) for s, m in managers_to_run.items() if s in subvols])
 
+        title_length = max([len(s) for s, m in managers_to_run.items()])
+        title_length = max(title_length, len('Systemd-boot'))
+
         for subvol, manager in managers_to_run.items():
-            info('================================================')
-            info("Subvolume:", subvol)
+            info("======================== {0} ========================".format(format(subvol, "<{0}".format(title_length))))
             periods = []
             for period, count in manager.retention_config.items():
                 if manager.should_run(period):
@@ -48,8 +50,7 @@ class SnapshotManager():
 
         # If required, sync systemd-boot entries
         if systemdboot_run and self.systemdboot_manager is not None:
-            info('================================================')
-            info("Systemd-boot")
+            info("======================== {0} ========================".format(format('Systemd-boot', "<{0}".format(title_length))))
             for entry_manager in self.systemdboot_manager.entry_managers:
                 entry_manager.run()
 
@@ -58,9 +59,10 @@ class SnapshotManager():
         if subvols is not None and len(subvols) > 0:
             managers_to_run = dict([(s, m) for s, m in managers_to_run.items() if s in subvols])
 
+        title_length = max([len(s) for s, m in managers_to_run.items()])
+
         for subvol, manager in managers_to_run.items():
-            info('================================================')
-            info("Subvolume:", subvol)
+            info("======================== {0} ========================".format(format(subvol, "<{0}".format(title_length))))
             manager.cleanup()
 
     def backup(self, subvols=None, ids=None):
@@ -68,9 +70,10 @@ class SnapshotManager():
         if subvols is not None and len(subvols) > 0:
             managers_to_run = dict([(s, m) for s, m in managers_to_run.items() if s in subvols and len(m.backups) > 0])
 
+        title_length = max([len(s) for s, m in managers_to_run.items()])
+
         for subvol, manager in managers_to_run.items():
-            info('================================================')
-            info("Subvolume:", subvol)
+            info("======================== {0} ========================".format(format(subvol, "<{0}".format(title_length))))
             manager.backup(ids=ids)
 
 
