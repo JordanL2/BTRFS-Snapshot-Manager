@@ -62,11 +62,8 @@ class SnapshotManager():
         if subvols is not None and len(subvols) > 0:
             managers_to_run = dict([(s, m) for s, m in managers_to_run.items() if s in subvols])
 
-        empty_line = False
         for subvol, manager in managers_to_run.items():
-            if empty_line:
-                info('---')
-            empty_line = True
+            info('================')
             info("Subvolume:", subvol)
             manager.cleanup()
 
@@ -75,11 +72,8 @@ class SnapshotManager():
         if subvols is not None and len(subvols) > 0:
             managers_to_run = dict([(s, m) for s, m in managers_to_run.items() if s in subvols and len(m.backups) > 0])
 
-        empty_line = False
         for subvol, manager in managers_to_run.items():
-            if empty_line:
-                info('---')
-            empty_line = True
+            info('================')
             info("Subvolume:", subvol)
             manager.backup(ids=ids)
 

@@ -147,15 +147,15 @@ class LocalBtrfsBackup(LocalBackup):
     mechanism = 'btrfs'
 
     def transfer_source(self, source):
-        info("Transferring via btrfs {2} snapshot {0} to target {1}".format(source.path, self.location(), self.subvol.name))
+        info("Transferring via btrfs snapshot {0} to target {1}".format(source.path, self.location()))
         cmd("btrfs send {0} | btrfs receive {1}".format(source.path, self.path, source.name))
 
     def transfer_source_delta(self, previous_source, source):
-        info("Transferring via btrfs {3} snapshot {0} (as delta from {1}) to target {2}".format(source.path, previous_source.path, self.location(), self.subvol.name))
+        info("Transferring via btrfs snapshot {0} (as delta from {1}) to target {2}".format(source.path, previous_source.path, self.location()))
         cmd("btrfs send -p {0} {1} | btrfs receive {2}".format(previous_source.path, source.path, self.path))
 
     def delete_target(self, target_name):
-        info("Deleting {2} snapshot {0} on target {1}".format(target_name, self.location(), self.subvol.name))
+        info("Deleting snapshot {0} on target {1}".format(target_name, self.location()))
         cmd("btrfs subvolume delete --commit-each {0}".format(PosixPath(self.path, target_name)))
 
 
@@ -164,17 +164,17 @@ class RemoteBtrfsBackup(RemoteBackup):
     mechanism = 'btrfs'
 
     def transfer_source(self, source):
-        info("Transferring via btrfs {2} snapshot {0} to target {1}".format(source.name, self.location(), self.subvol.name))
+        info("Transferring via btrfs snapshot {0} to target {1}".format(source.path, self.location()))
         cmd("btrfs send {0} | {1} \"sudo btrfs receive {2}\"".format(source.path, self._ssh_command(), self.path),
             attempts=self.cmd_attempts, fail_delay=self.cmd_fail_delay)
 
     def transfer_source_delta(self, previous_source, source):
-        info("Transferring via btrfs {3} snapshot {0} (as delta from {1}) to target {2}".format(source.name, previous_source.name, self.location(), self.subvol.name))
+        info("Transferring via btrfs snapshot {0} (as delta from {1}) to target {2}".format(source.path, previous_source.path, self.location()))
         cmd("btrfs send -p {0} {1} | {2} \"sudo btrfs receive {3}\"".format(previous_source.path, source.path, self._ssh_command(), self.path),
             attempts=self.cmd_attempts, fail_delay=self.cmd_fail_delay)
 
     def delete_target(self, target_name):
-        info("Deleting via btrfs {2} snapshot {0} on target {1}".format(target_name, self.location(), self.subvol.name))
+        info("Deleting via btrfs snapshot {0} on target {1}".format(target_name, self.location()))
         cmd("{0} \"sudo btrfs subvolume delete {1}/{2}\"".format(self._ssh_command(), self.path, target_name),
             attempts=self.cmd_attempts, fail_delay=self.cmd_fail_delay)
 
@@ -186,15 +186,15 @@ class LocalRsyncBackup(LocalBackup):
     mechanism = 'rsync'
 
     def transfer_source(self, source):
-        info("Transferring via rsync {2} snapshot {0} to target {1}".format(source.name, self.location(), self.subvol.name))
+        info("Transferring via rsync snapshot {0} to target {1}".format(source.path, self.location()))
         cmd("rsync -a --delete {0} {1}/".format(source.path, self.path))
 
     def transfer_source_delta(self, previous_source, source):
-        info("Transferring via rsync {3} snapshot {0} (as delta from {1}) to target {2}".format(source.name, previous_source.name, self.location(), self.subvol.name))
+        info("Transferring via rsync snapshot {0} (as delta from {1}) to target {2}".format(source.path, previous_source.path, self.location()))
         cmd("rsync -a --delete --link-dest={1}/{2}/ {0}/ {1}/{3}".format(source.path, self.path, previous_source.name, source.name))
 
     def delete_target(self, target_name):
-        info("Deleting {2} snapshot {0} on target {1}".format(target_name, self.location(), self.subvol.name))
+        info("Deleting snapshot {0} on target {1}".format(target_name, self.location()))
         cmd("rm -rf {0}".format(PosixPath(self.path, target_name)))
 
 
@@ -203,18 +203,18 @@ class RemoteRsyncBackup(RemoteBackup):
     mechanism = 'rsync'
 
     def transfer_source(self, source):
-        info("Transferring via rsync {2} snapshot {0} to target {1}".format(source.name, self.location(), self.subvol.name))
+        info("Transferring via rsync snapshot {0} to target {1}".format(source.path, self.location()))
         cmd("rsync -a --delete --rsync-path=\"sudo rsync\" -e \"ssh {0} -l {1}\" {3} {2}:{4}/".format(
                 self.ssh_options, self.user, self.host, source.path, self.path),
             attempts=self.cmd_attempts, fail_delay=self.cmd_fail_delay)
 
     def transfer_source_delta(self, previous_source, source):
-        info("Transferring via rsync {3} snapshot {0} (as delta from {1}) to target {2}".format(source.name, previous_source.name, self.location(), self.subvol.name))
+        info("Transferring via rsync snapshot {0} (as delta from {1}) to target {2}".format(source.path, previous_source.path, self.location()))
         cmd("rsync -a --delete --link-dest={5}/{6}/ --rsync-path=\"sudo rsync\" -e \"ssh {0} -l {1}\" {3}/ {2}:{5}/{4}/".format(
                 self.ssh_options, self.user, self.host, source.path, source.name, self.path, previous_source.name),
             attempts=self.cmd_attempts, fail_delay=self.cmd_fail_delay)
 
     def delete_target(self, target_name):
-        info("Deleting via rsync {2} snapshot {0} on target {1}".format(target_name, self.location(), self.subvol.name))
+        info("Deleting via rsync snapshot {0} on target {1}".format(target_name, self.location()))
         cmd("{0} \"sudo rm -rf {1}/{2}\"".format(self._ssh_command(), self.path, target_name),
             attempts=self.cmd_attempts, fail_delay=self.cmd_fail_delay)
