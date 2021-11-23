@@ -183,8 +183,7 @@ def backup_run(args):
     global_args(args)
     paths = args.path
     ids = args.id
-    if ids is not None:
-        ids = [int(i) for i in ids]
+
     snapshot_manager = SnapshotManager()
 
     for path in paths:
