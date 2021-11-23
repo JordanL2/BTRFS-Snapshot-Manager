@@ -109,11 +109,11 @@ class SystemdBootManager():
         return boot_snapshot
 
     def create_boot_snapshot_if_needed(self, date=None):
-        info("Determining if new systemd-boot boot snapshot required...")
+        debug("Determining if new systemd-boot boot snapshot required...")
         needed = False
         if len(self.boot_snapshots) == 0:
             needed = True
-            info("- No systemd-boot boot snapshots found, new boot snapshot required")
+            debug("- No systemd-boot boot snapshots found, new boot snapshot required")
         else:
             last_boot_snapshot = self.boot_snapshots[-1]
             for init_file in self.init_files:
@@ -121,13 +121,13 @@ class SystemdBootManager():
                 code = cmd(command, return_code=True)[2]
                 if code != 0:
                     needed = True
-                    info("- Init file {0} has changed, new systemd-boot boot snapshot required".format(init_file))
+                    debug("- Init file {0} has changed, new systemd-boot boot snapshot required".format(init_file))
                     break
 
         if needed:
             self.create_boot_snapshot(date=date)
         else:
-            info("New systemd-boot boot snapshot is not required")
+            debug("New systemd-boot boot snapshot is not required")
 
     def delete_boot_snapshot(self, boot_snapshot_name):
         boot_snapshot = [b for b in self.boot_snapshots if b.name == boot_snapshot_name]
@@ -143,16 +143,16 @@ class SystemdBootManager():
         return None
 
     def remove_unused_boot_snapshots(self):
-        info("Checking if any systemd-boot boot snapshots can be deleted...")
+        debug("Checking if any systemd-boot boot snapshots can be deleted...")
         boot_snapshots_to_delete = set(self.boot_snapshots)
         for subvol in self._subvols():
-            info("- Checking subvolume {0}".format(subvol.name))
+            debug("- Checking subvolume {0}".format(subvol.name))
             for snapshot in subvol.snapshots:
                 boot_snapshot = self.get_boot_snapshot_for_snapshot(snapshot)
                 if boot_snapshot is not None and boot_snapshot in boot_snapshots_to_delete:
                     boot_snapshots_to_delete.remove(boot_snapshot)
         for boot_snapshot in boot_snapshots_to_delete:
-            info("- No longer need systemd-boot boot snapshot {0}".format(boot_snapshot.name))
+            info("No longer need systemd-boot boot snapshot {0}".format(boot_snapshot.name))
             boot_snapshot.delete()
 
     def _subvols(self):
