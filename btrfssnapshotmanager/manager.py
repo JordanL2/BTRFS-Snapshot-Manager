@@ -73,6 +73,18 @@ class SnapshotManager():
             info("Subvolume:", subvol)
             manager.cleanup()
 
+    def backup(self, subvols=None, ids=None):
+        managers_to_run = self.managers
+        if subvols is not None and len(subvols) > 0:
+            managers_to_run = dict([(s, m) for s, m in managers_to_run.items() if s in subvols and len(m.backups) > 0])
+
+        empty_line = False
+        for subvol, manager in managers_to_run.items():
+            if empty_line:
+                info('---')
+            manager.backup(ids=ids)
+            empty_line = True
+
 
 class SubvolumeManager():
 
@@ -131,6 +143,10 @@ class SubvolumeManager():
             info("Nothing to do")
 
     def backup(self, ids=None):
+        if ids is not None and len(ids) > 0:
+            for i in ids:
+                if i < 0 or i >= len(self.backups) or i != int(i):
+                    raise SnapshotException("Invalid backup ID {0} for subvolume {1}".format(i, self.subvol.name))
         empty_line = False
         for i, backup in enumerate(self.backups):
             if ids is not None and i not in ids:

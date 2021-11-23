@@ -27,8 +27,8 @@ def main():
 
     # backup run
     backup_run_parser = backup_subparsers.add_parser('run', help='run backups')
-    backup_run_parser.add_argument('path', nargs='?', help='path to subvolume')
-    backup_run_parser.add_argument('--id', nargs='*', help='only run backups with these ids')
+    backup_run_parser.add_argument('path', nargs='*', help='path to subvolume')
+    backup_run_parser.add_argument('--id', nargs='*', type=int, help='only run backups with these ids')
     backup_run_parser.set_defaults(func=backup_run)
 
     # backup target-list
@@ -181,23 +181,20 @@ def backup_list(args):
 
 def backup_run(args):
     global_args(args)
-    path = args.path
+    paths = args.path
     ids = args.id
     if ids is not None:
         ids = [int(i) for i in ids]
     snapshot_manager = SnapshotManager()
 
-    if path is not None and path not in snapshot_manager.managers:
-        fatal("Config not found for subvolume", path)
+    for path in paths:
+        if path not in snapshot_manager.managers:
+            fatal("Config not found for subvolume", path)
 
-    empty_line = False
-    for subvol, manager in snapshot_manager.managers.items():
-        if path is None or subvol == path:
-            if len(manager.backups) > 0:
-                if empty_line:
-                    info('---')
-                manager.backup(ids=ids)
-                empty_line = True
+    if ids is not None and len(ids) > 0 and len(paths) != 1:
+        fatal("Can only specify backup IDs to run when running a single backup")
+
+    snapshot_manager.backup(paths, ids)
 
 def backup_targetlist(args):
     global_args(args)
