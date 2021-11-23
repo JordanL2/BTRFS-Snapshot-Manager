@@ -261,7 +261,6 @@ def snapshot_create(args):
     path = args.path
     subvol = get_subvol(path)
     snapshot = subvol.create_snapshot()
-    info("Created snapshot", snapshot.name, "in subvolume", path)
 
 def snapshot_delete(args):
     global_args(args)
@@ -272,14 +271,12 @@ def snapshot_delete(args):
     if snapshot is None:
         fatal("Could not find snapshot", name, "in subvolume", path)
     snapshot.delete()
-    info("Deleted snapshot", name, "from subvolume", path)
 
 def snapshot_init(args):
     global_args(args)
     path = args.path
     subvol = get_subvol(path)
     subvol.init_snapshots()
-    info("Initialised subvolume", path, "for snapshots")
 
 def snapshot_list(args):
     global_args(args)

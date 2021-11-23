@@ -66,6 +66,7 @@ class Subvolume():
         if self.has_snapshots():
             raise SnapshotException("Subvolume is already initialised for snapshots")
         cmd("btrfs subvolume create {0}".format(self.snapshots_dir))
+        info("Initialised subvolume", self.path, "for snapshots")
         self.load_snapshots()
 
     def load_snapshots(self):
@@ -81,7 +82,7 @@ class Subvolume():
         self._sort_snapshots()
 
     def create_snapshot(self, date=None, periods=None):
-        info("Creating {0} {1} snapshot".format(self.name, ', '.join([p.name for p in periods])))
+        info("Creating {1} snapshot for {0}".format(self.name, ', '.join([p.name for p in periods])))
         if not self.has_snapshots():
             raise SnapshotException("Subvolume not initialised for snapshots")
         if date is None:
@@ -145,6 +146,7 @@ class Snapshot():
         self.systemdboot = {}
 
     def delete(self):
+        info("Deleting snapshot {0}".format(self.path))
         cmd("btrfs subvolume delete --commit-each {0}".format(self.path))
         self.subvol.snapshots.remove(self)
 
