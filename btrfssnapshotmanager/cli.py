@@ -423,7 +423,6 @@ def systemdboot_delete(args):
             break
     else:
         fatal("Systemd-boot entry {0} not found".format(entry_name))
-    info("Deleted systemd-boot entry {0}".format(entry_name))
 
 def systemdboot_list(args):
     global_args(args)
@@ -482,7 +481,6 @@ def systemdboot_run(args):
     if entry_managers is None:
         fatal("No subvolumes configured for systemd-boot integration")
 
-    info("Creating missing systemd-boot entries, and deleting ones no longer required")
     for entry_manager in entry_managers:
         entry_manager.run()
 
@@ -494,7 +492,6 @@ def systemdboot_snapshot_create(args):
         raise SnapshotException("No systemd-boot config enabled.")
 
     boot_snapshot = systemdboot_manager.create_boot_snapshot()
-    info("Created new boot snapshot: {0}".format(boot_snapshot.name))
 
 def systemdboot_snapshot_createneeded(args):
     global_args(args)
@@ -514,7 +511,6 @@ def systemdboot_snapshot_delete(args):
         raise SnapshotException("No systemd-boot config enabled.")
 
     systemdboot_manager.delete_boot_snapshot(name)
-    info("Deleted boot snapshot {0}".format(name))
 
 def systemdboot_snapshot_deleteunneeded(args):
     global_args(args)
