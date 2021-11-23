@@ -147,8 +147,10 @@ class SubvolumeManager():
             for i in ids:
                 if i < 0 or i >= len(self.backups) or i != int(i):
                     raise SnapshotException("Invalid backup ID {0} for subvolume {1}".format(i, self.subvol.name))
+
         empty_line = False
-        for i, backup in enumerate(self.backups):
+        backups = self.get_backups(ids)
+        for i, backup in sorted(backups.items(), key=lambda b: b[0]):
             if ids is not None and i not in ids:
                 continue
             if empty_line:
@@ -156,3 +158,15 @@ class SubvolumeManager():
             empty_line = True
             info("Running backup for {0} to {1}".format(self.subvol.path, backup.location()))
             backup.backup()
+
+    def get_backups(self, ids=None):
+        if ids is not None and len(ids) > 0:
+            for i in ids:
+                if i < 0 or i >= len(self.backups) or i != int(i):
+                    raise SnapshotException("Invalid backup ID {0} for subvolume {1}".format(i, self.subvol.name))
+
+        backups = {}
+        for i, backup in enumerate(self.backups):
+            if ids is None or i in ids:
+                backups[i] = backup
+        return backups

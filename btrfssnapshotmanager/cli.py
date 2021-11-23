@@ -33,8 +33,8 @@ def main():
 
     # backup target-list
     backup_targetlist_parser = backup_subparsers.add_parser('target-list', help='list snapshots backed up on target')
-    backup_targetlist_parser.add_argument('path', nargs='?', help='path to subvolume')
-    backup_targetlist_parser.add_argument('--id', nargs='*', help='only run backups with these ids')
+    backup_targetlist_parser.add_argument('path', nargs='*', help='path to subvolume')
+    backup_targetlist_parser.add_argument('--id', nargs='*', type=int, help='only run backups with these ids')
     backup_targetlist_parser.set_defaults(func=backup_targetlist)
 
     # config
@@ -197,34 +197,39 @@ def backup_run(args):
 
 def backup_targetlist(args):
     global_args(args)
-    path = args.path
+    paths = args.path
     ids = args.id
-    if ids is not None:
-        ids = [int(i) for i in ids]
+
     snapshot_manager = SnapshotManager()
 
-    if path is not None and path not in snapshot_manager.managers:
-        fatal("Config not found for subvolume", path)
+    for path in paths:
+        if path not in snapshot_manager.managers:
+            fatal("Config not found for subvolume", path)
+
+    if ids is not None and len(ids) > 0 and len(paths) != 1:
+        fatal("Can only specify backup IDs to run when running a single backup")
+
+    managers_to_run = snapshot_manager.managers
+    if len(paths) > 0:
+        managers_to_run = dict([(s, m) for s, m in managers_to_run.items() if s in paths and len(m.backups) > 0])
 
     table = []
-    for subvol, manager in snapshot_manager.managers.items():
-        if path is None or subvol == path:
-            if len(manager.backups) > 0:
-                if len(table) > 0:
-                    table.append(None)
-                table.append([subvol, 'LOCATION', 'SNAPSHOT', 'DATE', 'PERIODS'])
-                for i, backup in enumerate(manager.backups):
-                    if ids is None or len(ids) == 0 or i in ids:
-                        target_snapshot_names = backup.get_target_snapshot_names()
-                        for target_snapshot_name in sorted(target_snapshot_names):
-                            snapshot_details = snapshot_name_parse(target_snapshot_name)
-                            table.append([
-                                i,
-                                backup.location(),
-                                target_snapshot_name,
-                                snapshot_details['date'].strftime(dateformat_human),
-                                ', '.join([p.name for p in snapshot_details['periods']]),
-                            ])
+    for subvol, manager in managers_to_run.items():
+        backups = manager.get_backups(ids)
+        if len(table) > 0:
+            table.append(None)
+        table.append([subvol, 'LOCATION', 'SNAPSHOT', 'DATE', 'PERIODS'])
+        for i, backup in sorted(backups.items(), key=lambda b: b[0]):
+            target_snapshot_names = backup.get_target_snapshot_names()
+            for target_snapshot_name in sorted(target_snapshot_names):
+                snapshot_details = snapshot_name_parse(target_snapshot_name)
+                table.append([
+                    i,
+                    backup.location(),
+                    target_snapshot_name,
+                    snapshot_details['date'].strftime(dateformat_human),
+                    ', '.join([p.name for p in snapshot_details['periods']]),
+                ])
 
     output_table(table)
 
