@@ -81,6 +81,7 @@ class Subvolume():
         self._sort_snapshots()
 
     def create_snapshot(self, date=None, periods=None):
+        info("Creating {0} {1} snapshot".format(self.name, ', '.join([p.name for p in periods])))
         if not self.has_snapshots():
             raise SnapshotException("Subvolume not initialised for snapshots")
         if date is None:

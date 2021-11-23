@@ -152,7 +152,7 @@ class SystemdBootManager():
                 if boot_snapshot is not None and boot_snapshot in boot_snapshots_to_delete:
                     boot_snapshots_to_delete.remove(boot_snapshot)
         for boot_snapshot in boot_snapshots_to_delete:
-            info("No longer need systemd-boot boot snapshot {0}".format(boot_snapshot.name))
+            debug("No longer need systemd-boot boot snapshot {0}".format(boot_snapshot.name))
             boot_snapshot.delete()
 
     def _subvols(self):
@@ -301,13 +301,13 @@ class SystemdBootEntryManager():
     def delete_using_nonexistent_snapshot(self):
         for entry in self.entries.copy():
             if entry.snapshot is None:
-                info("Systemd-boot entry {0} not associated with an existing snapshot".format(entry.name))
+                debug("Systemd-boot entry {0} not associated with an existing snapshot".format(entry.name))
                 entry.delete()
 
     def delete_using_nonexistent_boot_snapshot(self):
         for entry in self.entries.copy():
             if entry.boot_snapshot is not None and not entry.boot_snapshot.exists():
-                 info("Systemd-boot entry {0} is using non-existent boot snapshot {1}".format(entry.name, entry.boot_snapshot.name))
+                 debug("Systemd-boot entry {0} is using non-existent boot snapshot {1}".format(entry.name, entry.boot_snapshot.name))
                  entry.delete()
 
     def run(self):
@@ -329,12 +329,12 @@ class SystemdBootEntryManager():
         for entry in self.entries.copy():
             snapshot = entry.snapshot
             if snapshot not in snapshots_needed:
-                info("A systemd-boot {0} entry is not longer required for snapshot {1}".format(self.reference_entry, snapshot.name))
+                debug("A systemd-boot {0} entry is not longer required for snapshot {1}".format(self.reference_entry, snapshot.name))
                 entry.delete()
 
         # Create missing entries
         entry_snapshots = [e.snapshot for e in self.entries]
         for snapshot in snapshots_needed:
             if snapshot not in entry_snapshots:
-                info("A systemd-boot {0} entry is required for snapshot {1}".format(self.reference_entry, snapshot.name))
+                debug("A systemd-boot {0} entry is required for snapshot {1}".format(self.reference_entry, snapshot.name))
                 self.create_entry(snapshot)

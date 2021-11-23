@@ -108,7 +108,6 @@ class SubvolumeManager():
         return False
 
     def create_snapshot(self, periods):
-        info("Creating snapshot for:", ', '.join([p.name for p in periods]))
         self.subvol.create_snapshot(periods=periods)
 
     def cleanup(self):
