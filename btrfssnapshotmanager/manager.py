@@ -17,7 +17,7 @@ class SnapshotManager():
             )
         self.systemdboot_manager = self.config.systemdboot_manager
 
-    def execute(self, subvols=None, cleanup=True, backup=True, systemdboot_run=True):
+    def execute(self, subvols=None):
         managers_to_run = self.managers
         if subvols is not None and len(subvols) > 0:
             managers_to_run = dict([(s, m) for s, m in managers_to_run.items() if s in subvols])
@@ -26,29 +26,29 @@ class SnapshotManager():
 
         for subvol, manager in managers_to_run.items():
             info(headings[subvol])
+
+            # Search for periods that require a new snapshot
             periods = []
             for period, count in manager.retention_config.items():
                 if manager.should_run(period):
                     debug("Period reached:", period.name)
                     periods.append(period)
-            if len(periods) > 0:
 
-                # Create a new snapshot for the required periods
+            # If required, create a new snapshot
+            if len(periods) > 0:
                 manager.create_snapshot(periods)
 
-                # If specified, delete unwanted snapshots
-                if cleanup:
-                    manager.cleanup()
+            # Delete unwanted snapshots
+            manager.cleanup()
 
-                # If required, ensure backups are in sync
-                if backup:
-                    manager.backup()
+            # Sync backups
+            manager.backup()
 
-                # If required, sync systemd-boot entries
-                if systemdboot_run and self.systemdboot_manager is not None:
-                    for entry_manager in self.systemdboot_manager.entry_managers:
-                        if entry_manager.subvol.name == subvol:
-                            entry_manager.run()
+            # Sync systemd-boot entries
+            if self.systemdboot_manager is not None:
+                for entry_manager in self.systemdboot_manager.entry_managers:
+                    if entry_manager.subvol.name == subvol:
+                        entry_manager.run()
 
             else:
                 debug("No periods reached")
