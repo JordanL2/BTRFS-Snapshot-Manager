@@ -195,7 +195,7 @@ def backup_run(args):
         if path is None or subvol == path:
             if len(manager.backups) > 0:
                 if empty_line:
-                    info()
+                    info('---')
                 manager.backup(ids=ids)
                 empty_line = True
 

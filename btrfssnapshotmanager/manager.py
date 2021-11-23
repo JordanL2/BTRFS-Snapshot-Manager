@@ -25,7 +25,7 @@ class SnapshotManager():
         empty_line = False
         for subvol, manager in managers_to_run.items():
             if empty_line:
-                info()
+                info('================')
             empty_line = True
             info("Subvolume:", subvol)
             periods = []
@@ -40,13 +40,13 @@ class SnapshotManager():
 
                 # If specified, delete unwanted snapshots
                 if cleanup:
-                    info()
+                    info('----------------')
                     info("Cleanup...")
                     manager.cleanup()
 
                 # If required, ensure backups are in sync
                 if backup:
-                    info()
+                    info('----------------')
                     info("Backup...")
                     manager.backup()
 
@@ -55,7 +55,7 @@ class SnapshotManager():
 
         # If required, sync systemd-boot entries
         if systemdboot_run and self.systemdboot_manager is not None:
-            info()
+            info('================')
             info("Systemd-boot...")
             for entry_manager in self.systemdboot_manager.entry_managers:
                 entry_manager.run()
@@ -68,7 +68,7 @@ class SnapshotManager():
         empty_line = False
         for subvol, manager in managers_to_run.items():
             if empty_line:
-                info()
+                info('---')
             empty_line = True
             info("Subvolume:", subvol)
             manager.cleanup()
@@ -136,7 +136,7 @@ class SubvolumeManager():
             if ids is not None and i not in ids:
                 continue
             if empty_line:
-                info()
+                info('---')
             empty_line = True
             info("Running backup for {0} to {1}".format(self.subvol.path, backup.location()))
             backup.backup()
