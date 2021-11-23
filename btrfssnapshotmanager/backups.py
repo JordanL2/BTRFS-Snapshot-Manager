@@ -117,7 +117,10 @@ class RemoteBackup(Backup):
         return "{0}:{1}".format(self.host, self.path)
 
     def ensure_target_exists(self):
-        cmd("{0} \"sudo mkdir -p {1}\"".format(self._ssh_command(), self.path), attempts=self.cmd_attempts, fail_delay=self.cmd_fail_delay)
+        exists = cmd("{0} \"if [[ -d '{1}' ]] ; then echo 'yes' ; fi\"".format(self._ssh_command(), self.path), attempts=self.cmd_attempts, fail_delay=self.cmd_fail_delay)
+        if exists != 'yes':
+            info("Target location doesn't exist, creating {0}".format(self.location()))
+            cmd("{0} \"sudo mkdir -p {1}\"".format(self._ssh_command(), self.path), attempts=self.cmd_attempts, fail_delay=self.cmd_fail_delay)
 
     def get_target_snapshot_names(self):
         debug("Fetching list of snapshots on target " + self.location())

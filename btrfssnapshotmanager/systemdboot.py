@@ -78,6 +78,7 @@ class SystemdBootManager():
     def load_boot_snapshots(self):
         self.boot_snapshots = []
         if not self.snapshots_dir.is_dir():
+            info("Creating boot snapshots directory: {0}".format(self.snapshots_dir))
             self.snapshots_dir.mkdir()
         for child in self.snapshots_dir.iterdir():
             if child.is_dir():
