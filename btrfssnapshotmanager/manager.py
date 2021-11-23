@@ -28,7 +28,7 @@ class SnapshotManager():
             periods = []
             for period, count in manager.retention_config.items():
                 if manager.should_run(period):
-                    info("Period reached:", period.name)
+                    debug("Period reached:", period.name)
                     periods.append(period)
             if len(periods) > 0:
 
@@ -44,7 +44,7 @@ class SnapshotManager():
                     manager.backup()
 
             else:
-                info("No periods reached")
+                debug("No periods reached")
 
         # If required, sync systemd-boot entries
         if systemdboot_run and self.systemdboot_manager is not None:
@@ -123,7 +123,7 @@ class SubvolumeManager():
         count = 0
         for snapshot in snapshots:
             if snapshot not in dont_delete:
-                info("Deleting snapshot:", snapshot.name)
+                debug("Deleting snapshot:", snapshot.name)
                 snapshot.delete()
 
     def backup(self, ids=None):
