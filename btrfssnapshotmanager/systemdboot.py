@@ -329,12 +329,12 @@ class SystemdBootEntryManager():
         for entry in self.entries.copy():
             snapshot = entry.snapshot
             if snapshot not in snapshots_needed:
-                info("Snapshot {0} no longer requires an entry".format(snapshot.name))
+                info("Snapshot {0} no longer requires an entry for {1}".format(snapshot.name, self.reference_entry))
                 entry.delete()
 
         # Create missing entries
         entry_snapshots = [e.snapshot for e in self.entries]
         for s in snapshots_needed:
             if s not in entry_snapshots:
-                info("Snapshot {0} requires an entry".format(s.name))
+                info("Snapshot {0} requires an entry for {1}".format(s.name, self.reference_entry))
                 self.create_entry(s)
