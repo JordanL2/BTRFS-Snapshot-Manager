@@ -98,7 +98,7 @@ class SystemdBootManager():
         if date is None:
             date = datetime.now()
         boot_snapshot_name = systemdboot_snapshot_name_format(date)
-        info("Creating new systemd-boot boot snapshot: {0}/{1}".format(self.snapshots_dir, boot_snapshot_name))
+        info("Creating systemd-boot boot snapshot: {0}/{1}".format(self.snapshots_dir, boot_snapshot_name))
 
         cmd("mkdir {0}/{1}".format(self.snapshots_dir, boot_snapshot_name))
         for init_file in self.init_files:
@@ -248,7 +248,7 @@ class SystemdBootEntryManager():
         boot_snapshot = self.manager.get_boot_snapshot_for_snapshot(snapshot)
 
         # Read reference entry one line at a time, modify and write to new entry
-        info("Creating new systemd-boot entry {0}".format(entry_name))
+        info("Creating systemd-boot entry {0}".format(entry_name))
         debug("---")
         with open(ref_entry_path, 'r') as fhin:
             with open(new_entry_filename, 'w') as fhout:
