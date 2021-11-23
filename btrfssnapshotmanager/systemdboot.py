@@ -217,7 +217,7 @@ class SystemdBootEntryManager():
     def load_entries(self):
         self.entries = []
         if not self.manager.entries_dir.is_dir():
-            raise SnapshotException("Boot path {0} does not exist".format(self.manager.entries_dir))
+            raise SnapshotException("Systemd-boot entries path {0} does not exist".format(self.manager.entries_dir))
         for child in self.manager.entries_dir.iterdir():
             if child.is_file():
                 snapshot_name = boot_entry_name_parse(self.reference_entry, child.name)
@@ -300,15 +300,14 @@ class SystemdBootEntryManager():
 
     def delete_using_nonexistent_snapshot(self):
         for entry in self.entries.copy():
-            snapshot = entry.snapshot
-            if snapshot is None:
-                info("systemd-boot entry {0} not associated with an existing snapshot".format(entry.name))
+            if entry.snapshot is None:
+                info("Systemd-boot entry {0} not associated with an existing snapshot".format(entry.name))
                 entry.delete()
 
     def delete_using_nonexistent_boot_snapshot(self):
         for entry in self.entries.copy():
             if entry.boot_snapshot is not None and not entry.boot_snapshot.exists():
-                 info("systemd-boot entry {0} is using non-existent boot snapshot {1}".format(entry.name, entry.boot_snapshot.name))
+                 info("Systemd-boot entry {0} is using non-existent boot snapshot {1}".format(entry.name, entry.boot_snapshot.name))
                  entry.delete()
 
     def run(self):
@@ -320,7 +319,7 @@ class SystemdBootEntryManager():
             for s in snapshots:
                 snapshots_needed.add(s)
         snapshots_needed = sorted(list(snapshots_needed), key=lambda s: s.name)
-        debug("Snapshots found that should have systemd-boot entries:")
+        debug("Snapshots found that should have systemd-boot {0} entries:".format(self.reference_entry))
         for s in snapshots_needed:
             debug("-", s.name)
 
@@ -330,12 +329,12 @@ class SystemdBootEntryManager():
         for entry in self.entries.copy():
             snapshot = entry.snapshot
             if snapshot not in snapshots_needed:
-                info("Snapshot {0} no longer requires a systemd-boot entry for {1}".format(snapshot.name, self.reference_entry))
+                info("A systemd-boot {0} entry is not longer required for snapshot {1}".format(self.reference_entry, snapshot.name))
                 entry.delete()
 
         # Create missing entries
         entry_snapshots = [e.snapshot for e in self.entries]
-        for s in snapshots_needed:
-            if s not in entry_snapshots:
-                info("Snapshot {0} requires a systemd-boot entry for {1}".format(s.name, self.reference_entry))
-                self.create_entry(s)
+        for snapshot in snapshots_needed:
+            if snapshot not in entry_snapshots:
+                info("A systemd-boot {0} entry is required for snapshot {1}".format(self.reference_entry, snapshot.name))
+                self.create_entry(snapshot)
