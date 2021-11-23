@@ -22,8 +22,8 @@
 #      monthly: 1
 
 # Optional - Uncomment the next line to change the location of the snapshots
-# subvolume, defaults to .snapshots inside the subvolume. This path can be
-# absolute - e.g. "/snapshots".
+# subvolume, defaults to .snapshots. This path can be relative to the subvolume
+# or absolute - e.g. "/snapshots".
 #
 #    snapshots-path: .snapshots
 

@@ -50,6 +50,7 @@ class SystemdBootSnapshot():
         )
 
     def delete(self):
+        info("Deleting systemd-boot boot snapshot {0}".format(self.name))
         cmd("rm -rf {0}".format(self.path()))
         self.systemdboot_manager.boot_snapshots.remove(self)
         for entry_manager in self.systemdboot_manager.entry_managers:
@@ -97,7 +98,7 @@ class SystemdBootManager():
         if date is None:
             date = datetime.now()
         boot_snapshot_name = systemdboot_snapshot_name_format(date)
-        debug("Creating new boot snapshot: {0}/{1}".format(self.snapshots_dir, boot_snapshot_name))
+        info("Creating new systemd-boot boot snapshot: {0}/{1}".format(self.snapshots_dir, boot_snapshot_name))
 
         cmd("mkdir {0}/{1}".format(self.snapshots_dir, boot_snapshot_name))
         for init_file in self.init_files:
@@ -108,11 +109,11 @@ class SystemdBootManager():
         return boot_snapshot
 
     def create_boot_snapshot_if_needed(self, date=None):
-        debug("Determining if new boot snapshot required...")
+        info("Determining if new systemd-boot boot snapshot required...")
         needed = False
         if len(self.boot_snapshots) == 0:
             needed = True
-            debug("- No boot snapshots found, new boot snapshot required")
+            info("- No systemd-boot boot snapshots found, new boot snapshot required")
         else:
             last_boot_snapshot = self.boot_snapshots[-1]
             for init_file in self.init_files:
@@ -120,16 +121,15 @@ class SystemdBootManager():
                 code = cmd(command, return_code=True)[2]
                 if code != 0:
                     needed = True
-                    debug("- Init file {0} has changed, new boot snapshot required".format(init_file))
+                    info("- Init file {0} has changed, new systemd-boot boot snapshot required".format(init_file))
                     break
 
         if needed:
             self.create_boot_snapshot(date=date)
         else:
-            debug("New boot snapshot is not required")
+            info("New systemd-boot boot snapshot is not required")
 
     def delete_boot_snapshot(self, boot_snapshot_name):
-        debug("Deleting boot snapshot {0}".format(boot_snapshot_name))
         boot_snapshot = [b for b in self.boot_snapshots if b.name == boot_snapshot_name]
         if len(boot_snapshot) != 1:
             raise SnapshotException("Could not find boot snapshot {0}".format(boot_snapshot_name))
@@ -143,16 +143,16 @@ class SystemdBootManager():
         return None
 
     def remove_unused_boot_snapshots(self):
-        debug("Checking if any boot snapshots can be deleted...")
+        info("Checking if any systemd-boot boot snapshots can be deleted...")
         boot_snapshots_to_delete = set(self.boot_snapshots)
         for subvol in self._subvols():
-            debug("- Checking subvolume {0}".format(subvol.name))
+            info("- Checking subvolume {0}".format(subvol.name))
             for snapshot in subvol.snapshots:
                 boot_snapshot = self.get_boot_snapshot_for_snapshot(snapshot)
                 if boot_snapshot is not None and boot_snapshot in boot_snapshots_to_delete:
                     boot_snapshots_to_delete.remove(boot_snapshot)
         for boot_snapshot in boot_snapshots_to_delete:
-            info("- No longer need boot snapshot {0}".format(boot_snapshot.name))
+            info("- No longer need systemd-boot boot snapshot {0}".format(boot_snapshot.name))
             boot_snapshot.delete()
 
     def _subvols(self):
@@ -178,6 +178,7 @@ class SystemdBootEntry():
         return PosixPath(self.entry_manager.manager.entries_dir, self.name)
 
     def delete(self):
+        info("Deleting systemd-boot entry {0}".format(self.name))
         entry_file = self.path()
         entry_file.unlink()
         if self.snapshot is not None:
@@ -247,7 +248,7 @@ class SystemdBootEntryManager():
         boot_snapshot = self.manager.get_boot_snapshot_for_snapshot(snapshot)
 
         # Read reference entry one line at a time, modify and write to new entry
-        info("Creating new entry {0}".format(entry_name))
+        info("Creating new systemd-boot entry {0}".format(entry_name))
         debug("---")
         with open(ref_entry_path, 'r') as fhin:
             with open(new_entry_filename, 'w') as fhout:
@@ -301,13 +302,13 @@ class SystemdBootEntryManager():
         for entry in self.entries.copy():
             snapshot = entry.snapshot
             if snapshot is None:
-                info("Entry {0} not associated with an existing snapshot".format(entry.name))
+                info("systemd-boot entry {0} not associated with an existing snapshot".format(entry.name))
                 entry.delete()
 
     def delete_using_nonexistent_boot_snapshot(self):
         for entry in self.entries.copy():
             if entry.boot_snapshot is not None and not entry.boot_snapshot.exists():
-                 info("Entry {0} is using non-existent boot snapshot {1}".format(entry.name, entry.boot_snapshot.name))
+                 info("systemd-boot entry {0} is using non-existent boot snapshot {1}".format(entry.name, entry.boot_snapshot.name))
                  entry.delete()
 
     def run(self):
@@ -329,12 +330,12 @@ class SystemdBootEntryManager():
         for entry in self.entries.copy():
             snapshot = entry.snapshot
             if snapshot not in snapshots_needed:
-                info("Snapshot {0} no longer requires an entry for {1}".format(snapshot.name, self.reference_entry))
+                info("Snapshot {0} no longer requires a systemd-boot entry for {1}".format(snapshot.name, self.reference_entry))
                 entry.delete()
 
         # Create missing entries
         entry_snapshots = [e.snapshot for e in self.entries]
         for s in snapshots_needed:
             if s not in entry_snapshots:
-                info("Snapshot {0} requires an entry for {1}".format(s.name, self.reference_entry))
+                info("Snapshot {0} requires a systemd-boot entry for {1}".format(s.name, self.reference_entry))
                 self.create_entry(s)
