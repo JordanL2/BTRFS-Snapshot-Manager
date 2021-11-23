@@ -37,6 +37,8 @@ class SnapshotManager():
             # If required, create a new snapshot
             if len(periods) > 0:
                 manager.create_snapshot(periods)
+            else:
+                debug("No periods reached")
 
             # Delete unwanted snapshots
             manager.cleanup()
@@ -49,9 +51,6 @@ class SnapshotManager():
                 for entry_manager in self.systemdboot_manager.entry_managers:
                     if entry_manager.subvol.name == subvol:
                         entry_manager.run()
-
-            else:
-                debug("No periods reached")
 
 
     def cleanup(self, subvols=None):
