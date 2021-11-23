@@ -22,10 +22,10 @@ class SnapshotManager():
         if subvols is not None and len(subvols) > 0:
             managers_to_run = dict([(s, m) for s, m in managers_to_run.items() if s in subvols])
 
-        title_length = max([len(s) for s, m in managers_to_run.items()])
+        headings = self._make_headings([s for s in managers_to_run.keys()])
 
         for subvol, manager in managers_to_run.items():
-            info("======================== {0} ========================".format(format(subvol, "<{0}".format(title_length))))
+            info(headings[subvol])
             periods = []
             for period, count in manager.retention_config.items():
                 if manager.should_run(period):
@@ -59,10 +59,10 @@ class SnapshotManager():
         if subvols is not None and len(subvols) > 0:
             managers_to_run = dict([(s, m) for s, m in managers_to_run.items() if s in subvols])
 
-        title_length = max([len(s) for s, m in managers_to_run.items()])
+        headings = self._make_headings([s for s in managers_to_run.keys()])
 
         for subvol, manager in managers_to_run.items():
-            info("======================== {0} ========================".format(format(subvol, "<{0}".format(title_length))))
+            info(headings[subvol])
             manager.cleanup()
 
     def backup(self, subvols=None, ids=None):
@@ -70,11 +70,18 @@ class SnapshotManager():
         if subvols is not None and len(subvols) > 0:
             managers_to_run = dict([(s, m) for s, m in managers_to_run.items() if s in subvols and len(m.backups) > 0])
 
-        title_length = max([len(s) for s, m in managers_to_run.items()])
+        headings = self._make_headings([s for s in managers_to_run.keys()])
 
         for subvol, manager in managers_to_run.items():
-            info("======================== {0} ========================".format(format(subvol, "<{0}".format(title_length))))
+            info(headings[subvol])
             manager.backup(ids=ids)
+
+    def _make_headings(self, titles):
+        title_length = max([len(t) for t in titles])
+        headings = {}
+        for title in titles:
+            headings[title] = "======================== {0} ========================".format(format(title, "<{0}".format(title_length)))
+        return headings
 
 
 class SubvolumeManager():
