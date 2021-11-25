@@ -182,7 +182,7 @@ class RemoteBtrfsBackup(RemoteBackup):
         names = super().get_target_snapshot_names()
         for target_name in names.copy():
             flags = cmd("{0} \"sudo btrfs subvolume show {1} | grep -E \\\"^\\s*Flags:\\\" | sed -e \\\"s/\\s*Flags:\\s*//\\\"\"".format(
-                self._ssh_command(), PosixPath(self.path, target_name))).split()
+                self._ssh_command(), PurePosixPath(self.path, target_name))).split()
             debug("Target snapshot {0} flags: '{1}'".format(target_name, ','.join(flags)))
             if 'readonly' not in flags:
                 debug("Target snapshot {0} is not readonly, indicating it is an imcomplete transfer. Deleting it.".format(target_name))
@@ -222,7 +222,7 @@ class LocalRsyncBackup(LocalBackup):
     def ensure_target_exists(self):
         super().ensure_target_exists()
         if not self.temp_path().is_dir():
-            info("Target temp location doesn't exist, creating {0}".format(self.temp_path()))
+            info("Target temp location doesn't exist, creating {0}".format(self.temp_location()))
             self.temp_path().mkdir(mode=0o700, parents=True)
 
     def transfer_source(self, source):
@@ -251,7 +251,7 @@ class RemoteRsyncBackup(RemoteBackup):
     mechanism = 'rsync'
 
     def temp_path(self):
-        return PosixPath(self.path, '.tmp')
+        return PurePosixPath(self.path, '.tmp')
 
     def temp_location(self):
         return "{0}:{1}".format(self.host, self.temp_path())
@@ -283,7 +283,7 @@ class RemoteRsyncBackup(RemoteBackup):
             attempts=self.cmd_attempts, fail_delay=self.cmd_fail_delay)
 
     def move_target_snapshot_from_temp(self, source):
-        move_from = PosixPath(self.temp_path(), source.name)
-        move_to = PosixPath(self.path, source.name)
+        move_from = PurePosixPath(self.temp_path(), source.name)
+        move_to = PurePosixPath(self.path, source.name)
         info("Moving via rsync target snapshot {0} to {1}".format(move_from, move_to))
         cmd("{0} \"sudo mv {1} {2}\"".format(self._ssh_command(), move_from, move_to))
