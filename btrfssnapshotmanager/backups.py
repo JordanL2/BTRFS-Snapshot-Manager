@@ -149,6 +149,18 @@ class LocalBtrfsBackup(LocalBackup):
 
     mechanism = 'btrfs'
 
+    def get_target_snapshot_names(self):
+        names = super().get_target_snapshot_names()
+        for target_name in names.copy():
+            flags = cmd("sudo btrfs subvolume show {0} | grep -E \"^\\s*Flags:\" | sed -e \"s/\\s*Flags:\\s*//\"".format(PosixPath(self.path, target_name))).split("\n")
+            debug("Snapshot {0} flags: '{1}'".format(target_name, ','.join(flags)))
+            if 'readonly' not in flags:
+                debug("Target snapshot {0} is not readonly, indicating it is an imcomplete transfer. Deleting it.".format(target_name))
+                self.delete_target(target_name)
+                names.remove(target_name)
+
+        return names
+
     def transfer_source(self, source):
         info("Transferring via btrfs snapshot {0} to target {1}".format(source.path, self.location()))
         cmd("btrfs send {0} | btrfs receive {1}".format(source.path, self.path, source.name))
@@ -165,6 +177,19 @@ class LocalBtrfsBackup(LocalBackup):
 class RemoteBtrfsBackup(RemoteBackup):
 
     mechanism = 'btrfs'
+
+    def get_target_snapshot_names(self):
+        names = super().get_target_snapshot_names()
+        for target_name in names.copy():
+            flags = cmd("{0} \"sudo btrfs subvolume show {1} | grep -E \\\"^\\s*Flags:\\\" | sed -e \\\"s/\\s*Flags:\\s*//\\\"\"".format(
+                self._ssh_command(), PosixPath(self.path, target_name))).split("\n")
+            debug("Target snapshot {0} flags: '{1}'".format(target_name, ','.join(flags)))
+            if 'readonly' not in flags:
+                debug("Target snapshot {0} is not readonly, indicating it is an imcomplete transfer. Deleting it.".format(target_name))
+                self.delete_target(target_name)
+                names.remove(target_name)
+
+        return names
 
     def transfer_source(self, source):
         info("Transferring via btrfs snapshot {0} to target {1}".format(source.path, self.location()))
