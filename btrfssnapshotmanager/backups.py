@@ -238,7 +238,7 @@ class RemoteRsyncBackup(RemoteBackup, RsyncBackup):
         super().ensure_target_exists()
         exists = cmd("{0} \"if [[ -d '{1}' ]] ; then echo 'yes' ; fi\"".format(self._ssh_command(), self.temp_path()), attempts=self.cmd_attempts, fail_delay=self.cmd_fail_delay)
         if exists != 'yes':
-            info("Target location doesn't exist, creating {0}".format(self.location()))
+            info("Target temp location doesn't exist, creating {0}".format(self.temp_location()))
             cmd("{0} \"sudo mkdir -p {1}\"".format(self._ssh_command(), self.temp_path()), attempts=self.cmd_attempts, fail_delay=self.cmd_fail_delay)
 
     def transfer_source(self, source):
