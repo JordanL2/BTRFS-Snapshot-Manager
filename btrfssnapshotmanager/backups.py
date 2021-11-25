@@ -209,18 +209,12 @@ class RemoteBtrfsBackup(RemoteBackup):
 
 # Rsync
 
-class RsyncBackup():
+class LocalRsyncBackup(LocalBackup):
+
+    mechanism = 'rsync'
 
     def temp_path(self):
         return PosixPath(self.path, '.tmp')
-
-    def temp_location(self):
-        raise Exception("Method must be overridden")
-
-
-class LocalRsyncBackup(LocalBackup, RsyncBackup):
-
-    mechanism = 'rsync'
 
     def temp_location(self):
         return self.temp_path()
@@ -252,9 +246,12 @@ class LocalRsyncBackup(LocalBackup, RsyncBackup):
         cmd("mv {0} {1}".format(move_from, move_to))
 
 
-class RemoteRsyncBackup(RemoteBackup, RsyncBackup):
+class RemoteRsyncBackup(RemoteBackup):
 
     mechanism = 'rsync'
+
+    def temp_path(self):
+        return PosixPath(self.path, '.tmp')
 
     def temp_location(self):
         return "{0}:{1}".format(self.host, self.temp_path())
