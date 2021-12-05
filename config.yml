@@ -106,3 +106,10 @@
 #systemd-boot:
 #  # Optional - set the path to the boot partition, defaults to /boot
 #  boot-path: /boot
+#  # Optional - specify the files in the boot partition top-level to copy for
+#  # each snapshot - by default all top-level files will be copied.
+#  init-files:
+#    - initramfs-linux.img
+#    - initramfs-linux-lts.img
+#    - vmlinuz-linux
+#    - vmlinuz-linux-lts

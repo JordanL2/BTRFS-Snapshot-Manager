@@ -64,9 +64,7 @@ class SystemdBootManager():
 
     def __init__(self):
         self.entry_managers = []
-        self.init_file_excludes = [
-            re.compile('.+\-fallback\.img'),
-        ]
+        self.init_file_list = None
         self.set_boot_path(systemdboot_default_boot_dir)
 
     def set_boot_path(self, boot_path):
@@ -77,6 +75,10 @@ class SystemdBootManager():
         self.entries_dir = PosixPath(self.boot_path, systemdboot_default_entries_dir)
         for entry_manager in self.entry_managers:
             entry_manager.load_entries()
+    
+    def set_init_file_list(self, init_file_list):
+        self.init_file_list = init_file_list
+        self.load_init_files()
 
     def load_boot_snapshots(self):
         self.boot_snapshots = []
@@ -94,12 +96,8 @@ class SystemdBootManager():
     def load_init_files(self):
         self.init_files = []
         for child in PosixPath(self.boot_path).iterdir():
-            if child.is_file():
-                for exclude in self.init_file_excludes:
-                    if exclude.match(child.name):
-                        break
-                else:
-                    self.init_files.append(child.name)
+            if child.is_file() and (self.init_file_list is None or child.name in self.init_file_list):
+                self.init_files.append(child.name)
         self.init_files = sorted(self.init_files)
 
     def create_boot_snapshot(self, date=None):

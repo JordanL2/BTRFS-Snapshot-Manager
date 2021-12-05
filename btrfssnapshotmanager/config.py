@@ -69,6 +69,9 @@ class Config():
         ],
         ('systemd-boot', False): {
             ('boot-path', False): str,
+            ('init-files', False): [
+                str,
+            ],
         },
     }
 
@@ -225,6 +228,8 @@ class Config():
             self.systemdboot_manager = systemdboot_manager
             if 'boot-path' in systemdboot_config:
                 systemdboot_manager.set_boot_path(systemdboot_config['boot-path'])
+            if 'init-files' in systemdboot_config:
+                systemdboot_manager.set_init_file_list(systemdboot_config['init-files'])
 
         config = self.get_subvolume_config()
         for subvol, subvol_config in config.items():
