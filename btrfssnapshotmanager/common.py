@@ -26,9 +26,12 @@ class CommandException(Exception):
 def cmd(command, attempts=None, fail_delay=None, return_code=False):
     attempt = 0
     while attempt == 0 or (attempts is not None and attempt < attempts):
+        trace("CMD: {}".format(command))
         result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout = result.stdout.decode('utf-8').rstrip("\n")
         stderr = result.stderr.decode('utf-8').rstrip("\n")
+        trace("... STDOUT: {}".format(stdout))
+        trace("... STDERR: {}".format(stderr))
         if result.returncode != 0:
             if attempts is not None:
                 attempt += 1

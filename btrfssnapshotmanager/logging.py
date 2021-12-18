@@ -9,27 +9,31 @@ def log_output(level, messages):
         print(log_config['prefix']
               + ' '.join([str(m) for m in messages]), file=log_config['output'], flush=True)
 
-def debug(*messages):
+def trace(*messages):
     log_output(0, messages)
 
-def info(*messages):
+def debug(*messages):
     log_output(1, messages)
 
-def warn(*messages):
+def info(*messages):
     log_output(2, messages)
 
-def error(*messages):
+def warn(*messages):
     log_output(3, messages)
 
-def fatal(*messages, error_code=1):
+def error(*messages):
     log_output(4, messages)
+
+def fatal(*messages, error_code=1):
+    log_output(5, messages)
     sys.exit(error_code)
 
 
 LOG_CONFIG = {
-    'level': 0,
+    'level': 2,
     'levels': [
-        { 'name': 'debug', 'prefix': ''    , 'output': sys.stdout, },
+        { 'name': 'trace', 'prefix': '[T] ', 'output': sys.stdout, },
+        { 'name': 'debug', 'prefix': '[D] ', 'output': sys.stdout, },
         { 'name': 'info' , 'prefix': ''    , 'output': sys.stdout, },
         { 'name': 'warn' , 'prefix': '[!] ', 'output': sys.stderr, },
         { 'name': 'error', 'prefix': '[!] ', 'output': sys.stderr, },

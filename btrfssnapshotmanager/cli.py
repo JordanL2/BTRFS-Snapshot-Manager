@@ -13,7 +13,7 @@ def main():
         fatal("Must run as root user")
 
     parser = argparse.ArgumentParser(prog='btrfs-snapshot-manager')
-    parser.add_argument('--log-level', type=int, default=1, dest='loglevel', help='log level: 0=debug, 1=info, 2=warn 3=error 4=fatal')
+    parser.add_argument('--log-level', type=int, default=2, dest='loglevel', help='log level: 0=debug, 1=info, 2=warn 3=error 4=fatal')
     subparsers = parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
 
     # backup
