@@ -142,6 +142,16 @@ class RemoteBackup(Backup):
         ssh_command += self.host
         return ssh_command
 
+    def _ssh_options(self):
+        if self.ssh_options is not None:
+            return " " + self.ssh_options
+        return ""
+
+    def _user(self):
+        if self.user is not None:
+            return " -l " + self.user
+        return ""
+
 
 # Btrfs
 
@@ -265,15 +275,15 @@ class RemoteRsyncBackup(RemoteBackup):
 
     def transfer_source(self, source):
         info("Transferring via rsync snapshot {0} to target temp {1}".format(source.path, self.temp_location()))
-        cmd("rsync -a --delete --rsync-path=\"sudo rsync\" -e \"ssh {0} -l {1}\" {3} {2}:{4}/".format(
-                self.ssh_options, self.user, self.host, source.path, self.temp_path()),
+        cmd("rsync -a --delete --rsync-path=\"sudo rsync\" -e \"ssh{0}{1}\" {3} {2}:{4}/".format(
+                self._ssh_options(), self._user(), self.host, source.path, self.temp_path()),
             attempts=self.cmd_attempts, fail_delay=self.cmd_fail_delay)
         self.move_target_snapshot_from_temp(source)
 
     def transfer_source_delta(self, previous_source, source):
         info("Transferring via rsync snapshot {0} (as delta from {1}) to target temp {2}".format(source.path, previous_source.path, self.temp_location()))
-        cmd("rsync -a --delete --link-dest={7}/{6}/ --rsync-path=\"sudo rsync\" -e \"ssh {0} -l {1}\" {3}/ {2}:{5}/{4}/".format(
-                self.ssh_options, self.user, self.host, source.path, source.name, self.temp_path(), previous_source.name, self.path),
+        cmd("rsync -a --delete --link-dest={7}/{6}/ --rsync-path=\"sudo rsync\" -e \"ssh{0}{1}\" {3}/ {2}:{5}/{4}/".format(
+                self._ssh_options(), self._user(), self.host, source.path, source.name, self.temp_path(), previous_source.name, self.path),
             attempts=self.cmd_attempts, fail_delay=self.cmd_fail_delay)
         self.move_target_snapshot_from_temp(source)
 
