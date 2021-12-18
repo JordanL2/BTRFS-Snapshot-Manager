@@ -46,7 +46,7 @@ class Subvolume():
         self.name = path
         self.path = PosixPath(path)
         if not self._check_path():
-            raise SnapshotException("Not a valid btrfs subvolume")
+            raise SnapshotException("Path {0} is not a valid btrfs subvolume".format(self.path))
         self.snapshots_dir = PosixPath(path, snapshots_dir_name)
         self.snapshots = None
         if self.has_snapshots():
@@ -64,14 +64,14 @@ class Subvolume():
 
     def init_snapshots(self):
         if self.has_snapshots():
-            raise SnapshotException("Subvolume is already initialised for snapshots")
+            raise SnapshotException("Subvolume {0} is already initialised for snapshots".format(self.path))
         info("Initialising subvolume", self.path, "for snapshots")
         cmd("btrfs subvolume create {0}".format(self.snapshots_dir))
         self.load_snapshots()
 
     def load_snapshots(self):
         if not self.has_snapshots():
-            raise SnapshotException("Subvolume not initialised for snapshots")
+            raise SnapshotException("Subvolume {0} is not initialised for snapshots".format(self.path))
         self.snapshots = []
         for child in self.snapshots_dir.iterdir():
             if child.is_dir():
@@ -83,7 +83,7 @@ class Subvolume():
 
     def create_snapshot(self, date=None, periods=None):
         if not self.has_snapshots():
-            raise SnapshotException("Subvolume not initialised for snapshots")
+            raise SnapshotException("Subvolume {0} is not initialised for snapshots".format(self.path))
         if date is None:
             date = datetime.now()
         if periods is None:
@@ -103,7 +103,7 @@ class Subvolume():
 
     def find_snapshot(self, name):
         if not self.has_snapshots():
-            raise SnapshotException("Subvolume not initialised for snapshots")
+            raise SnapshotException("Subvolume {0} is not initialised for snapshots".format(self.path))
         for s in self.snapshots:
             if s.name == name:
                 return s
