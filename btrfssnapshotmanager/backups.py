@@ -124,7 +124,7 @@ class RemoteBackup(Backup):
 
     def get_target_snapshot_names(self):
         debug("Fetching list of snapshots on target " + self.location())
-        out = cmd("{0} \"ls -1 {1}\"".format(self._ssh_command(), self.path), attempts=self.cmd_attempts, fail_delay=self.cmd_fail_delay)
+        out = cmd("{0} \"ls -1 {1}/\"".format(self._ssh_command(), self.path), attempts=self.cmd_attempts, fail_delay=self.cmd_fail_delay)
         names = []
         remote_files = [n.strip() for n in out.split("\n") if n.strip() != '']
         for remote_file in remote_files:
