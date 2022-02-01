@@ -60,3 +60,4 @@ class PeriodMonth(Period):
 PERIODS = [PeriodHour, PeriodDay, PeriodWeek, PeriodMonth]
 PERIOD_TAG_MAP = dict([(p.tag, p) for p in PERIODS])
 PERIOD_NAME_MAP = dict([(p.name, p) for p in PERIODS])
+PERIOD_NAME_MAP['all'] = None

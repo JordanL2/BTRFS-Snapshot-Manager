@@ -16,11 +16,17 @@ class Backup():
         # Get list of source snapshots that should be on the target
         source_snapshots = set()
         for period in self.retention:
+            if period is None:
+                continue
             period_snapshots = self.subvol.search_snapshots(periods=[period])
             if len(period_snapshots) > self.retention[period]:
                 period_snapshots = period_snapshots[len(period_snapshots) - self.retention[period]:]
             for s in period_snapshots:
                 source_snapshots.add(s)
+        # Get minimum number of snapshots that should be retained
+        minimum = 0
+        if None in self.retention:
+            minimum = self.retention[None]
         source_snapshots = sorted(list(source_snapshots), key=lambda s: s.name)
         source_snapshot_names = [s.name for s in source_snapshots]
         debug("Identified the following {0} snapshots that should be on target {1}:".format(self.subvol.name, self.location()))
@@ -34,9 +40,20 @@ class Backup():
         for s in target_snapshot_names:
             debug("-", s)
 
+        # Enforce minimum retention
+        target_snapshots_keep = []
+        if len(source_snapshot_names) < minimum:
+            debug("Number of snapshots to retain is less than minimum")
+            for target_snapshot_name in sorted(target_snapshot_names, reverse=True):
+                if target_snapshot_name not in source_snapshot_names:
+                    debug("- Retain: {}".format(target_snapshot_name))
+                    target_snapshots_keep.append(target_snapshot_name)
+                    if len(source_snapshot_names) + len(target_snapshots_keep) >= minimum:
+                        break
+
         # Delete target snapshots not needed any more
         for target_snapshot_name in target_snapshot_names:
-            if target_snapshot_name not in source_snapshot_names:
+            if target_snapshot_name not in source_snapshot_names and target_snapshot_name not in target_snapshots_keep:
                 self.delete_target(target_snapshot_name)
 
         # Upload source snapshots not found on target

@@ -51,6 +51,7 @@ class Config():
                             ('daily', False): int,
                             ('weekly', False): int,
                             ('monthly', False): int,
+                            ('minimum', False): int,
                         },
                     },
                 ],
@@ -187,6 +188,8 @@ class Config():
                     for period in PERIODS:
                         if period.name in backup_config['retention']:
                             retention[period] = int(backup_config['retention'][period.name])
+                    if 'minimum' in backup_config['retention']:
+                        retention[None] = int(backup_config['retention']['minimum'])
 
                     if 'local' in backup_config:
                         path = backup_config['local']['path']

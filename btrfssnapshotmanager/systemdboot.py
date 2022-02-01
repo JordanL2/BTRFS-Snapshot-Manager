@@ -75,7 +75,7 @@ class SystemdBootManager():
         self.entries_dir = PosixPath(self.boot_path, systemdboot_default_entries_dir)
         for entry_manager in self.entry_managers:
             entry_manager.load_entries()
-    
+
     def set_init_file_list(self, init_file_list):
         self.init_file_list = init_file_list
         self.load_init_files()
@@ -320,10 +320,12 @@ class SystemdBootEntryManager():
         snapshots_needed = set()
         for period, count in self.retention.items():
             snapshots = self.subvol.search_snapshots(periods=[period])
+            debug("systemdboot - searched for snapshots with period {}".format(period))
             if len(snapshots) > count:
                 snapshots = snapshots[len(snapshots) - count :]
             for s in snapshots:
                 snapshots_needed.add(s)
+                debug("- Snapshot: {}".format(s.name))
         snapshots_needed = sorted(list(snapshots_needed), key=lambda s: s.name)
         debug("Snapshots found that should have systemd-boot {0} entries:".format(self.reference_entry))
         for s in snapshots_needed:

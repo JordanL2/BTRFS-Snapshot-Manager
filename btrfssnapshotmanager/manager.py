@@ -126,8 +126,10 @@ class SubvolumeManager():
             if period in self.retention_config:
                 max_snapshots = self.retention_config[period]
             snapshots = self.subvol.search_snapshots(periods=[period])
+            debug("cleanup - searched for snapshots with period {}".format(period))
             for snapshot in snapshots[max(0, len(snapshots) - max_snapshots) : ]:
                 dont_delete.add(snapshot)
+                debug("- Don't delete: {}".format(snapshot.name))
         snapshots = self.subvol.search_snapshots(periods=PERIODS)
         count = 0
         for snapshot in snapshots:

@@ -163,13 +163,13 @@ def backup_list(args):
             if len(manager.backups) > 0:
                 if len(table) > 0:
                     table.append(None)
-                table.append([subvol, 'LOCATION', 'MECHANISM', *[p.name.upper() for p in PERIODS]])
+                table.append([subvol, 'LOCATION', 'MECHANISM', *[p.name.upper() for p in PERIODS] + ['MINIMUM']])
                 for i, backup in enumerate(manager.backups):
                     row = [i]
                     row.append(backup.location())
                     row.append(backup.mechanism)
 
-                    for p in PERIODS:
+                    for p in PERIODS + [None]:
                         if p in backup.retention:
                             row.append(backup.retention[p])
                         else:
