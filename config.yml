@@ -46,6 +46,9 @@
 #          daily: 7
 #          weekly: 3
 #          monthly: 1
+#          # Minimum - This ensures this many backups are always retained on
+#          # the target, regardless of whether it's retained locally.
+#          minimum: 10
 #        # Optional - After successful backup, a file in the source subvolume
 #        # snapshots directory can be created with this name, to indicate the
 #        # last time a successful backup run completed. This can be either
@@ -63,6 +66,7 @@
 #          daily: 7
 #          weekly: 3
 #          monthly: 1
+#          minimum: 10
 
 # Uncomment the next section to enable integration with the systemd-boot
 # boot-loader. Boot loader entries are automatically generated, which you can
