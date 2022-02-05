@@ -44,7 +44,7 @@ class Backup():
         target_snapshots_keep = []
         if len(source_snapshot_names) < minimum:
             debug("Number of snapshots to retain is less than minimum")
-            for target_snapshot_name in sorted(target_snapshot_names, reverse=True):
+            for target_snapshot_name in sorted(target_snapshot_names, key=lambda t: snapshot_name_parse(t)['date'], reverse=True):
                 if target_snapshot_name not in source_snapshot_names:
                     debug("- Retain: {}".format(target_snapshot_name))
                     target_snapshots_keep.append(target_snapshot_name)
