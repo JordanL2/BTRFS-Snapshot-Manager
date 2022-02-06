@@ -184,20 +184,13 @@ class Config():
 
                     backup_type = backup_config['type']
 
-                    retention = {}
-                    for period in PERIODS:
-                        if period.name in backup_config['retention']:
-                            retention[period] = int(backup_config['retention'][period.name])
-                    if 'minimum' in backup_config['retention']:
-                        retention[None] = int(backup_config['retention']['minimum'])
-
                     if 'local' in backup_config:
                         path = backup_config['local']['path']
 
                         if backup_type == 'btrfs':
-                            backup = LocalBtrfsBackup(subvol_instance, retention, path)
+                            backup = LocalBtrfsBackup(subvol_instance, path)
                         elif backup_type == 'rsync':
-                            backup = LocalRsyncBackup(subvol_instance, retention, path)
+                            backup = LocalRsyncBackup(subvol_instance, path)
 
                     else:
                         host = backup_config['remote']['host']
@@ -213,10 +206,15 @@ class Config():
                             ssh_options = backup_config['remote']['ssh-options']
 
                         if backup_type == 'btrfs':
-                            backup = RemoteBtrfsBackup(subvol_instance, retention, host, user, ssh_options, path)
+                            backup = RemoteBtrfsBackup(subvol_instance, host, user, ssh_options, path)
                         elif backup_type == 'rsync':
-                            backup = RemoteRsyncBackup(subvol_instance, retention, host, user, ssh_options, path)
+                            backup = RemoteRsyncBackup(subvol_instance, host, user, ssh_options, path)
 
+                    for period in PERIODS:
+                        if period.name in backup_config['retention']:
+                            backup.retention[period] = int(backup_config['retention'][period.name])
+                    if 'minimum' in backup_config['retention']:
+                        backup.retention_minimum = int(backup_config['retention']['minimum'])
                     if 'last_sync_file' in backup_config:
                         backup.last_sync_file = backup_config['last_sync_file']
 

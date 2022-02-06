@@ -7,9 +7,10 @@ from pathlib import PosixPath, PurePosixPath
 
 class Backup():
 
-    def __init__(self, subvol, retention):
+    def __init__(self, subvol):
         self.subvol = subvol
-        self.retention = retention
+        self.retention = {}
+        self.retention_minimum = 0
         self.last_sync_file = None
 
     def backup(self):
@@ -23,10 +24,6 @@ class Backup():
                 period_snapshots = period_snapshots[len(period_snapshots) - self.retention[period]:]
             for s in period_snapshots:
                 source_snapshots.add(s)
-        # Get minimum number of snapshots that should be retained
-        minimum = 0
-        if None in self.retention:
-            minimum = self.retention[None]
         source_snapshots = sorted(list(source_snapshots), key=lambda s: s.name)
         source_snapshot_names = [s.name for s in source_snapshots]
         debug("Identified the following {0} snapshots that should be on target {1}:".format(self.subvol.name, self.location()))
@@ -42,13 +39,13 @@ class Backup():
 
         # Enforce minimum retention
         target_snapshots_keep = []
-        if len(source_snapshot_names) < minimum:
+        if len(source_snapshot_names) < self.retention_minimum:
             debug("Number of snapshots to retain is less than minimum")
             for target_snapshot_name in sorted(target_snapshot_names, key=lambda t: snapshot_name_parse(t)['date'], reverse=True):
                 if target_snapshot_name not in source_snapshot_names:
                     debug("- Retain: {}".format(target_snapshot_name))
                     target_snapshots_keep.append(target_snapshot_name)
-                    if len(source_snapshot_names) + len(target_snapshots_keep) >= minimum:
+                    if len(source_snapshot_names) + len(target_snapshots_keep) >= self.retention_minimum:
                         break
 
         # Delete target snapshots not needed any more
@@ -93,9 +90,9 @@ class LocalBackup(Backup):
 
     transport = 'local'
 
-    def __init__(self, subvol, retention, path):
+    def __init__(self, subvol, path):
         self.path = PosixPath(path)
-        super().__init__(subvol, retention)
+        super().__init__(subvol)
 
     def location(self):
         return str(self.path)
@@ -121,14 +118,14 @@ class RemoteBackup(Backup):
 
     transport = 'remote'
 
-    def __init__(self, subvol, retention, host, user, ssh_options, path):
+    def __init__(self, subvol, host, user, ssh_options, path):
         self.host = host
         self.user = user
         self.ssh_options = ssh_options
         self.path = PurePosixPath(path)
         self.cmd_attempts = 3
         self.cmd_fail_delay = 10
-        super().__init__(subvol, retention)
+        super().__init__(subvol)
 
     def location(self):
         return "{0}:{1}".format(self.host, self.path)

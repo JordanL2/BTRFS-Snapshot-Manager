@@ -169,11 +169,12 @@ def backup_list(args):
                     row.append(backup.location())
                     row.append(backup.mechanism)
 
-                    for p in PERIODS + [None]:
+                    for p in PERIODS:
                         if p in backup.retention:
                             row.append(backup.retention[p])
                         else:
                             row.append('')
+                    row.append(backup.retention_minimum)
 
                     table.append(row)
 
