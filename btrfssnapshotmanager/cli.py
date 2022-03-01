@@ -270,10 +270,12 @@ def snapshot_config(args):
             if len(manager.retention_config) > 0:
                 if len(table) > 0:
                     table.append(None)
-                table.append([subvol, 'LAST RUN', 'NEXT RUN'])
+                table.append([subvol, 'KEEP', 'LAST RUN', 'NEXT RUN'])
                 for period in sorted(manager.retention_config.keys(), key=lambda p: p.seconds):
                     row = []
                     row.append(period.name)
+
+                    row.append(manager.retention_config[period])
 
                     last_run = manager.last_run(period)
                     if last_run is None:
