@@ -14,7 +14,7 @@ def main():
 
     parser = argparse.ArgumentParser(prog='btrfs-snapshot-manager')
     parser.add_argument('--log-level', type=int, default=2, dest='loglevel', help='log level: 0=debug, 1=info, 2=warn 3=error 4=fatal')
-    subparsers = parser.add_subparsers(title='subcommands', help='action to perform', metavar='action', required=True)
+    subparsers = parser.add_subparsers(title='subcommands', metavar='action', help='action to perform')
 
     # backup
     backup_parser = subparsers.add_parser('backup', help='snapshot backup commands')
@@ -139,12 +139,15 @@ def main():
     systemdboot_snapshot_list_parser.set_defaults(func=systemdboot_snapshot_list)
 
     args = parser.parse_args()
-    try:
-        args.func(args)
-    except SnapshotException as e:
-        fatal(e.error)
-    except ConfigException as e:
-        fatal("Config failed validation: " + e.error)
+    if not hasattr(args, 'func'):
+        parser.print_help()
+    else:
+        try:
+            args.func(args)
+        except SnapshotException as e:
+            fatal(e.error)
+        except ConfigException as e:
+            fatal("Config failed validation: " + e.error)
 
 
 # Backups
