@@ -619,11 +619,17 @@ def _output_json(header, labels, tables):
             }
 
         for row in table:
-            this_table = dict([(header[i], row[i]) for i in range(0, len(header))])
+            jsn_row = dict([(header[i], row[i]) for i in range(0, len(header))])
+            tbl_p = jsn_table
             if lab_num > 1:
-                jsn_table['table'].append(this_table)
-            else:
-                jsn_table.append(this_table)
+                tbl_p = jsn_table['table']
+            if header[0] == 'ID':
+                row_id = jsn_row['ID']
+                del jsn_row['ID']
+                while len(tbl_p) < (row_id + 1):
+                    tbl_p.append([])
+                tbl_p = tbl_p[row_id]
+            tbl_p.append(jsn_row)
 
         if lab_num > 0:
             jsn[labels[t][0][1]] = jsn_table
