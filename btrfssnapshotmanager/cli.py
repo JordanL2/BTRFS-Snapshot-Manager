@@ -401,7 +401,7 @@ def systemdboot_config(args):
             table.append(row)
         header = ['ENTRY', 'SUBVOLUME', *[p.name.upper() for p in PERIODS]]
         tables = [table]
-        output_tables(header, [[['BOOT PATH', systemdboot_manager.boot_path]]], tables)
+        output_tables(header, [[]], tables)
 
 def systemdboot_create(args):
     global_args(args)
@@ -554,10 +554,10 @@ def systemdboot_snapshot_list(args):
 
     table = []
     for boot_snapshot in systemdboot_manager.boot_snapshots:
-        table.append([boot_snapshot.name, boot_snapshot.path(), boot_snapshot.date.strftime(dateformat_human)])
+        table.append([boot_snapshot.name, str(boot_snapshot.path()), boot_snapshot.date.strftime(dateformat_human)])
     if len(table) > 0:
         tables = [table]
-        output_tables(['BOOT SNAPSHOT', 'PATH', 'DATE'], [[['BOOT PATH', systemdboot_manager.boot_path]]], tables)
+        output_tables(['BOOT SNAPSHOT', 'PATH', 'DATE'], [[]], tables)
 
 # Common
 
@@ -606,15 +606,29 @@ def _output_json(header, labels, tables):
     jsn = {}
 
     for t, table in enumerate(tables):
-        jsn_table = {}
+        jsn_table = []
         if len(labels[t]) > 1:
-            jsn_table['attributes'] = dict([(l[0], l[1]) for l in labels[t][1:]])
+            jsn_table = {
+                'attributes': dict([(l[0], l[1]) for l in labels[t][1:]]),
+                'table': []
+            }
 
-        jsn_table['table'] = []
         for row in table:
-            jsn_table['table'].append(dict([(header[i], row[i]) for i in range(0, len(header))]))
+            this_table = dict([(header[i], row[i]) for i in range(0, len(header))])
+            if type(jsn_table) == dict:
+                jsn_table['table'].append(this_table)
+            else:
+                jsn_table.append(this_table)
 
-        jsn[labels[t][0][1]] = jsn_table
+        if len(labels[t]) > 0:
+            jsn[labels[t][0][1]] = jsn_table
+        elif len(tables) > 1:
+            raise Exception("Can't have more than one table if no labels")
+        else:
+            if type(jsn_table) == dict:
+                jsn = jsn_table['table']
+            else:
+                jsn = jsn_table
 
     out(json.dumps(jsn, indent=4))
 
