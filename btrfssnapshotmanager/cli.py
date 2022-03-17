@@ -592,8 +592,13 @@ def output_tables(header, labels, tables):
         for i, table in enumerate(tables):
             if i > 0:
                 out()
-            for label in labels[i]:
-                print("{}: {}".format(label[0], label[1]))
+            if len(labels[i]) > 0:
+                label_width = max([len(l[0]) for l in labels[i]])
+                label_line = "-" * (label_width + 2 + max([len(l[1]) for l in labels[i]]))
+                print(label_line)
+                for label in labels[i]:
+                    print("{}: {}".format(format(label[0], ">{0}".format(label_width)), label[1]))
+                print(label_line)
             _output_table(header, table)
 
 def _output_table(header, table):
