@@ -4,6 +4,7 @@ from btrfssnapshotmanager.manager import *
 
 import argparse
 import csv
+import json
 
 
 dateformat_human =  '%a %d %b %Y %H:%M:%S'
@@ -17,6 +18,7 @@ def main():
     parser = argparse.ArgumentParser(prog='btrfs-snapshot-manager')
     parser.add_argument('--log-level', type=int, default=2, dest='loglevel', help='log level: 0=debug, 1=info, 2=warn 3=error 4=fatal')
     parser.add_argument('--csv', action='store_true', default=False, dest='csv', help='output tables in CSV format')
+    parser.add_argument('--json', action='store_true', default=False, dest='json', help='output tables in JSON format')
     subparsers = parser.add_subparsers(title='subcommands', metavar='action', help='action to perform')
 
     # backup
@@ -564,6 +566,8 @@ def global_args(args):
     global output_format
     if args.csv:
         output_format = 'csv'
+    elif args.json:
+        output_format = 'json'
 
 def get_subvol(path):
     snapshot_manager = SnapshotManager()
@@ -576,6 +580,15 @@ def out(*messages):
 
 def output_tables(header, labels, tables):
     if output_format == 'csv':
+        _output_csv(header, labels, tables)
+
+    elif output_format == 'json':
+        _output_json(header, labels, tables)
+
+    else:
+        _output_human(header, labels, tables)
+
+def _output_csv(header, labels, tables):
         csvwriter = csv.writer(sys.stdout)
 
         if len(tables) > 0:
@@ -588,7 +601,24 @@ def output_tables(header, labels, tables):
         csvwriter.writerow(header)
         for i, table in enumerate(tables):
             csvwriter.writerows(table)
-    else:
+
+def _output_json(header, labels, tables):
+    jsn = {}
+
+    for t, table in enumerate(tables):
+        jsn_table = {}
+        if len(labels[t]) > 1:
+            jsn_table['attributes'] = dict([(l[0], l[1]) for l in labels[t][1:]])
+
+        jsn_table['table'] = []
+        for row in table:
+            jsn_table['table'].append(dict([(header[i], row[i]) for i in range(0, len(header))]))
+
+        jsn[labels[t][0][1]] = jsn_table
+
+    out(json.dumps(jsn, indent=4))
+
+def _output_human(header, labels, tables):
         for i, table in enumerate(tables):
             if i > 0:
                 out()
