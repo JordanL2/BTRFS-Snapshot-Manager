@@ -163,12 +163,13 @@ def backup_config(args):
     if path is not None and path not in snapshot_manager.managers:
         fatal("Config not found for subvolume", path)
 
+    header = ['ID', 'LOCATION', 'MECHANISM', *[p.name.upper() for p in PERIODS] + ['MINIMUM']]
+    labels = []
     tables = []
     for subvol, manager in snapshot_manager.managers.items():
         if path is None or subvol == path:
             if len(manager.backups) > 0:
                 table = []
-                table.append([subvol, 'LOCATION', 'MECHANISM', *[p.name.upper() for p in PERIODS] + ['MINIMUM']])
                 for i, backup in enumerate(manager.backups):
                     row = [i]
                     row.append(backup.location())
@@ -182,9 +183,10 @@ def backup_config(args):
                     row.append(backup.retention_minimum)
 
                     table.append(row)
+                labels.append([['SUBVOL', subvol]])
                 tables.append(table)
 
-    output_tables(tables)
+    output_tables(header, labels, tables)
 
 def backup_list(args):
     global_args(args)
@@ -209,9 +211,6 @@ def backup_list(args):
     header = ['ID', 'LOCATION', 'SNAPSHOT', 'DATE', 'PERIODS']
     for subvol, manager in managers_to_run.items():
         backups = manager.get_backups(ids)
-        labels.append([
-            ['SUBVOL', subvol]
-        ])
         table = []
         for i, backup in sorted(backups.items(), key=lambda b: b[0]):
             target_snapshot_names = backup.get_target_snapshot_names()
@@ -224,6 +223,7 @@ def backup_list(args):
                     snapshot_details['date'].strftime(dateformat_human),
                     ', '.join([p.name for p in snapshot_details['periods']]),
                 ])
+        labels.append([['SUBVOL', subvol]])
         tables.append(table)
 
     output_tables(header, labels, tables)
@@ -274,12 +274,13 @@ def snapshot_config(args):
     if path is not None and path not in snapshot_manager.managers:
         fatal("Config not found for subvolume", path)
 
+    header = ['PERIOD', 'KEEP', 'LAST RUN', 'NEXT RUN']
+    labels = []
     tables = []
     for subvol, manager in snapshot_manager.managers.items():
         if path is None or subvol == path:
             if len(manager.retention_config) > 0:
                 table = []
-                table.append([subvol, 'KEEP', 'LAST RUN', 'NEXT RUN'])
                 for period in sorted(manager.retention_config.keys(), key=lambda p: p.seconds):
                     row = []
                     row.append(period.name)
@@ -301,9 +302,10 @@ def snapshot_config(args):
                     row.append(next_run)
 
                     table.append(row)
+                labels.append([['SUBVOL', subvol]])
                 tables.append(table)
 
-    output_tables(tables)
+    output_tables(header, labels, tables)
 
 def snapshot_create(args):
     global_args(args)
@@ -344,10 +346,11 @@ def snapshot_list(args):
     else:
         subvols = [get_subvol(path)]
 
+    header = ['SNAPSHOT', 'DATE', 'PERIODS']
+    labels = []
     tables = []
     for subvol in subvols:
         table = []
-        table.append([subvol.name, 'DATE', 'PERIODS'])
 
         if not subvol.has_snapshots():
             fatal("Subvolume", subvol.path, "is not initialised for snapshots")
@@ -355,9 +358,10 @@ def snapshot_list(args):
         snapshots = subvol.search_snapshots(periods=periods)
         for snapshot in snapshots:
             table.append([snapshot.name, snapshot.date.strftime(dateformat_human), ', '.join([p.name for p in snapshot.get_periods()])])
+        labels.append([['SUBVOL', subvol.name]])
         tables.append(table)
 
-    output_tables(tables)
+    output_tables(header, labels, tables)
 
 def snapshot_run(args):
     global_args(args)
@@ -382,7 +386,7 @@ def systemdboot_config(args):
 
     entry_managers = systemdboot_manager.entry_managers
     if entry_managers is not None:
-        table = [[systemdboot_manager.boot_path, 'SUBVOLUME', *[p.name.upper() for p in PERIODS]]]
+        table = []
         for entry_manager in entry_managers:
             row = []
             row.append(entry_manager.reference_entry)
@@ -393,8 +397,9 @@ def systemdboot_config(args):
                 else:
                     row.append('')
             table.append(row)
+        header = ['ENTRY', 'SUBVOLUME', *[p.name.upper() for p in PERIODS]]
         tables = [table]
-        output_tables(tables)
+        output_tables(header, [[['BOOT PATH', systemdboot_manager.boot_path]]], tables)
 
 def systemdboot_create(args):
     global_args(args)
@@ -447,11 +452,12 @@ def systemdboot_list(args):
 
     entry_managers = snapshot_manager.systemdboot_manager.entry_managers
     if entry_managers is not None:
+        header = ['SNAPSHOT ENTRY', 'SNAPSHOT', 'DATE', 'PERIODS', 'BOOT SNAPSHOT']
+        labels = []
         tables = []
         for entry_manager in entry_managers:
 
             table = []
-            table.append([entry_manager.reference_entry, 'SUBVOLUME', 'SNAPSHOT', 'DATE', 'PERIODS', 'BOOT SNAPSHOT'])
 
             for entry in entry_manager.entries:
                 snapshot = entry.snapshot
@@ -464,7 +470,6 @@ def systemdboot_list(args):
                 if snapshot is not None:
                     table.append([
                         entry.name,
-                        entry_manager.subvol.name,
                         snapshot.name,
                         snapshot.date.strftime(dateformat_human),
                         ', '.join([p.name for p in snapshot.get_periods()]),
@@ -474,15 +479,18 @@ def systemdboot_list(args):
                     table.append([
                         entry_manager.reference_entry,
                         entry.name,
-                        entry_manager.subvol.name,
                         'NOT FOUND',
                         '',
                         '',
                         boot_snapshot_name,
                     ])
+            labels.append([
+                ['REFERENCE ENTRY', entry_manager.reference_entry],
+                ['SUBVOLUME', entry_manager.subvol.name],
+            ])
             tables.append(table)
 
-        output_tables(tables)
+        output_tables(header, labels, tables)
 
 def systemdboot_run(args):
     global_args(args)
@@ -542,12 +550,12 @@ def systemdboot_snapshot_list(args):
     if systemdboot_manager is None:
         raise SnapshotException("No systemd-boot config enabled.")
 
-    table = [['BOOT SNAPSHOT', 'PATH', 'DATE']]
+    table = []
     for boot_snapshot in systemdboot_manager.boot_snapshots:
         table.append([boot_snapshot.name, boot_snapshot.path(), boot_snapshot.date.strftime(dateformat_human)])
-    if len(table) > 1:
+    if len(table) > 0:
         tables = [table]
-        output_tables(tables)
+        output_tables(['BOOT SNAPSHOT', 'PATH', 'DATE'], [[]], tables)
 
 # Common
 
