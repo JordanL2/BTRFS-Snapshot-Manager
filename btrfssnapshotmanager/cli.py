@@ -223,7 +223,7 @@ def backup_list(args):
                     backup.location(),
                     target_snapshot_name,
                     snapshot_details['date'].strftime(dateformat_human),
-                    ', '.join([p.name for p in snapshot_details['periods']]),
+                    [p.name for p in snapshot_details['periods']],
                 ])
         labels.append([['SUBVOL', subvol]])
         tables.append(table)
@@ -359,7 +359,7 @@ def snapshot_list(args):
 
         snapshots = subvol.search_snapshots(periods=periods)
         for snapshot in snapshots:
-            table.append([snapshot.name, snapshot.date.strftime(dateformat_human), ', '.join([p.name for p in snapshot.get_periods()])])
+            table.append([snapshot.name, snapshot.date.strftime(dateformat_human), [p.name for p in snapshot.get_periods()]])
         labels.append([['SUBVOL', subvol.name]])
         tables.append(table)
 
@@ -474,7 +474,7 @@ def systemdboot_list(args):
                         entry.name,
                         snapshot.name,
                         snapshot.date.strftime(dateformat_human),
-                        ', '.join([p.name for p in snapshot.get_periods()]),
+                        [p.name for p in snapshot.get_periods()],
                         boot_snapshot_name,
                     ])
                 else:
@@ -597,6 +597,10 @@ def _output_csv(header, labels, tables):
                 table_values = [l[1] for l in labels[t]]
                 for i, row in enumerate(table.copy()):
                     table[i] = table_values + row
+                for r, row in enumerate(table):
+                    for c, column in enumerate(row):
+                        if type(column) == list:
+                            row[c] = ', '.join(column)
 
         csvwriter.writerow(header)
         for i, table in enumerate(tables):
@@ -642,6 +646,13 @@ def _output_human(header, labels, tables):
         for i, table in enumerate(tables):
             if i > 0:
                 out()
+
+            for t, table in enumerate(tables):
+                for r, row in enumerate(table):
+                    for c, column in enumerate(row):
+                        if type(column) == list:
+                            row[c] = ', '.join(column)
+
             if len(labels[i]) > 0:
                 label_width = max([len(l[0]) for l in labels[i]])
                 label_line = "-" * (label_width + 2 + max([len(l[1]) for l in labels[i]]))
