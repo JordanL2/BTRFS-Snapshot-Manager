@@ -205,10 +205,14 @@ def backup_list(args):
         managers_to_run = dict([(s, m) for s, m in managers_to_run.items() if s in paths and len(m.backups) > 0])
 
     tables = []
+    labels = []
+    header = ['ID', 'LOCATION', 'SNAPSHOT', 'DATE', 'PERIODS']
     for subvol, manager in managers_to_run.items():
         backups = manager.get_backups(ids)
+        labels.append([
+            ['SUBVOL', subvol]
+        ])
         table = []
-        table.append([subvol, 'LOCATION', 'SNAPSHOT', 'DATE', 'PERIODS'])
         for i, backup in sorted(backups.items(), key=lambda b: b[0]):
             target_snapshot_names = backup.get_target_snapshot_names()
             for target_snapshot_name in sorted(target_snapshot_names):
@@ -222,7 +226,7 @@ def backup_list(args):
                 ])
         tables.append(table)
 
-    output_tables(tables)
+    output_tables(header, labels, tables)
 
 def backup_run(args):
     global_args(args)
@@ -562,32 +566,41 @@ def get_subvol(path):
 def out(*messages):
     print(' '.join([str(m) for m in messages]), flush=True)
 
-def output_tables(tables):
+def output_tables(header, labels, tables):
     if output_format == 'csv':
+        csvwriter = csv.writer(sys.stdout)
+
+        if len(tables) > 0:
+            header = [l[0] for l in labels[0]] + header
+            for t, table in enumerate(tables):
+                table_values = [l[1] for l in labels[t]]
+                for i, row in enumerate(table.copy()):
+                    table[i] = table_values + row
+
+        csvwriter.writerow(header)
         for i, table in enumerate(tables):
-            if i > 0:
-                out()
-            _output_table_csv(table)
+            csvwriter.writerows(table)
     else:
         for i, table in enumerate(tables):
             if i > 0:
                 out()
-            _output_table(table)
+            for label in labels[i]:
+                print("{}: {}".format(label[0], label[1]))
+            _output_table(header, table)
 
-def _output_table(table):
+def _output_table(header, table):
     if len(table) == 0:
         return
     max_width = []
-    for i in range(0, len(table[0])):
-        max_width.append(max([(len(str(r[i])) if r is not None else 0) for r in table]))
+    for i in range(0, len(header)):
+        max_width.append(max([(len(str(r[i])) if r is not None else 0) for r in table] + [len(header[i])]))
+    out(' | '.join([
+            format(str(c), "<{0}".format(max_width[i])) for i, c in enumerate(header)
+        ]))
     for r in table:
         out(' | '.join([
             format(str(c), "<{0}".format(max_width[i])) for i, c in enumerate(r)
         ]))
-
-def _output_table_csv(table):
-    csvwriter = csv.writer(sys.stdout)
-    csvwriter.writerows(table)
 
 
 if __name__ == '__main__':
