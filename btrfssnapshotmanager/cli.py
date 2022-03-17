@@ -3,9 +3,11 @@
 from btrfssnapshotmanager.manager import *
 
 import argparse
+import csv
 
 
 dateformat_human =  '%a %d %b %Y %H:%M:%S'
+output_format = 'table'
 
 
 def main():
@@ -14,6 +16,7 @@ def main():
 
     parser = argparse.ArgumentParser(prog='btrfs-snapshot-manager')
     parser.add_argument('--log-level', type=int, default=2, dest='loglevel', help='log level: 0=debug, 1=info, 2=warn 3=error 4=fatal')
+    parser.add_argument('--csv', action='store_true', default=False, dest='csv', help='output tables in CSV format')
     subparsers = parser.add_subparsers(title='subcommands', metavar='action', help='action to perform')
 
     # backup
@@ -160,12 +163,11 @@ def backup_config(args):
     if path is not None and path not in snapshot_manager.managers:
         fatal("Config not found for subvolume", path)
 
-    table = []
+    tables = []
     for subvol, manager in snapshot_manager.managers.items():
         if path is None or subvol == path:
             if len(manager.backups) > 0:
-                if len(table) > 0:
-                    table.append(None)
+                table = []
                 table.append([subvol, 'LOCATION', 'MECHANISM', *[p.name.upper() for p in PERIODS] + ['MINIMUM']])
                 for i, backup in enumerate(manager.backups):
                     row = [i]
@@ -180,8 +182,9 @@ def backup_config(args):
                     row.append(backup.retention_minimum)
 
                     table.append(row)
+                tables.append(table)
 
-    output_table(table)
+    output_tables(tables)
 
 def backup_list(args):
     global_args(args)
@@ -201,11 +204,10 @@ def backup_list(args):
     if len(paths) > 0:
         managers_to_run = dict([(s, m) for s, m in managers_to_run.items() if s in paths and len(m.backups) > 0])
 
-    table = []
+    tables = []
     for subvol, manager in managers_to_run.items():
         backups = manager.get_backups(ids)
-        if len(table) > 0:
-            table.append(None)
+        table = []
         table.append([subvol, 'LOCATION', 'SNAPSHOT', 'DATE', 'PERIODS'])
         for i, backup in sorted(backups.items(), key=lambda b: b[0]):
             target_snapshot_names = backup.get_target_snapshot_names()
@@ -218,8 +220,9 @@ def backup_list(args):
                     snapshot_details['date'].strftime(dateformat_human),
                     ', '.join([p.name for p in snapshot_details['periods']]),
                 ])
+        tables.append(table)
 
-    output_table(table)
+    output_tables(tables)
 
 def backup_run(args):
     global_args(args)
@@ -267,12 +270,11 @@ def snapshot_config(args):
     if path is not None and path not in snapshot_manager.managers:
         fatal("Config not found for subvolume", path)
 
-    table = []
+    tables = []
     for subvol, manager in snapshot_manager.managers.items():
         if path is None or subvol == path:
             if len(manager.retention_config) > 0:
-                if len(table) > 0:
-                    table.append(None)
+                table = []
                 table.append([subvol, 'KEEP', 'LAST RUN', 'NEXT RUN'])
                 for period in sorted(manager.retention_config.keys(), key=lambda p: p.seconds):
                     row = []
@@ -295,8 +297,9 @@ def snapshot_config(args):
                     row.append(next_run)
 
                     table.append(row)
+                tables.append(table)
 
-    output_table(table)
+    output_tables(tables)
 
 def snapshot_create(args):
     global_args(args)
@@ -337,10 +340,9 @@ def snapshot_list(args):
     else:
         subvols = [get_subvol(path)]
 
-    table = []
+    tables = []
     for subvol in subvols:
-        if len(table) > 0:
-            table.append(None)
+        table = []
         table.append([subvol.name, 'DATE', 'PERIODS'])
 
         if not subvol.has_snapshots():
@@ -349,8 +351,9 @@ def snapshot_list(args):
         snapshots = subvol.search_snapshots(periods=periods)
         for snapshot in snapshots:
             table.append([snapshot.name, snapshot.date.strftime(dateformat_human), ', '.join([p.name for p in snapshot.get_periods()])])
+        tables.append(table)
 
-    output_table(table)
+    output_tables(tables)
 
 def snapshot_run(args):
     global_args(args)
@@ -386,7 +389,8 @@ def systemdboot_config(args):
                 else:
                     row.append('')
             table.append(row)
-        output_table(table)
+        tables = [table]
+        output_tables(tables)
 
 def systemdboot_create(args):
     global_args(args)
@@ -439,11 +443,10 @@ def systemdboot_list(args):
 
     entry_managers = snapshot_manager.systemdboot_manager.entry_managers
     if entry_managers is not None:
-        table = []
+        tables = []
         for entry_manager in entry_managers:
 
-            if len(table) > 0:
-                table.append(None)
+            table = []
             table.append([entry_manager.reference_entry, 'SUBVOLUME', 'SNAPSHOT', 'DATE', 'PERIODS', 'BOOT SNAPSHOT'])
 
             for entry in entry_manager.entries:
@@ -473,8 +476,9 @@ def systemdboot_list(args):
                         '',
                         boot_snapshot_name,
                     ])
+            tables.append(table)
 
-        output_table(table)
+        output_tables(tables)
 
 def systemdboot_run(args):
     global_args(args)
@@ -538,12 +542,16 @@ def systemdboot_snapshot_list(args):
     for boot_snapshot in systemdboot_manager.boot_snapshots:
         table.append([boot_snapshot.name, boot_snapshot.path(), boot_snapshot.date.strftime(dateformat_human)])
     if len(table) > 1:
-        output_table(table)
+        tables = [table]
+        output_tables(tables)
 
 # Common
 
 def global_args(args):
     LOG_CONFIG['level'] = args.loglevel
+    global output_format
+    if args.csv:
+        output_format = 'csv'
 
 def get_subvol(path):
     snapshot_manager = SnapshotManager()
@@ -554,19 +562,32 @@ def get_subvol(path):
 def out(*messages):
     print(' '.join([str(m) for m in messages]), flush=True)
 
-def output_table(table):
+def output_tables(tables):
+    if output_format == 'csv':
+        for i, table in enumerate(tables):
+            if i > 0:
+                out()
+            _output_table_csv(table)
+    else:
+        for i, table in enumerate(tables):
+            if i > 0:
+                out()
+            _output_table(table)
+
+def _output_table(table):
     if len(table) == 0:
         return
     max_width = []
     for i in range(0, len(table[0])):
         max_width.append(max([(len(str(r[i])) if r is not None else 0) for r in table]))
     for r in table:
-        if r is None:
-            out()
-        else:
-            out(' | '.join([
-                format(str(c), "<{0}".format(max_width[i])) for i, c in enumerate(r)
-            ]))
+        out(' | '.join([
+            format(str(c), "<{0}".format(max_width[i])) for i, c in enumerate(r)
+        ]))
+
+def _output_table_csv(table):
+    csvwriter = csv.writer(sys.stdout)
+    csvwriter.writerows(table)
 
 
 if __name__ == '__main__':
