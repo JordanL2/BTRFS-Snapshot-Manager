@@ -604,10 +604,15 @@ def _output_csv(header, labels, tables):
 
 def _output_json(header, labels, tables):
     jsn = {}
+    lab_num = None
+    if len(labels) > 0:
+        lab_num = len(labels[0])
+        if lab_num == 0 and len(tables) > 1:
+            raise Exception("Can't have more than one table if no labels")
 
     for t, table in enumerate(tables):
         jsn_table = []
-        if len(labels[t]) > 1:
+        if lab_num > 1:
             jsn_table = {
                 'attributes': dict([(l[0], l[1]) for l in labels[t][1:]]),
                 'table': []
@@ -615,20 +620,15 @@ def _output_json(header, labels, tables):
 
         for row in table:
             this_table = dict([(header[i], row[i]) for i in range(0, len(header))])
-            if type(jsn_table) == dict:
+            if lab_num > 1:
                 jsn_table['table'].append(this_table)
             else:
                 jsn_table.append(this_table)
 
-        if len(labels[t]) > 0:
+        if lab_num > 0:
             jsn[labels[t][0][1]] = jsn_table
-        elif len(tables) > 1:
-            raise Exception("Can't have more than one table if no labels")
         else:
-            if type(jsn_table) == dict:
-                jsn = jsn_table['table']
-            else:
-                jsn = jsn_table
+            jsn = jsn_table
 
     out(json.dumps(jsn, indent=4))
 
