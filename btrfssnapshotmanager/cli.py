@@ -555,7 +555,7 @@ def systemdboot_snapshot_list(args):
         table.append([boot_snapshot.name, boot_snapshot.path(), boot_snapshot.date.strftime(dateformat_human)])
     if len(table) > 0:
         tables = [table]
-        output_tables(['BOOT SNAPSHOT', 'PATH', 'DATE'], [[]], tables)
+        output_tables(['BOOT SNAPSHOT', 'PATH', 'DATE'], [[['BOOT PATH', systemdboot_manager.boot_path]]], tables)
 
 # Common
 
