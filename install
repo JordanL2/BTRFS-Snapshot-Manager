@@ -12,6 +12,8 @@ then
 fi
 
 # Set up service and timer
+PATHTOEXECUTABLE=`which btrfs-snapshot-manager | sed -e "s/\//\\\\\\\\\//g"`
 sudo cp btrfs-snapshot.service /etc/systemd/system/
+sudo sed -i -e "s/\/usr\/bin\/btrfs-snapshot-manager/$PATHTOEXECUTABLE/" /etc/systemd/system/btrfs-snapshot.service
 sudo cp btrfs-snapshot.timer /etc/systemd/system/
 sudo systemctl enable --now btrfs-snapshot.timer
