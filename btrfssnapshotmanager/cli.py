@@ -647,11 +647,10 @@ def _output_human(header, labels, tables):
             if i > 0:
                 out()
 
-            for t, table in enumerate(tables):
-                for r, row in enumerate(table):
-                    for c, column in enumerate(row):
-                        if type(column) == list:
-                            row[c] = ', '.join(column)
+            for row in table:
+                for c, column in enumerate(row):
+                    if type(column) == list:
+                        row[c] = ', '.join(column)
 
             if len(labels[i]) > 0:
                 label_width = max([len(l[0]) for l in labels[i]])
