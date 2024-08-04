@@ -2,7 +2,8 @@
 
 # Install python script
 cd "$(dirname "$0/")"
-sudo pip3 install .
+pippath=`which pip3`
+sudo $pippath install .
 
 # Make config dir and empty config file
 sudo mkdir -p /etc/btrfs-snapshot-manager
